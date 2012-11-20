@@ -1,22 +1,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
+  
   <groupId>com.berico</groupId>
   <artifactId>clavin</artifactId>
   <version>0.2.1</version>
   <packaging>jar</packaging>
-
+  
   <name>CLAVIN</name>
   <description>CLAVIN (Cartographic Location And Vicinity INdexer) is an open source software package for geographic entity resolution.</description>
   <url>http://clavin.bericotechnologies.com</url>
-
+  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compile.encoding>UTF-8</maven.compile.encoding>
     <java.version>1.6</java.version>
   </properties>
-
+  
   <build>
     <plugins>
       <plugin>
@@ -66,7 +66,7 @@
       </plugin>
     </plugins>
   </build>
-
+  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -110,7 +110,7 @@
 	  <version>1.5.2-incubating</version>
 	</dependency>
   </dependencies>
-
+  
   <repositories>
     <repository>
       <snapshots>
@@ -134,5 +134,5 @@
       <url>http://repo1.maven.org/maven2</url>
     </pluginRepository>
   </pluginRepositories>
-
+  
 </project>
