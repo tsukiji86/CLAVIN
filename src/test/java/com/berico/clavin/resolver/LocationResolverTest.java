@@ -63,6 +63,8 @@ public class LocationResolverTest {
 	int STRAßENHAUS_DE = 2826158;
 	int GUN_BARREL_CITY_TX = 4695535;
 
+    //this convenience method turns an array of location name strings into a list of occurrences with fake positions.
+    //(useful for tests that don't care about position in the document)
     public static List<LocationOccurrence> makeOccurrencesFromNames(String[] locationNames) {
         List<LocationOccurrence> locations = new ArrayList<LocationOccurrence>(locationNames.length);
         for(int i = 0; i < locationNames.length; ++i ) {
