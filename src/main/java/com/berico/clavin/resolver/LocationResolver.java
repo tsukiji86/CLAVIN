@@ -354,7 +354,7 @@ public class LocationResolver {
   	
     /**
      * Resolves the supplied list of location names into
-     * {@link ResolvedLocation}s containing {@link GeoName{ objects.
+     * {@link ResolvedLocation}s containing {@link GeoName} objects.
      * 
      * Calls {@link LocationResolver#getCandidateMatches(LocationOccurrence, boolean)} on
      * each location name to find all possible matches, then uses

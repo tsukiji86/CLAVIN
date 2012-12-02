@@ -33,7 +33,7 @@ import org.junit.runners.Suite.SuiteClasses;
  *###################################################################*/
 
 /**
- * Runs all Clavin JUnit tests.
+ * Runs all CLAVIN JUnit tests.
  * 
  */
 @RunWith(Suite.class)

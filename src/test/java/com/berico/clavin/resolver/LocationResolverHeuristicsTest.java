@@ -1,6 +1,5 @@
 package com.berico.clavin.resolver;
 
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;

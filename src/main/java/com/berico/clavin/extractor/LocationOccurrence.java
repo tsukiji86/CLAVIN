@@ -29,12 +29,28 @@ package com.berico.clavin.extractor;
  *###################################################################*/
 
 /**
- * This is a location found in a text, as well as the position in the text it was found at. The position is measured in utf-16 code points from the start of the document.
+ * Container class representing a location name found in a document.
+ * Stores the text of the location name itself, as well as its position
+ * in the text in which it was found (measured in UTF-16 code points
+ * from the start of the document).
+ * 
  */
 public class LocationOccurrence {
+	// text of location name
     public final String text;
+    
+    // number of UTF-16 code points from the start of the document at
+    // which the location name starts
     public final int position;
 
+    /**
+     * Sole construction for {@link LocationOccurrence} class.
+     * 
+     * Represents a location name found in a document.
+     * 
+     * @param text		text of the location name
+     * @param position	where it was found
+     */
     public LocationOccurrence(String text, int position) {
         this.text = text;
         this.position = position;
