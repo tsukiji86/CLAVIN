@@ -7,7 +7,7 @@ import java.util.List;
  * CLAVIN (Cartographic Location And Vicinity INdexer)
  * ---------------------------------------------------
  * 
- * Copyright (C) 2012 Berico Technologies
+ * Copyright (C) 2012-2013 Berico Technologies
  * http://clavin.bericotechnologies.com
  * 
  * ====================================================================

@@ -18,7 +18,7 @@ import com.berico.clavin.resolver.ResolvedLocation;
  * CLAVIN (Cartographic Location And Vicinity INdexer)
  * ---------------------------------------------------
  * 
- * Copyright (C) 2012 Berico Technologies
+ * Copyright (C) 2012-2013 Berico Technologies
  * http://clavin.bericotechnologies.com
  * 
  * ====================================================================
@@ -74,7 +74,7 @@ public class GeoParser {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	public GeoParser( String pathToIndex) throws IOException, ParseException {
+	public GeoParser(String pathToIndex) throws IOException, ParseException {
 		// default options for resolving location names (essentially
 		// looks for exact matches having the highest population)
 		this(pathToIndex, 1, 1, false);

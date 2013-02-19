@@ -32,7 +32,7 @@ import com.berico.clavin.util.ListUtils;
  * CLAVIN (Cartographic Location And Vicinity INdexer)
  * ---------------------------------------------------
  * 
- * Copyright (C) 2012 Berico Technologies
+ * Copyright (C) 2012-2013 Berico Technologies
  * http://clavin.bericotechnologies.com
  * 
  * ====================================================================
@@ -282,7 +282,7 @@ public class LocationResolver {
 	  			 * Are you looking for a job, or are you in need of a
 	  			 * customized solution built around CLAVIN?
 	  			 * 
-	  			 * Drop me a line at charlie@bericotechnologies.com
+	  			 * Drop us a line at clavin@bericotechnologies.com
 	  			 * 
 	  			 * "What's the matter, Colonel Sandurz? CHICKEN?"
 	  			 * **********************************************************/

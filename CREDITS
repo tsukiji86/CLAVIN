@@ -1,6 +1,6 @@
 CLAVIN (Cartographic Location And Vicinity INdexer)
 
-Copyright (C) 2012 Berico Technologies
+Copyright (C) 2012-2013 Berico Technologies
 http://clavin.bericotechnologies.com
 
 ====================================================================
@@ -21,19 +21,20 @@ permissions and limitations under the License.
 
 The primary developer and product owner of CLAVIN is:
 	Charlie Greenbacker
-	Data Scientist, Berico Technologies
+	Principal Data Scientist, Berico Technologies
 	charlie@bericotechnologies.com
 
 Other contributors include:
 	Travis Camechis
 	Richard Clayton
+	Catherine D'Ignazio (MIT Center for Civic Media)
 	Chuck Dudley
+	Shane Ebersole
+	Sean Lavelle (Thetus Corporation)
 	Minh Nguyen
 	Kirill Orlov
 	Jason Tibbetts
 	Matt Woytowitz
-	Shane Ebersole (RedOwl Analytics)
-	Sean Lavelle (Thetus Corporation)
 
 ====================================================================
 
