@@ -17,6 +17,11 @@
     <java.version>1.6</java.version>
   </properties>
   
+  <organization>
+      <name>Berico Technologies</name>
+      <url>http://www.bericotechnologies.com</url>
+  </organization>
+
   <build>
     <plugins>
       <plugin>
@@ -135,4 +140,14 @@
     </pluginRepository>
   </pluginRepositories>
   
+  <distributionManagement>
+      <repository>
+          <id>nexus.bericotechnologies.com</id>
+          <url>http://nexus.bericotechnologies.com/content/repositories/releases/</url>
+      </repository>
+      <snapshotRepository>
+          <id>nexus.bericotechnologies.com</id>
+          <url>http://nexus.bericotechnologies.com/content/repositories/snapshots/</url>
+      </snapshotRepository>
+  </distributionManagement>
 </project>
