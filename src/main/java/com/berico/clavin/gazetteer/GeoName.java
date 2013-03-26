@@ -75,7 +75,9 @@ public class GeoName {
 	public final CountryCode primaryCountryCode;
 
   // associated name with country code
-  public final String primaryCountryName;
+  public String getPrimaryCountryName(){
+    return  primaryCountryCode.name;
+  }
 
 	// list of alternate ISO-3166 2-letter country codes
 	public final List<CountryCode> alternateCountryCodes;
@@ -175,7 +177,6 @@ public class GeoName {
 		this.featureClass = featureClass;
 		this.featureCode = featureCode;
 		this.primaryCountryCode = primaryCountryCode;
-    this.primaryCountryName = primaryCountryCode.name;
 		this.alternateCountryCodes = alternateCountryCodes;
 		this.admin1Code = admin1Code;
 		this.admin2Code = admin2Code;
@@ -311,6 +312,6 @@ public class GeoName {
 	 */
 	@Override
 	public String toString() {
-		return name + " (" + primaryCountryName + ", " + admin1Code + ")" + " [pop: " + population + "] <" + geonameID + ">";
+		return name + " (" + getPrimaryCountryName() + ", " + admin1Code + ")" + " [pop: " + population + "] <" + geonameID + ">";
 	}
 }
