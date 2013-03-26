@@ -39,6 +39,35 @@ Once that all runs successfully, feel free to modify the CLAVIN source code to s
 
 **N.B.**: Loading the worldwide gazetteer uses a non-trivial amount of memory. When using CLAVIN in your own programs, if you encounter `Java heap space` errors (like the one described in Step 8), bump up the maximum heap size for your JVM. Allocating 2GB (e.g., `-Xmx2g`) is a good place to start.
 
+CLAVIN from Berico's Nexus Repo:
+--------------------------------
+
+* Reference the Berico Technologies Nexus Repository in your Maven `pom.xml`:
+
+```xml
+<repositories>
+  <repository>
+     <id>nexus.bericotechnologies.com</id>
+     <name>Berico Technologies Nexus</name>
+     <url>http://nexus.bericotechnologies.com/content/groups/public</url>
+     <releases><enabled>true</enabled></releases>
+     <snapshots><enabled>true</enabled></snapshots>
+  </repository>
+</repositories>
+```
+
+* Add a dependency on the CLAVIN project:
+
+```xml
+<dependency>
+   <groupId>com.berico</groupId>
+   <artifactId>clavin</artifactId>
+   <version>0.3.1</version>
+</dependency>
+```
+
+>  You will still need to build the GeoNames Lucene Index as described in steps 3, 4, and 6 in "How to build & use CLAVIN".
+
 License:
 --------
 
