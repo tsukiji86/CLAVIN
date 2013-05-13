@@ -4,6 +4,7 @@ IndexDirectory/
 .settings/
 .classpath
 .project
+.DS_Store
 allCountries.zip
 allCountries.txt
 !.gitignore

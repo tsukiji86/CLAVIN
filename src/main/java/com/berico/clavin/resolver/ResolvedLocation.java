@@ -84,7 +84,7 @@ public class ResolvedLocation {
 		// for fuzzy matches, confidence is based on the edit distance
 		// between the given location name and the matched name
 		if (fuzzy)
-			this.confidence = 1 / (damerauLevenshteinDistanceCaseInsensitive(location.text, matchedName) + (float)0.5);
+			this.confidence = 1 / (damerauLevenshteinDistanceCaseInsensitive(location.getText(), matchedName) + (float)0.5);
 		else this.confidence = 1; // exact String match
 		/// TODO: fix this confidence score... it doesn't fully make sense
 	}
@@ -113,12 +113,32 @@ public class ResolvedLocation {
 	    return (this.geoname.geonameID == other.geoname.geonameID);
 	}
 	
+	private static final char dblquote = '"';
+	
 	/**
 	 * For pretty-printing.
 	 * 
 	 */
 	@Override
 	public String toString() {
-		return "Resolved \"" + location.text + "\" as: \"" + matchedName + "\" {" + geoname + "}, position:" + location.position + ", confidence: " + confidence + ", fuzzy: " + fuzzy;
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Resolved ")
+		  // Text
+		  .append(dblquote).append(location.getText()).append(dblquote).append(" ")
+		  .append("as")
+		  // Matched Name
+		  .append(dblquote).append(matchedName).append(dblquote).append(" ")
+		  // Geoname
+		  .append("{ ").append(geoname).append("}, ")
+		  // Position in Document
+		  .append("position: ").append(location.getPosition()).append(", ")
+		  // Confidence
+		  .append("confidence: ").append(confidence).append(", ")
+		  // Fuzziness
+		  .append("fuzzy: ").append(fuzzy);
+		
+		return sb.toString();
 	}
 }

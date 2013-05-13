@@ -139,7 +139,7 @@ public class LuceneLocationResolver implements LocationResolver {
 			throws IOException, ParseException{
 		
 		// santize the query input
-		String sanitizedLocationName = escape(locationName.text.toLowerCase());
+		String sanitizedLocationName = escape(locationName.getText().toLowerCase());
 		
 		try{
 	  		// Lucene query used to look for matches based on the

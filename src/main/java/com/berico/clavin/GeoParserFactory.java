@@ -5,8 +5,8 @@ import java.io.IOException;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 
-import com.berico.clavin.extractor.ApacheExtractor;
 import com.berico.clavin.extractor.LocationExtractor;
+import com.berico.clavin.extractor.opennlp.ApacheExtractor;
 import com.berico.clavin.resolver.LocationResolver;
 import com.berico.clavin.resolver.lucene.LuceneLocationResolver;
 

@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.berico.clavin.extractor.opennlp.ApacheExtractor;
 import com.berico.clavin.util.TextUtils;
 
 /*#####################################################################

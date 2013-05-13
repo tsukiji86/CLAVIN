@@ -1,8 +1,11 @@
-package com.berico.clavin.extractor;
+package com.berico.clavin.extractor.opennlp;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.berico.clavin.extractor.LocationExtractor;
+import com.berico.clavin.extractor.LocationOccurrence;
 
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinderModel;
