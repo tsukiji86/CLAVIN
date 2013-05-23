@@ -1,58 +1,104 @@
 package com.berico.clavin.resolver;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.Comparator;
-
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.gazetteer.GeoName;
 
 public class ResolvedCoordinate {
+
+	protected Vector vectorFromKnownLocation;
 	
-	private static final ConfidenceComparator 
-		confidenceComparator = new ConfidenceComparator();
+	protected CoordinateOccurrence<?> occurrence;
 	
-	protected TreeMap<Float, GeoName> nearbyLocations = 
-			new TreeMap<Float, GeoName>(confidenceComparator);
-	
-	protected CoordinateOccurrence<?> coordinateOccurrence;
-	
+	protected GeoName knownLocation;
+
 	public ResolvedCoordinate(){}
 	
 	public ResolvedCoordinate(
-			Map<Float, GeoName> nearbyLocations,
-			CoordinateOccurrence<?> coordinateOccurrence) {
+			CoordinateOccurrence<?> occurrence, 
+			GeoName knownLocation,
+			Vector vectorFromKnownLocation) {
 		
-		this.coordinateOccurrence = coordinateOccurrence;
-		setNearbyLocations(nearbyLocations);
+		this.vectorFromKnownLocation = vectorFromKnownLocation;
+		this.occurrence = occurrence;
+		this.knownLocation = knownLocation;
+	}
+	
+	public Vector getVectorFromKnownLocation() {
+		return vectorFromKnownLocation;
 	}
 
-	public Map<Float, GeoName> getNearbyLocations() {
-		return Collections.unmodifiableMap(nearbyLocations);
+	public CoordinateOccurrence<?> getOccurrence() {
+		return occurrence;
 	}
-	
-	protected void setNearbyLocations(Map<Float, GeoName> nearbyLocations) {
-		
-		assert nearbyLocations != null;
-		
-		this.nearbyLocations.putAll(nearbyLocations);
-	}
-	
-	public CoordinateOccurrence<?> getCoordinateOccurrence() {
-		return coordinateOccurrence;
-	}
-	
-	
-	/**
-	 * Comparator for Ordering the nearby locations set based on confidence.
-	 */
-	public static class ConfidenceComparator implements Comparator<Float> {
 
-		@Override
-		public int compare(Float conf1, Float conf2) {
-			
-			return - Float.compare(conf1, conf2);
-		}
+	public GeoName getKnownLocation() {
+		return knownLocation;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((knownLocation == null) ? 0 : knownLocation.hashCode());
+		result = prime * result
+				+ ((occurrence == null) ? 0 : occurrence.hashCode());
+		result = prime
+				* result
+				+ ((vectorFromKnownLocation == null) ? 0
+						: vectorFromKnownLocation.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ResolvedCoordinate other = (ResolvedCoordinate) obj;
+		if (knownLocation == null) {
+			if (other.knownLocation != null)
+				return false;
+		} else if (!knownLocation.equals(other.knownLocation))
+			return false;
+		if (occurrence == null) {
+			if (other.occurrence != null)
+				return false;
+		} else if (!occurrence.equals(other.occurrence))
+			return false;
+		if (vectorFromKnownLocation == null) {
+			if (other.vectorFromKnownLocation != null)
+				return false;
+		} else if (!vectorFromKnownLocation
+				.equals(other.vectorFromKnownLocation))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Resolved: ")
+		  .append('"')
+		  .append(occurrence.getExtractedText())
+		  .append('"')
+		  .append(" as ")
+		  .append(vectorFromKnownLocation)
+		  .append(" of ")
+		  .append(knownLocation.name)
+		  .append(", [")
+		  .append(knownLocation.primaryCountryCode)
+		  .append("]");
+		  
+		return sb.toString();
+	}
+
+	
+	
+	
 }

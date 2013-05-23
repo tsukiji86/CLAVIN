@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import com.berico.clavin.extractor.LocationOccurrence;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
@@ -23,11 +22,18 @@ import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.berico.clavin.extractor.ExtractionContext;
+import com.berico.clavin.extractor.LocationExtractor;
+import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.gazetteer.CountryCode;
+import com.berico.clavin.gazetteer.GeoName;
 import com.berico.clavin.index.BinarySimilarity;
 import com.berico.clavin.index.WhitespaceLowerCaseAnalyzer;
 import com.berico.clavin.resolver.LocationResolver;
+import com.berico.clavin.resolver.ResolutionContext;
 import com.berico.clavin.resolver.ResolvedLocation;
+import com.berico.clavin.resolver.impl.lucene.FieldConstants;
+import com.berico.clavin.resolver.impl.lucene.LuceneUtils;
 import com.berico.clavin.util.ListUtils;
 
 /*#####################################################################
@@ -89,8 +95,12 @@ public class LuceneLocationResolver implements LocationResolver {
 	// custom Lucene sorting based on Lucene match score and the
 	// population of the GeoNames gazetteer entry represented by the
 	// matched index document
-	private static final Sort populationSort = new Sort(new SortField[]
-			{SortField.FIELD_SCORE, new SortField("population", SortField.Type.LONG, true)});
+	private static final Sort populationSort = 
+		new Sort(
+				new SortField[]{   
+				  SortField.FIELD_SCORE,
+				  new SortField(FieldConstants.POPULATION, SortField.Type.LONG, true)
+			});
 	
 	/**
 	 * Builds a {@link LuceneLocationResolver} by loading a pre-built Lucene
@@ -121,31 +131,37 @@ public class LuceneLocationResolver implements LocationResolver {
 		// run an initial throw-away query just to "prime the pump" for
 		// the cache, so we can accurately measure performance speed
 		// per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
-		indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_40,
-				"indexName", indexAnalyzer).parse("Reston"), null, maxHitDepth, populationSort);
+		indexSearcher.search(
+			new AnalyzingQueryParser(
+				Version.LUCENE_43,
+				FieldConstants.NAME, 
+				indexAnalyzer).parse("Reston"), 
+				null, maxHitDepth, 
+				populationSort);
 	}
 	
 	/**
 	 * Finds all matches (capped at {@link LuceneLocationResolver#maxHitDepth})
 	 * in the Lucene index for a given location name.
 	 * 
-	 * @param locationName		name of the geographic location to be resolved
+	 * @param locationOccurrence		name of the geographic location to be resolved
 	 * @param fuzzy				switch for turning on/off fuzzy matching
 	 * @return					list of ResolvedLocation objects as potential matches
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	private List<ResolvedLocation> getCandidateMatches(LocationOccurrence locationName, boolean fuzzy)
-			throws IOException, ParseException{
+	private List<ResolvedLocation> getCandidateMatches(
+			LocationOccurrence locationOccurrence, boolean fuzzy)
+					throws IOException, ParseException{
 		
 		// santize the query input
-		String sanitizedLocationName = escape(locationName.getText().toLowerCase());
+		String sanitizedLocationName = escape(locationOccurrence.getText().toLowerCase());
 		
 		try{
 	  		// Lucene query used to look for matches based on the
 			// "indexName" field
-	  		Query q = new AnalyzingQueryParser(Version.LUCENE_40,
-	  				"indexName", indexAnalyzer).parse("\"" + sanitizedLocationName + "\"");
+	  		Query q = new AnalyzingQueryParser(Version.LUCENE_43,
+	  				FieldConstants.NAME, indexAnalyzer).parse("\"" + sanitizedLocationName + "\"");
 	  		
 	  		// collect all the hits up to maxHits, and sort them based
 	  		// on Lucene match score and population for the associated
@@ -157,25 +173,31 @@ public class LuceneLocationResolver implements LocationResolver {
 	  	    
 	  	    // see if anything was found
 	  	    if (results.scoreDocs.length > 0) {
-	  	    	// one or more exact String matches found for this location name
-	  	    	for (int i = 0; i < results.scoreDocs.length; i++) {
-	  	    		// add each matching location to the list of candidates
-	  	    		ResolvedLocation location = new ResolvedLocation(indexSearcher.doc(results.scoreDocs[i].doc), locationName, false);
-			  	    logger.debug("{}", location);
-			  	    candidateMatches.add(location);
-	  	    	}
+		  	    	// one or more exact String matches found for this location name
+		  	    	for (int i = 0; i < results.scoreDocs.length; i++) {
+		  	    		// add each matching location to the list of candidates
+		  	    		ResolvedLocation location = 
+		  	    			LuceneUtils.convertToLocation(
+		  	    					indexSearcher.doc(results.scoreDocs[i].doc), 
+		  	    					locationOccurrence, false);
+				  	
+		  	    		logger.debug("{}", location);
+				  	
+		  	    		candidateMatches.add(location);
+		  	    	}
 	  	    } else if (fuzzy) { // only if fuzzy matching is turned on
 	  	    	// no exact String matches found -- fallback to fuzzy search
 	  	    	
 	  	    	// Using the tilde "~" makes this a fuzzy search. I compared this to FuzzyQuery
-	  	  		// with TopTermsBoostOnlyBooleanQueryRewrite, I like the output better this way.
-	  	  		// With the other method, we failed to match things like "Stra��enhaus Airport"
-	  	  		// as <Stra��enhaus>, and the match scores didn't make as much sense.
-	  	    	q = new AnalyzingQueryParser(Version.LUCENE_40, "indexName", indexAnalyzer).parse(sanitizedLocationName + "~");
+  	  		// with TopTermsBoostOnlyBooleanQueryRewrite, I like the output better this way.
+  	  		// With the other method, we failed to match things like "Stra��enhaus Airport"
+  	  		// as <Stra��enhaus>, and the match scores didn't make as much sense.
+	  	    	q = new AnalyzingQueryParser(Version.LUCENE_43, FieldConstants.NAME, indexAnalyzer)
+	  	    		.parse(sanitizedLocationName + "~");
 	  	    	
-	  	  		// collect all the fuzzy matches up to maxHits, and sort
-	  	  		// them based on Lucene match score and population for the
-	  	  		// associated GeoNames record
+  	  		// collect all the fuzzy matches up to maxHits, and sort
+  	  		// them based on Lucene match score and population for the
+  	  		// associated GeoNames record
 	  	    	results = indexSearcher.search(q, null, maxHitDepth, populationSort);
 	  	    	
 	  	    	// see if anything was found with fuzzy matching
@@ -183,28 +205,32 @@ public class LuceneLocationResolver implements LocationResolver {
 	  	    		// one or more fuzzy matches found for this location name
 	  	    		for (int i = 0; i < results.scoreDocs.length; i++) {
 	  	    			// add each matching location to the list of candidates
-	  	    			ResolvedLocation location = new ResolvedLocation(indexSearcher.doc(results.scoreDocs[i].doc), locationName, true);
-		  		  	    logger.debug(location + "{fuzzy}");
-		  		  	    candidateMatches.add(location);
+	  	    			ResolvedLocation location = 
+			  	    			LuceneUtils.convertToLocation(
+			  	    					indexSearcher.doc(results.scoreDocs[i].doc), 
+			  	    					locationOccurrence, true);
+	  	    			
+		  		  	logger.debug("{} [fuzzy]", location);
+		  		  	candidateMatches.add(location);
 	  	    		}
 	  	    	} else {
 	  	    		// drats, foiled again! no fuzzy matches found either!
 	  	    		// in this case, we'll return an empty list of
 	  	    		// candidate matches
-		  	    	logger.debug("No match found for: '{}'", locationName);
+		  	    	logger.debug("No match found for: '{}'", locationOccurrence);
 	  	    	}
 	  	    } else {
   	    		// no matches found and fuzzy matching is turned off
-	  	    	logger.debug("No match found for: '{}'", locationName);
+	  	    	logger.debug("No match found for: '{}'", locationOccurrence);
   	    	}
 	  	    
 	  	    return candidateMatches;
 	  	    
 		} catch (ParseException e) {
-			logger.error(String.format("Error resolving location for : '%s'", locationName), e);
+			logger.error(String.format("Error resolving location for : '%s'", locationOccurrence), e);
 			throw e;
 		} catch (IOException e) {
-			logger.error(String.format("Error resolving location for : '%s'", locationName), e);
+			logger.error(String.format("Error resolving location for : '%s'", locationOccurrence), e);
 			throw e;
 		}
   	}
@@ -259,16 +285,20 @@ public class LuceneLocationResolver implements LocationResolver {
   			// loop through all combinations up to the specified depth.
   			// first recursive call for each depth starts at index 0
 	  		for (List<ResolvedLocation> combo : generateAllCombos(allCandidates, 0, candidateDepth)) {
+	  			
 	  			// these lists store the country codes & admin1 codes for each candidate
 	  			countries = new ArrayList<CountryCode>();
+	  			
 	  			states = new ArrayList<String>();
+	  			
 	  			for (ResolvedLocation location: combo) {
-	  				countries.add(location.geoname.primaryCountryCode);
-	  				states.add(location.geoname.admin1Code);
+	  				countries.add(location.getGeoname().primaryCountryCode);
+	  				states.add(location.getGeoname().admin1Code);
 	  			}
 	  			
 	  			// unique-ify the lists to look for common country codes & admin1 codes
 	  			countries = new ArrayList<CountryCode>(new HashSet<CountryCode>(countries));
+	  			
 	  			states = new ArrayList<String>(new HashSet<String>(states));
 	  			
 	  			// calculate a score for this particular combination based on commonality
@@ -372,11 +402,11 @@ public class LuceneLocationResolver implements LocationResolver {
      **/
   	@Override
     public List<ResolvedLocation> resolveLocations(List<LocationOccurrence> locations, boolean fuzzy) throws IOException, ParseException {
-    	
-    	// forgetting something?
-    	if (locations == null)
-    		return new ArrayList<ResolvedLocation>();
-    	
+	    	
+	    	// forgetting something?
+	    	if (locations == null)
+	    		return new ArrayList<ResolvedLocation>();
+	    	
 		if (maxHitDepth > 1) { // perform context-based heuristic matching
 			
 			// stores all possible matches for each location name
@@ -427,6 +457,14 @@ public class LuceneLocationResolver implements LocationResolver {
 			
 			return resolvedLocations;
 		}
+	}
+
+	@Override
+	public ResolutionContext resolveLocations(
+			ExtractionContext extractionContext, boolean fuzzy)
+			throws Exception {
+		
+		return null;
 	}
 
 }

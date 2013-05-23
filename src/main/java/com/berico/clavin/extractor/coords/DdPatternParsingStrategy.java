@@ -24,48 +24,40 @@ package com.berico.clavin.extractor.coords;
  * 
  * ====================================================================
  * 
- * DmsPatternParsingStrategy.java
+ * DdPatternParsingStrategy.java
  * 
  *###################################################################*/
 
 /**
  * Defines the pattern to use for parsing Lat/Lon coordinates specified in
- * Degrees-Minutes-Seconds (DMS) format.
+ * Decimal Degrees (DD) format.
  */
-public class DmsPatternParsingStrategy extends BaseDmsPatternParsingStrategy {
-	
+public class DdPatternParsingStrategy extends BaseDdPatternParsingStrategy {
+
 	/**
 	 * From: http://en.wikipedia.org/wiki/Geographic_coordinate_conversion
 	 * 	#Ways_of_writing_coordinates:
 	 * 
 	 * This statement satisfies the following patterns listed:
 	 *  
-	 *  Pattern 1 (ex: 40:26:46.302N 079:56:55.903W)
-	 *  Pattern 2 (ex: 40°26′47″N 079°58′36″W or 40°26'47"N 079°58'36"W)
-	 *  Pattern 3 (ex: 40d 26′ 47″ N 079d 58′ 36″ W or 40d 26' 47" N 079d 58' 36" W)
+	 *  Pattern 1 (ex: -23.399437,-52.090904 or 40.446195, -79.948862)
+	 *  Pattern 2 (ex: 40.446195N 79.948862W)
 	 */
 	public static String REGEX_PATTERN = 
-		"(" + // Capture Start 
-		"(?<latdeg>\\d+)" + // Latitude Degrees
-		"\\s?[:°dD]*\\s?" +
-		"(?<latmin>\\d+)\\s?" + // Latitude Minutes
-		"\\s?[:'′]*\\s?" +
-		"(?<latsec>\\d+([.]\\d+)?)?" + // (optional) Latitude Seconds
-		"\\s?[:\"″]*\\s?" +
-		"(?<lathemi>[NnSs])\\s?" + // North or South
-		"([,;]\\s?)?" + // Latitude/Longitude Barrier
-		"(?<londeg>\\d+)" + // Longitude Degrees
-		"\\s?[:°dD]*\\s?" +
-		"(?<lonmin>\\d+)" + // Longitude Minutes
-		"\\s?[:'′]*\\s?" +
-		"(?<lonsec>\\d+([.]\\d+)?)?" + // (optional) Longitude Seconds
-		"\\s?[:\"″]*\\s?" +
-		"(?<lonhemi>[EeWw])" + // East or West
+		"(" + // Capture Start
+		"(?<latdd>-?\\d+[.]\\d+)" + // Decimal Degrees Latitude
+		"\\s*" +  // Whitespace
+		"(?<lathemi>[NnSs])?" + // (optional) Latitude Hemisphere 
+		"(\\s*[,;]?\\s*)?" +  // Latitude-Longitude Boundary
+		"(?<londd>-?\\d+[.]\\d+)" + // Decimal Degrees Longitude
+		"\\s*" +  // Whitespace
+		"(?<lonhemi>[WwEe])?" + // (optional) Longitude Hemisphere
 		")"; // Capture End
-
+	
 	@Override
 	protected String getRegexPattern() {
 		
 		return REGEX_PATTERN;
 	}
+
 }

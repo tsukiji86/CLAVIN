@@ -45,6 +45,9 @@ import com.berico.clavin.resolver.lucene.LuceneLocationResolver;
  */
 public class GeoParserFactory {
 	
+	public static int MAX_HIT_DEPTH = 1;
+	public static int MAX_CONTENT_WINDOW = 1;
+	
 	/**
 	 * Get the default GeoParser.
 	 * @param pathToLuceneIndex Path to the local Lucene index.
@@ -55,7 +58,8 @@ public class GeoParserFactory {
 	public static GeoParser getDefault(String pathToLuceneIndex) 
 			throws IOException, ParseException{
 		
-		return getDefault(pathToLuceneIndex, 1, 1, false);
+		return getDefault(pathToLuceneIndex, 
+				MAX_HIT_DEPTH, MAX_CONTENT_WINDOW, true);
 	}
 	
 	/**
@@ -70,7 +74,7 @@ public class GeoParserFactory {
 			String pathToLuceneIndex, boolean fuzzy) 
 					throws IOException, ParseException{
 		
-		return getDefault(pathToLuceneIndex, 1, 1, fuzzy);
+		return getDefault(pathToLuceneIndex, MAX_HIT_DEPTH, MAX_CONTENT_WINDOW, fuzzy);
 	}
 	
 	/**

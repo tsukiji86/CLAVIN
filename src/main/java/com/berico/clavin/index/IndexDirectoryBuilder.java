@@ -15,98 +15,102 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.IntField;
-import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.spatial.SpatialStrategy;
+import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy;
+import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.berico.clavin.gazetteer.GeoName;
+import com.berico.clavin.resolver.impl.lucene.FieldConstants;
+import com.spatial4j.core.context.SpatialContext;
+import com.spatial4j.core.shape.Shape;
 
-/*#####################################################################
- * 
- * CLAVIN (Cartographic Location And Vicinity INdexer)
- * ---------------------------------------------------
- * 
- * Copyright (C) 2012-2013 Berico Technologies
- * http://clavin.bericotechnologies.com
- * 
- * ====================================================================
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- * 		http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * permissions and limitations under the License.
- * 
- * ====================================================================
- * 
- * IndexDirectoryBuilder.java
- * 
- *###################################################################*/
-
-/**
- * Builds a Lucene index of geographic entries based on
- * the GeoNames gazetteer.
- * 
- * This program is run one-time before CLAVIN can be used.
- * 
- */
 public class IndexDirectoryBuilder {
-	
+
 	public final static Logger logger = LoggerFactory.getLogger(IndexDirectoryBuilder.class);
 	
 	// the GeoNames gazetteer file to be loaded
-	static String pathToGazetteer = "./allCountries.txt";
+	String pathToGazetteer = "./allCountries.txt";
+	String indexDirectory = "./IndexDirectory";
+	String supplemental = "./src/main/resources/SupplementaryGazetteer.txt";
+	
+	// Lucene Spatial Context
+	SpatialContext spatialContext;
+	
+	// Spatial Indexing Strategy
+	SpatialStrategy spatialStrategy;
 
-	/**
-	 * Turns a GeoNames gazetteer file into a Lucene index, and adds
-	 * some supplementary gazetteer records at the end.
-	 * 
-	 * @param args				not used
-	 * @throws IOException
-	 */
-	public static void main(String[] args) throws IOException {
+	// Lucene Fields we will reuse when building the index.
+	TextField indexNameField = new TextField(FieldConstants.NAME, "", Field.Store.YES);
+  	StoredField geonameField = new StoredField(FieldConstants.GEONAME, "");
+  	IntField geonameIdField = new IntField(FieldConstants.GEONAME_ID, -1, Field.Store.NO);
+  	NumericDocValuesField populationField = new NumericDocValuesField(FieldConstants.POPULATION, -1l);
+  	StoredField geospatialField = new StoredField(FieldConstants.GEOMETRY, "");
+	
+	
+	public IndexDirectoryBuilder() throws IOException {
 		
 		logger.info("Indexing... please wait.");
 		
 		// Create a new index file on disk, allowing Lucene to choose
 		// the best FSDirectory implementation given the environment.
 		// TODO: delete this directory first, if it exists
-		FSDirectory index = FSDirectory.open(new File("./IndexDirectory"));
+		FSDirectory index = FSDirectory.open(new File(indexDirectory));
 		
 		// indexing by lower-casing & tokenizing on whitespace
 		Analyzer indexAnalyzer = new WhitespaceLowerCaseAnalyzer();
 		
 		// create the object that will actually build the Lucene index
-		IndexWriter indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_40, indexAnalyzer));
+		IndexWriter indexWriter = new IndexWriter(index, 
+				new IndexWriterConfig(Version.LUCENE_43, indexAnalyzer));
+		
+		spatialContext = SpatialContext.GEO;
+		
+		spatialStrategy = 
+				new RecursivePrefixTreeStrategy(
+						new GeohashPrefixTree(spatialContext, 11), 
+						FieldConstants.GEOMETRY);
 		
 		// open the gazetteer files to be loaded
-		BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(new File(pathToGazetteer)), "UTF-8"));
-		BufferedReader r2 = new BufferedReader(new InputStreamReader(new FileInputStream(new File("./src/main/resources/SupplementaryGazetteer.txt")), "UTF-8"));
+		BufferedReader r = new BufferedReader(
+				new InputStreamReader(
+						new FileInputStream(
+								new File(pathToGazetteer)), "UTF-8"));
+		
+		BufferedReader r2 = new BufferedReader(
+				new InputStreamReader(
+						new FileInputStream(
+								new File(supplemental )), "UTF-8"));
 		
 		String line;
 		
 		// let's see how long this takes...
 		Date start = new Date();
 		
+		logger.debug("Writing GeoNames Gazatteer to Index.");
+		
 		// load GeoNames gazetteer into Lucene index
-		while ((line = r.readLine()) != null)
+		while ((line = r.readLine()) != null){
 			addToIndex(indexWriter, line);
+			reportProgess();
+		}
+		
+		logger.debug("Writing Supplemental Gazatteer to Index.");
 		
 		// add supplementary gazetteer records to index
-		while ((line = r2.readLine()) != null)
+		while ((line = r2.readLine()) != null){
 			addToIndex(indexWriter, line);
+			reportProgess();
+		}
+			
 		
 		// that wasn't so long, was it?
 		Date stop = new Date();
@@ -128,6 +132,30 @@ public class IndexDirectoryBuilder {
 				+ "; elapsed time: " + MILLISECONDS.toSeconds(elapsed_MILLIS) + " seconds.");
 	}
 	
+	long progress = 0;
+	
+	public void reportProgess(){
+		
+		progress++;
+		
+		if ((progress % 1000) == 0){
+			
+			logger.debug("1000 records indexed.");
+		}
+	}
+	
+	/**
+	 * Turns a GeoNames gazetteer file into a Lucene index, and adds
+	 * some supplementary gazetteer records at the end.
+	 * 
+	 * @param args				not used
+	 * @throws IOException
+	 */
+	public static void main(String[] args) throws IOException {
+		
+		new IndexDirectoryBuilder();
+	}
+	
 	/**
 	 * Adds entries to the Lucene index for each unique name associated
 	 * with a {@link GeoName} object.
@@ -136,24 +164,12 @@ public class IndexDirectoryBuilder {
 	 * @param geonameEntry	single record from GeoNames gazetteer
 	 * @throws IOException
 	 */
-  	private static void addToIndex(IndexWriter indexWriter, String geonameEntry) throws IOException {
+  	private void addToIndex(IndexWriter indexWriter, String geonameEntry) throws IOException {
   		
   		// create a GeoName object from a single gazetteer record
   		GeoName geoname = GeoName.parseFromGeoNamesRecord(geonameEntry);
   		
-  		// add the primary (UTF-8) name for this location
-  		if (geoname.name.length() > 0)
-		    indexWriter.addDocument(buildDoc(geoname.name, geonameEntry, geoname.geonameID, geoname.population));
-  		
-  		// add the ASCII name if it's different from the primary name
-  		if (geoname.asciiName.length() > 0 && !geoname.asciiName.equals(geoname.name))
-  			indexWriter.addDocument(buildDoc(geoname.asciiName, geonameEntry, geoname.geonameID, geoname.population));
-  		
-  		// add alternate names (if any) if they differ from the primary
-  		// and alternate names
-  		for (String altName : geoname.alternateNames)
-  			if (altName.length() > 0 && !altName.equals(geoname.name) && !altName.equals(geoname.name))
-  				indexWriter.addDocument(buildDoc(altName, geonameEntry, geoname.geonameID, geoname.population));
+  		indexWriter.addDocument(buildDoc(geonameEntry, geoname));
   	}
   	
   	/**
@@ -163,11 +179,10 @@ public class IndexDirectoryBuilder {
   	 * 
   	 * @param name			name to serve as index key
   	 * @param geonameEntry	string from GeoNames gazetteer
-  	 * @param geonameID		unique identifier (for quick look-up)
-  	 * @param population	number of inhabitants (used for scoring)
+  	 * @param geoname		GeoName Entry
   	 * @return
   	 */
-  	private static Document buildDoc(String name, String geonameEntry, int geonameID, Long population) {
+  	private Document buildDoc(String geonameEntry, GeoName geoname) {
   		
   		// in case you're wondering, yes, this is a non-standard use of
   		// the Lucene Document construct
@@ -175,22 +190,84 @@ public class IndexDirectoryBuilder {
 	    
 	    // this is essentially the key we'll try to match location
 	    // names against
-	    doc.add(new TextField("indexName", name, Field.Store.YES));
+	    addIndexNameField(doc, geoname.name);
+	    
+	    if (!geoname.asciiName.equals(geoname.name)){
+	    	
+	    		addIndexNameField(doc, geoname.asciiName);
+	    }
+	    
+	    for (String altName : geoname.alternateNames){
+	    	
+	    		if (!altName.equals(geoname.name) && !altName.equals(geoname.asciiName)){
+	    	
+	    			addIndexNameField(doc, altName);
+	    		}
+	    }
 	    
 	    // this is the payload we'll return when matching location
 	    // names to gazetteer records
-	    doc.add(new StoredField("geoname", geonameEntry));
+	    addGeonameField(doc, geonameEntry);
 	    
 	    // TODO: use geonameID to link administrative subdivisions to
 	    //		 each other
-	    doc.add(new IntField("geonameID", geonameID, Field.Store.YES));
+	    addGeonameIdField(doc, geoname.geonameID);
 	    
 	    // we'll initially sort match results based on population
-	    doc.add(new LongField("population", population, Field.Store.YES));
+	    addPopulationField(doc, geoname.population);
 	    
-	    logger.debug("Adding to index: " + name);
+	    // we'll create a new Spatial geometry from the centroid of the geoname location
+	    Shape centroid = spatialContext.makePoint(geoname.longitude, geoname.latitude);
+	    
+	    // add a deserializable representation of the shape to the document.
+	    addGeospatialField(doc, centroid);
+	    
+	    // we will add the field to the index
+	    for (Field f : spatialStrategy.createIndexableFields(centroid)){
+	    		
+	    		doc.add(f);
+	    }
 	    
 	    return doc;
   	}
-
+  	
+  	//LongField populationField = new LongField(FieldConstants.POPULATION, -1l, Field.Store.NO);
+  	
+  	private void addIndexNameField(Document doc, String value){
+  		
+  		indexNameField.setStringValue(value);
+  		
+  		doc.add(indexNameField);  		
+  	}
+  	
+  	private void addGeonameField(Document doc, String geoname){
+  		
+  		geonameField.setStringValue(geoname);
+  		
+  		doc.add(geonameField);
+  	}
+  	
+  	private void addGeonameIdField(Document doc, int geonameId){
+  		
+  		geonameIdField.setIntValue(geonameId);
+  		
+  		doc.add(geonameIdField);
+  	}
+  	
+  	private void addPopulationField(Document doc, long population){
+  		
+  		populationField.setLongValue(population);
+  		
+  		doc.add(populationField);
+  	}
+  	
+  	@SuppressWarnings("deprecation")
+	private void addGeospatialField(Document doc, Shape shape){
+  		
+		// TODO: Maybe do this more elegantly with the Spatial4J API's
+  		// ShapeReaderWriter...
+  		geospatialField.setStringValue(spatialContext.toString(shape));
+  		
+  		doc.add(geospatialField);
+  	}
 }

@@ -36,7 +36,8 @@ import org.junit.Test;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
 
-public class DmsPatternParsingStrategyTest extends BaseRegexParsingStrategyTest {
+public class DmsPatternParsingStrategyTest 
+		extends BaseRegexParsingStrategyTest {
 	
 	DmsPatternParsingStrategy strategy = new DmsPatternParsingStrategy();
 	

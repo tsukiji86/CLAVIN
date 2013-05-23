@@ -1,11 +1,7 @@
 package com.berico.clavin.resolver;
 
 import com.berico.clavin.extractor.LocationOccurrence;
-import org.apache.lucene.document.Document;
-
 import com.berico.clavin.gazetteer.GeoName;
-
-import static com.berico.clavin.util.DamerauLevenshtein.damerauLevenshteinDistanceCaseInsensitive;
 
 /*#####################################################################
  * 
@@ -47,48 +43,90 @@ import static com.berico.clavin.util.DamerauLevenshtein.damerauLevenshteinDistan
 public class ResolvedLocation {
 	
 	// geographic entity resolved from location name
-	public GeoName geoname;
+	protected GeoName geoname;
 	
 	// original location name extracted from text
-	public LocationOccurrence location;
+	protected LocationOccurrence location;
 	
 	// name from gazetteer record that the inputName was matched against
-	public String matchedName;
+	protected String matchedName;
 	
 	// whether fuzzy matching was used
-	public boolean fuzzy;
+	protected boolean fuzzy;
 	
 	// confidence score for resolution
-	public float confidence;
+	protected float confidence;
 	
 	/**
-	 * Builds a {@link ResolvedLocation} from a document retrieved from
-	 * the Lucene index representing the geographic entity resolved
-	 * from a location name.
-	 * 
-	 * @param luceneDoc		document from Lucene index representing a gazetteer record
+	 * For serialization purposes, don't use directly.
 	 */
-	public ResolvedLocation(Document luceneDoc, LocationOccurrence location, boolean fuzzy) {
+	public ResolvedLocation(){}
+	
+	/**
+	 * Represents a {@link ResolvedLocation} mapping to an extracted plain-nammed location
+	 * found in a document.
+	 * 
+	 * @param matchedName Name of the location that was matched by the extracted text.
+	 * @param geoname GeoName entry of that location.
+	 * @param location Context of the extraction (text and position)
+	 * @param fuzzy Whether fuzzy matching was applied.
+	 * @param confidence Confidence of the match.
+	 */
+	public ResolvedLocation(
+			String matchedName,
+			GeoName geoname, 
+			LocationOccurrence location, 
+			boolean fuzzy,
+			float confidence){
 		
-		// instantiate a GeoName object from the gazetteer record
-		this.geoname = GeoName.parseFromGeoNamesRecord(luceneDoc.get("geoname"));
-		
+		this.matchedName = matchedName;
+		this.geoname = geoname;
 		this.location = location;
-		
-		// get the name in the Lucene document matched to the given
-		// location name extracted from the text
-		this.matchedName = luceneDoc.get("indexName");
-		
 		this.fuzzy = fuzzy;
-		
-		// for fuzzy matches, confidence is based on the edit distance
-		// between the given location name and the matched name
-		if (fuzzy)
-			this.confidence = 1 / (damerauLevenshteinDistanceCaseInsensitive(location.getText(), matchedName) + (float)0.5);
-		else this.confidence = 1; // exact String match
-		/// TODO: fix this confidence score... it doesn't fully make sense
+		this.confidence = confidence;
 	}
 	
+	/**
+	 * Get the Geoname entry for this resolved location.
+	 * @return Geoname entry
+	 */
+	public GeoName getGeoname() {
+		return geoname;
+	}
+
+	/**
+	 * Get the context of the extracted location.
+	 * @return Occurrence of the extracted location in text.
+	 */
+	public LocationOccurrence getLocation() {
+		return location;
+	}
+
+	/**
+	 * Get the name matching the extracted location found by the resolver.
+	 * @return Name resolved used to match this entry.
+	 */
+	public String getMatchedName() {
+		return matchedName;
+	}
+
+	/**
+	 * Was fuzzy matching used to select this location?
+	 * @return true if fuzzy matching was used.
+	 */
+	public boolean isFuzzy() {
+		return fuzzy;
+	}
+
+	/**
+	 * Get the confidence of the match.
+	 * @return Confidence of the match between the matched name and the text occurring
+	 * in the document.
+	 */
+	public float getConfidence() {
+		return confidence;
+	}
+
 	/**
 	 * Tests equivalence between {@link ResolvedLocation} objects.
 	 * 

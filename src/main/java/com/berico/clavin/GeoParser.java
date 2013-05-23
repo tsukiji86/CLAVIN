@@ -79,19 +79,19 @@ public class GeoParser {
 	 */
 	public List<ResolvedLocation> parse(String inputText) throws Exception {
 		
-		logger.trace("input: {}", inputText);
+		logger.info("Input Size: {}", inputText.length());
 		
 		// first, extract location names from the text
 		List<LocationOccurrence> locationNames = extractor.extractLocationNames(inputText);
 		
-		logger.trace("extracted: {}", locationNames);
+		logger.info("Extracted Location Count: {}", locationNames.size());
 		
 		// then, resolve the extracted location names against a
 		// gazetteer to produce geographic entities representing the
 		// locations mentioned in the original text
 		List<ResolvedLocation> resolvedLocations = resolver.resolveLocations(locationNames, fuzzy);
 		
-		logger.trace("resolved: {}", resolvedLocations);
+		logger.info("Resolved Location Count: {}", resolvedLocations.size());
 		
 		// TODO: extract & resolve coords (lat/lon & MGRS) to nearest named location in gazetteer
 		

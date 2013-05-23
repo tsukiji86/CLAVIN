@@ -54,20 +54,21 @@ public interface LocationResolver {
      * @return 				list of {@link ResolvedLocation} objects
      * @throws Exception 
      **/
+	@Deprecated
 	public List<ResolvedLocation> resolveLocations(
 			List<LocationOccurrence> locations, boolean fuzzy) throws Exception;
 	
 	/**
 	 * Resolves the locations and coordinates specified in the ExtractionContext
 	 * into a {@link ResolutionContext} which contains a list of {@link ResolvedLocation}s
-	 * and {@link ResolvedCoordinate}s.
+	 * and {@link OldImplOfResolvedCoordinate}s.
 	 * 
 	 * @param extractionContext Information related to the extraction of 
 	 * locations and coordinates.
 	 * @return The results of resolving locations and coordinates.
 	 * @throws Exception
 	 */
-	//public ResolutionContext resolveLocations(
-	//		ExtractionContext extractionContext, boolean fuzzy) throws Exception;
+	public ResolutionContext resolveLocations(
+			ExtractionContext extractionContext, boolean fuzzy) throws Exception;
 	
 }

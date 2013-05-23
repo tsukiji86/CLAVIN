@@ -31,35 +31,31 @@ import com.berico.clavin.extractor.CoordinateOccurrence;
  * 
  * ====================================================================
  * 
- * BaseDmsPatternParsingStrategy.java
+ * BaseDdPatternParsingStrategy.java
  * 
  *###################################################################*/
 
 /**
- * If you find some other way to parse a Degree-Minute-Second string that does
- * not conform to the Regex in {@link DmsPatternParsingStrategy}, extend this,
+ * If you find some other way to parse a Decimal-degree string that does
+ * not conform to the Regex in {@link DdPatternParsingStrategy}, extend this,
  * use the named capturing groups provided below in your Regex statement, 
  * and this class will the rest of the work.
  */
-public abstract class BaseDmsPatternParsingStrategy 
+public abstract class BaseDdPatternParsingStrategy
 		extends BaseRegexPatternParsingStrategy
-		implements RegexCoordinateParsingStrategy<LatLonPair> {
-	
+		implements RegexCoordinateParsingStrategy<LatLonPair>  {
+
 	private static final Logger logger = 
-		LoggerFactory.getLogger(BaseDmsPatternParsingStrategy.class);
+			LoggerFactory.getLogger(BaseDdPatternParsingStrategy.class);
 	
 	/**
 	 * Parse the matchedString returning a lat/lon occurrence.  This
 	 * implementation relies on named capture groups:
 	 * 
-	 * latdeg: Degrees latitude
-	 * latmin: Minutes latitude
-	 * latsec: Seconds latitude
-	 * lathemi: Hemisphere of latitude
-	 * londeg: Degrees longitude
-	 * lonmin: Minutes longitude
-	 * lonsec: Seconds longitude
-	 * lonhemi: Hemisphere of longitude
+	 * latdd: Decimal Degrees latitude
+	 * lathemi: (optional) Hemisphere of latitude
+	 * londd: Decimal Degrees longitude
+	 * lonhemi: (optional) Hemisphere of longitude
 	 * 
 	 * @param matchedString String representing the lat/lon matched by
 	 * the Regex statement.
@@ -69,19 +65,15 @@ public abstract class BaseDmsPatternParsingStrategy
 	 * @return A lat/lon coordinate occurrence.
 	 */
 	@Override
-	public CoordinateOccurrence<LatLonPair> parse(
-			String matchedString, Map<String, String> namedGroups, int startPosition) {
+	public CoordinateOccurrence<LatLonPair> parse(String matchedString,
+			Map<String, String> namedGroups, int startPosition) {
 		
-		double latitude = convertToDecimal(
-				namedGroups.get("latdeg"), 
-				namedGroups.get("latmin"), 
-				namedGroups.get("latsec"), 
+		double latitude = parseDecimalDegrees(
+				namedGroups.get("latdd"),
 				namedGroups.get("lathemi"));
 		
-		double longitude = convertToDecimal(
-				namedGroups.get("londeg"), 
-				namedGroups.get("lonmin"), 
-				namedGroups.get("lonsec"), 
+		double longitude = parseDecimalDegrees(
+				namedGroups.get("londd"),
 				namedGroups.get("lonhemi"));
 		
 		logger.debug("From '{}', parsed Lat/Lon: {}, {}.", 
@@ -93,27 +85,28 @@ public abstract class BaseDmsPatternParsingStrategy
 	}
 	
 	/**
-	 * Convert the degree, minute, second representation of a latitude
-	 * or longitude into it's decimal representation.
+	 * Parse the decimal degree representation of a latitude
+	 * or longitude from a string.
 	 * 
-	 * @param degrees Degrees latitude or longitude.
-	 * @param minutes Minutes latitude or longitude.
-	 * @param seconds Seconds latitude or longitude (optionally a decimal value
-	 * for subseconds).
+	 * @param decimalDegrees Decimal representation of the coordinate.
 	 * @param hemisphere Hemisphere of the latitude or longitude.
 	 * @return Decimal representation of the latitude or longitude.
 	 */
-	public static double convertToDecimal(
-		String degrees, String minutes, String seconds, String hemisphere){
+	public double parseDecimalDegrees(String decimalDegrees, String hemisphere){
 		
-		int hemi = 
-			(hemisphere.toUpperCase().equalsIgnoreCase("N")
-			  || hemisphere.toUpperCase().equalsIgnoreCase("E"))? 1 : -1;
+		int hemi = 1;
 		
-		int deg = tryParse(degrees, 0);
-		int min = tryParse(minutes, 0);
-		double sec = tryParse(seconds, 0.0d);
+		if (hemisphere != null && !hemisphere.trim().isEmpty()){
 		
-		return hemi * (deg + (min / 60.0) + (sec / 3600.0));
+			hemi = 
+				(hemisphere.toUpperCase().equalsIgnoreCase("N")
+				  || hemisphere.toUpperCase().equalsIgnoreCase("E"))? 1 : -1;
+		}
+		
+		double dd = tryParse(decimalDegrees, 0.0d);
+		
+		return hemi * dd;
 	}
+	
+
 }
