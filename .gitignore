@@ -7,4 +7,4 @@ IndexDirectory/
 allCountries.zip
 allCountries.txt
 !.gitignore
-/target
+.DS_Store
