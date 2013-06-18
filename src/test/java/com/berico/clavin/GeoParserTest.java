@@ -72,11 +72,11 @@ public class GeoParserTest {
 		assertEquals("Wrong number of ResolvedLocations", 3, 
 				resolvedLocations.size());
 		assertEquals("Incorrect ResolvedLocation", UNITED_STATES, 
-				resolvedLocations.get(0).getGeoname().geonameID);
+				resolvedLocations.get(0).getPlace().getId());
 		assertEquals("Incorrect ResolvedLocation", VERMONT,
-				resolvedLocations.get(1).getGeoname().geonameID);
+				resolvedLocations.get(1).getPlace().getId());
 		assertEquals("Incorrect ResolvedLocation", MASSACHUSETTS,
-				resolvedLocations.get(2).getGeoname().geonameID);
+				resolvedLocations.get(2).getPlace().getId());
 
         assertEquals("Incorrect position of LocationOccurance", 
         		inputText.indexOf("United States"), 

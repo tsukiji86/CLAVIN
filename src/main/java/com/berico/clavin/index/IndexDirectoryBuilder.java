@@ -28,7 +28,8 @@ import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.berico.clavin.gazetteer.GeoName;
+import com.berico.clavin.gazetteer.GeonamesUtils;
+import com.berico.clavin.gazetteer.Place;
 import com.berico.clavin.resolver.impl.lucene.FieldConstants;
 import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.shape.Shape;
@@ -158,7 +159,7 @@ public class IndexDirectoryBuilder {
 	
 	/**
 	 * Adds entries to the Lucene index for each unique name associated
-	 * with a {@link GeoName} object.
+	 * with a {@link Place} object.
 	 * 
 	 * @param indexWriter	the object that actually builds the Lucene index
 	 * @param geonameEntry	single record from GeoNames gazetteer
@@ -167,7 +168,7 @@ public class IndexDirectoryBuilder {
   	private void addToIndex(IndexWriter indexWriter, String geonameEntry) throws IOException {
   		
   		// create a GeoName object from a single gazetteer record
-  		GeoName geoname = GeoName.parseFromGeoNamesRecord(geonameEntry);
+  		Place geoname = GeonamesUtils.parseFromGeoNamesRecord(geonameEntry);
   		
   		indexWriter.addDocument(buildDoc(geonameEntry, geoname));
   	}
@@ -175,14 +176,14 @@ public class IndexDirectoryBuilder {
   	/**
   	 * Builds a Lucene document to be added to the index based on a
   	 * specified name for the location and the corresponding
-  	 * {@link GeoName} object.
+  	 * {@link Place} object.
   	 * 
   	 * @param name			name to serve as index key
   	 * @param geonameEntry	string from GeoNames gazetteer
-  	 * @param geoname		GeoName Entry
+  	 * @param place		GeoName Entry
   	 * @return
   	 */
-  	private Document buildDoc(String geonameEntry, GeoName geoname) {
+  	private Document buildDoc(String geonameEntry, Place place) {
   		
   		// in case you're wondering, yes, this is a non-standard use of
   		// the Lucene Document construct
@@ -190,16 +191,16 @@ public class IndexDirectoryBuilder {
 	    
 	    // this is essentially the key we'll try to match location
 	    // names against
-	    addIndexNameField(doc, geoname.name);
+	    addIndexNameField(doc, place.getName());
 	    
-	    if (!geoname.asciiName.equals(geoname.name)){
+	    if (!place.getAsciiName().equals(place.getName())){
 	    	
-	    		addIndexNameField(doc, geoname.asciiName);
+	    		addIndexNameField(doc, place.getAsciiName());
 	    }
 	    
-	    for (String altName : geoname.alternateNames){
+	    for (String altName : place.getAlternateNames()){
 	    	
-	    		if (!altName.equals(geoname.name) && !altName.equals(geoname.asciiName)){
+	    		if (!altName.equals(place.getName()) && !altName.equals(place.getAsciiName())){
 	    	
 	    			addIndexNameField(doc, altName);
 	    		}
@@ -211,13 +212,14 @@ public class IndexDirectoryBuilder {
 	    
 	    // TODO: use geonameID to link administrative subdivisions to
 	    //		 each other
-	    addGeonameIdField(doc, geoname.geonameID);
+	    addGeonameIdField(doc, place.getId());
 	    
 	    // we'll initially sort match results based on population
-	    addPopulationField(doc, geoname.population);
+	    addPopulationField(doc, place.getPopulation());
 	    
 	    // we'll create a new Spatial geometry from the centroid of the geoname location
-	    Shape centroid = spatialContext.makePoint(geoname.longitude, geoname.latitude);
+	    Shape centroid = spatialContext.makePoint(
+	    		place.getCenter().getLongitude(), place.getCenter().getLatitude());
 	    
 	    // add a deserializable representation of the shape to the document.
 	    addGeospatialField(doc, centroid);

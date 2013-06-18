@@ -11,7 +11,8 @@ import org.apache.lucene.search.TopDocs;
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.extractor.coords.LatLonPair;
-import com.berico.clavin.gazetteer.GeoName;
+import com.berico.clavin.gazetteer.GeonamesUtils;
+import com.berico.clavin.gazetteer.Place;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.ResolvedLocation;
 import com.berico.clavin.resolver.Vector;
@@ -45,8 +46,8 @@ public class LuceneUtils {
 			
 				Document doc = searcher.doc(results.scoreDocs[i].doc);
 				
-				GeoName record = 
-					GeoName.parseFromGeoNamesRecord(
+				Place record = 
+					GeonamesUtils.parseFromGeoNamesRecord(
 						doc.get(FieldConstants.GEONAME));
 				
 				String positionOfLocation = doc.get(FieldConstants.GEOMETRY);
@@ -127,8 +128,8 @@ public class LuceneUtils {
 	public static ResolvedLocation convertToLocation(
 			Document document, LocationOccurrence location, boolean fuzzy){
 		
-		GeoName geoname = 
-				GeoName.parseFromGeoNamesRecord(document.get(FieldConstants.GEONAME));
+		Place geoname = 
+				GeonamesUtils.parseFromGeoNamesRecord(document.get(FieldConstants.GEONAME));
 		
 		String matchedName = document.get(FieldConstants.NAME);
 		

@@ -1,7 +1,7 @@
 package com.berico.clavin.resolver;
 
 import com.berico.clavin.extractor.LocationOccurrence;
-import com.berico.clavin.gazetteer.GeoName;
+import com.berico.clavin.gazetteer.Place;
 
 /*#####################################################################
  * 
@@ -35,15 +35,15 @@ import com.berico.clavin.gazetteer.GeoName;
  * Object produced by resolving a location name against gazetteer
  * records.
  * 
- * Encapsulates a {@link GeoName} object representing the best match
- * between a given location name and gazetter record, along with some
+ * Encapsulates a {@link Place} object representing the best match
+ * between a given location name and gazetteer record, along with some
  * information about the geographic entity resolution process.
  *
  */
 public class ResolvedLocation {
 	
 	// geographic entity resolved from location name
-	protected GeoName geoname;
+	protected Place place;
 	
 	// original location name extracted from text
 	protected LocationOccurrence location;
@@ -67,31 +67,31 @@ public class ResolvedLocation {
 	 * found in a document.
 	 * 
 	 * @param matchedName Name of the location that was matched by the extracted text.
-	 * @param geoname GeoName entry of that location.
+	 * @param place The resolved place.
 	 * @param location Context of the extraction (text and position)
 	 * @param fuzzy Whether fuzzy matching was applied.
 	 * @param confidence Confidence of the match.
 	 */
 	public ResolvedLocation(
 			String matchedName,
-			GeoName geoname, 
+			Place place, 
 			LocationOccurrence location, 
 			boolean fuzzy,
 			float confidence){
 		
 		this.matchedName = matchedName;
-		this.geoname = geoname;
+		this.place = place;
 		this.location = location;
 		this.fuzzy = fuzzy;
 		this.confidence = confidence;
 	}
 	
 	/**
-	 * Get the Geoname entry for this resolved location.
-	 * @return Geoname entry
+	 * Get the Place entry for this resolved location.
+	 * @return Place entry
 	 */
-	public GeoName getGeoname() {
-		return geoname;
+	public Place getPlace() {
+		return place;
 	}
 
 	/**
@@ -144,11 +144,11 @@ public class ResolvedLocation {
 	    // know that it is one
 	    ResolvedLocation other = (ResolvedLocation)obj;
 	    
-	    // as long as the geonameIDs are the same, we'll treat these
+	    // as long as the Place IDs are the same, we'll treat these
 	    // ResolvedLocations as equal since they point to the same
 	    // geographic entity (even if the circumstances of the entity
 	    // resolution process differed)
-	    return (this.geoname.geonameID == other.geoname.geonameID);
+	    return (this.place.getId() == other.place.getId());
 	}
 	
 	private static final char dblquote = '"';
@@ -168,8 +168,8 @@ public class ResolvedLocation {
 		  .append("as")
 		  // Matched Name
 		  .append(dblquote).append(matchedName).append(dblquote).append(" ")
-		  // Geoname
-		  .append("{ ").append(geoname).append("}, ")
+		  // Place
+		  .append("{ ").append(place).append("}, ")
 		  // Position in Document
 		  .append("position: ").append(location.getPosition()).append(", ")
 		  // Confidence

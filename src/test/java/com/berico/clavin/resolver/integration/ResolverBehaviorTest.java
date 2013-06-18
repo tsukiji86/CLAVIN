@@ -55,11 +55,11 @@ public abstract class ResolverBehaviorTest {
 		assertFalse("Empty results list received from LocationResolver", resolvedLocations.isEmpty());
 		assertTrue("LocationResolver choked/quit after first location", resolvedLocations.size() > 1);
 		
-		assertEquals("LocationResolver failed exact String match", RESTON_VA, resolvedLocations.get(0).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on all lowercase", RESTON_VA, resolvedLocations.get(1).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on all uppercase", RESTON_VA, resolvedLocations.get(2).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on alternate name", RESTON_VA, resolvedLocations.get(3).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on UTF8 chars", STRAßENHAUS_DE, resolvedLocations.get(4).getGeoname().geonameID);
+		assertEquals("LocationResolver failed exact String match", RESTON_VA, resolvedLocations.get(0).getPlace().getId());
+		assertEquals("LocationResolver failed on all lowercase", RESTON_VA, resolvedLocations.get(1).getPlace().getId());
+		assertEquals("LocationResolver failed on all uppercase", RESTON_VA, resolvedLocations.get(2).getPlace().getId());
+		assertEquals("LocationResolver failed on alternate name", RESTON_VA, resolvedLocations.get(3).getPlace().getId());
+		assertEquals("LocationResolver failed on UTF8 chars", STRAßENHAUS_DE, resolvedLocations.get(4).getPlace().getId());
 	}
 	
 	@Test
@@ -104,12 +104,12 @@ public abstract class ResolverBehaviorTest {
 		
 		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(makeOccurrencesFromNames(locations), true);
 		
-		assertEquals("LocationResolver failed on extra char", BOSTON_MA, resolvedLocations.get(0).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on extra chars", RESTON_VA, resolvedLocations.get(1).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on missing char", BOSTON_MA, resolvedLocations.get(2).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on missing chars", STRAßENHAUS_DE, resolvedLocations.get(3).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on extra term", STRAßENHAUS_DE, resolvedLocations.get(4).getGeoname().geonameID);
-		assertEquals("LocationResolver failed on missing term", GUN_BARREL_CITY_TX, resolvedLocations.get(5).getGeoname().geonameID);
+		assertEquals("LocationResolver failed on extra char", BOSTON_MA, resolvedLocations.get(0).getPlace().getId());
+		assertEquals("LocationResolver failed on extra chars", RESTON_VA, resolvedLocations.get(1).getPlace().getId());
+		assertEquals("LocationResolver failed on missing char", BOSTON_MA, resolvedLocations.get(2).getPlace().getId());
+		assertEquals("LocationResolver failed on missing chars", STRAßENHAUS_DE, resolvedLocations.get(3).getPlace().getId());
+		assertEquals("LocationResolver failed on extra term", STRAßENHAUS_DE, resolvedLocations.get(4).getPlace().getId());
+		assertEquals("LocationResolver failed on missing term", GUN_BARREL_CITY_TX, resolvedLocations.get(5).getPlace().getId());
 	}
 
 }

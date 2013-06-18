@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.berico.clavin.extractor.ExtractionContext;
 import com.berico.clavin.extractor.LocationOccurrence;
-import com.berico.clavin.gazetteer.GeoName;
+import com.berico.clavin.gazetteer.Place;
 
 /*#####################################################################
  * 
@@ -47,7 +47,7 @@ public interface LocationResolver {
 	
 	/**
      * Resolves the supplied list of location names into
-     * {@link ResolvedLocation}s containing {@link GeoName} objects.
+     * {@link ResolvedLocation}s containing {@link Place} objects.
      * 
      * @param locations 		list of location names to be resolved
      * @param fuzzy			switch for turning on/off fuzzy matching

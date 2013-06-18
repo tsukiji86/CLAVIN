@@ -1,7 +1,5 @@
 package com.berico.clavin.resolver.impl.lucene.integration;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
@@ -15,7 +13,8 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.Version;
 import org.junit.Test;
 
-import com.berico.clavin.gazetteer.GeoName;
+import com.berico.clavin.gazetteer.GeonamesUtils;
+import com.berico.clavin.gazetteer.Place;
 import com.berico.clavin.index.WhitespaceLowerCaseAnalyzer;
 import com.berico.clavin.resolver.impl.lucene.FieldConstants;
 import com.berico.clavin.resolver.impl.lucene.LuceneComponents;
@@ -49,7 +48,7 @@ public class SortingTest {
 			
 			String geoname = searcher.doc(doc.doc).get(FieldConstants.GEONAME);
 			
-			GeoName g = GeoName.parseFromGeoNamesRecord(geoname);
+			Place g = GeonamesUtils.parseFromGeoNamesRecord(geoname);
 			
 			System.out.println(g);
 		}

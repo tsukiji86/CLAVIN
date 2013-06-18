@@ -26,7 +26,7 @@ import com.berico.clavin.extractor.ExtractionContext;
 import com.berico.clavin.extractor.LocationExtractor;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.gazetteer.CountryCode;
-import com.berico.clavin.gazetteer.GeoName;
+import com.berico.clavin.gazetteer.Place;
 import com.berico.clavin.index.BinarySimilarity;
 import com.berico.clavin.index.WhitespaceLowerCaseAnalyzer;
 import com.berico.clavin.resolver.LocationResolver;
@@ -292,8 +292,11 @@ public class LuceneLocationResolver implements LocationResolver {
 	  			states = new ArrayList<String>();
 	  			
 	  			for (ResolvedLocation location: combo) {
-	  				countries.add(location.getGeoname().primaryCountryCode);
-	  				states.add(location.getGeoname().admin1Code);
+	  				countries.add(location.getPlace().getPrimaryCountryCode());
+	  				
+	  				String a1 = location.getPlace().getAdministrativeParents().get(0).getName();
+	  				
+	  				states.add(a1);
 	  			}
 	  			
 	  			// unique-ify the lists to look for common country codes & admin1 codes
@@ -387,7 +390,7 @@ public class LuceneLocationResolver implements LocationResolver {
   	
     /**
      * Resolves the supplied list of location names into
-     * {@link ResolvedLocation}s containing {@link GeoName} objects.
+     * {@link ResolvedLocation}s containing {@link Place} objects.
      * 
      * Calls {@link LuceneLocationResolver#getCandidateMatches(LocationOccurrence, boolean)} on
      * each location name to find all possible matches, then uses

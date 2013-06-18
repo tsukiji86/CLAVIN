@@ -1,7 +1,7 @@
 package com.berico.clavin.resolver;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
-import com.berico.clavin.gazetteer.GeoName;
+import com.berico.clavin.gazetteer.Place;
 
 public class ResolvedCoordinate {
 
@@ -9,13 +9,13 @@ public class ResolvedCoordinate {
 	
 	protected CoordinateOccurrence<?> occurrence;
 	
-	protected GeoName knownLocation;
+	protected Place knownLocation;
 
 	public ResolvedCoordinate(){}
 	
 	public ResolvedCoordinate(
 			CoordinateOccurrence<?> occurrence, 
-			GeoName knownLocation,
+			Place knownLocation,
 			Vector vectorFromKnownLocation) {
 		
 		this.vectorFromKnownLocation = vectorFromKnownLocation;
@@ -31,7 +31,7 @@ public class ResolvedCoordinate {
 		return occurrence;
 	}
 
-	public GeoName getKnownLocation() {
+	public Place getKnownLocation() {
 		return knownLocation;
 	}
 
@@ -90,9 +90,9 @@ public class ResolvedCoordinate {
 		  .append(" as ")
 		  .append(vectorFromKnownLocation)
 		  .append(" of ")
-		  .append(knownLocation.name)
+		  .append(knownLocation.getName())
 		  .append(", [")
-		  .append(knownLocation.primaryCountryCode)
+		  .append(knownLocation.getPrimaryCountryCode())
 		  .append("]");
 		  
 		return sb.toString();
