@@ -1,0 +1,1 @@
+## Resolving Locations in other Languages

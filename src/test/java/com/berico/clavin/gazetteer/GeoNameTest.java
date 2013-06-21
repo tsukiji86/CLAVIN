@@ -16,6 +16,8 @@ import java.util.TimeZone;
 
 import org.junit.Test;
 
+import com.berico.clavin.util.GeonamesUtils;
+
 /*#####################################################################
  * 
  * CLAVIN (Cartographic Location And Vicinity INdexer)

@@ -13,12 +13,12 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.Version;
 import org.junit.Test;
 
-import com.berico.clavin.gazetteer.GeonamesUtils;
 import com.berico.clavin.gazetteer.Place;
 import com.berico.clavin.index.WhitespaceLowerCaseAnalyzer;
 import com.berico.clavin.resolver.impl.lucene.FieldConstants;
 import com.berico.clavin.resolver.impl.lucene.LuceneComponents;
 import com.berico.clavin.resolver.impl.lucene.LuceneComponentsFactory;
+import com.berico.clavin.util.GeonamesUtils;
 
 public class SortingTest {
 

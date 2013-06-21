@@ -3,16 +3,59 @@ package com.berico.clavin.resolver;
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.gazetteer.Place;
 
-public class ResolvedCoordinate {
+/*#####################################################################
+ * 
+ * CLAVIN (Cartographic Location And Vicinity INdexer)
+ * ---------------------------------------------------
+ * 
+ * Copyright (C) 2012-2013 Berico Technologies
+ * http://clavin.bericotechnologies.com
+ * 
+ * ====================================================================
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ * 
+ * ====================================================================
+ * 
+ * ResolvedCoordinate.java
+ * 
+ *###################################################################*/
 
+/**
+ * Represents the results of the Coordinate Resolution process, that is,
+ * converting Lat/Lon (or some other coordinate system) to a resolved Place
+ * object.
+ */
+public class ResolvedCoordinate {
+	
 	protected Vector vectorFromKnownLocation;
 	
 	protected CoordinateOccurrence<?> occurrence;
 	
 	protected Place knownLocation;
 
+	/**
+	 * For serialization purposes.
+	 */
 	public ResolvedCoordinate(){}
 	
+	/**
+	 * Initialize the ResolvedCoordinate.
+	 * @param occurrence Coordinate found in text
+	 * @param knownLocation Most probable Place the coordinate is associated with.
+	 * @param vectorFromKnownLocation Direction and Distance from the center of 
+	 * the Place this coordinate was resolved to.
+	 */
 	public ResolvedCoordinate(
 			CoordinateOccurrence<?> occurrence, 
 			Place knownLocation,
@@ -23,14 +66,26 @@ public class ResolvedCoordinate {
 		this.knownLocation = knownLocation;
 	}
 	
+	/**
+	 * Get the distance and direction of the coordinate from the resolved Place.
+	 * @return Vector from the Place's center.
+	 */
 	public Vector getVectorFromKnownLocation() {
 		return vectorFromKnownLocation;
 	}
 
+	/**
+	 * Get the coordinates occurrence in text.
+	 * @return Coordinate Occurrence.
+	 */
 	public CoordinateOccurrence<?> getOccurrence() {
 		return occurrence;
 	}
 
+	/**
+	 * Get the place this coordinate was resolved to.
+	 * @return Place coordinate was resolved to.
+	 */
 	public Place getKnownLocation() {
 		return knownLocation;
 	}
@@ -97,8 +152,5 @@ public class ResolvedCoordinate {
 		  
 		return sb.toString();
 	}
-
-	
-	
 	
 }
