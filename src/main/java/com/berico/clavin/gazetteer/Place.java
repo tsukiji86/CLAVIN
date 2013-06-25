@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import com.berico.clavin.extractor.coords.LatLonPair;
 
 /*#####################################################################
  * 
@@ -68,7 +67,7 @@ public class Place {
 	protected List<String> alternateNames;
 	
 	// The lat/lon center of this place
-	protected LatLonPair center;
+	protected LatLon center;
 	
 	//TODO: put actual shape context here.
 	// protected Shape extent;
@@ -180,7 +179,7 @@ public class Place {
 	 * pair.
 	 * @return LatLonPair of the center of this place.
 	 */
-	public LatLonPair getCenter() {
+	public LatLon getCenter() {
 		return center;
 	}
 
@@ -188,7 +187,7 @@ public class Place {
 	 * Set the center coordinate of this place.
 	 * @param center LatLonPair representing the center.
 	 */
-	public void setCenter(LatLonPair center) {
+	public void setCenter(LatLon center) {
 		this.center = center;
 	}
 
@@ -381,4 +380,17 @@ public class Place {
 		this.context = context;
 	}
 	
+	@Override
+	public String toString(){
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("Place [")
+		  .append("name: ").append(this.name)
+		  .append(", country: ").append(this.primaryCountryCode.name())
+		  .append(", center: ").append(this.center)
+		  .append("]");
+		
+		return sb.toString();
+	}
 }

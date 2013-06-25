@@ -35,6 +35,7 @@ import java.util.HashMap;
 import org.junit.Test;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
+import com.berico.clavin.gazetteer.LatLon;
 
 public class DmsPatternParsingStrategyTest 
 		extends BaseRegexParsingStrategyTest {
@@ -146,7 +147,7 @@ public class DmsPatternParsingStrategyTest
 		namedGroups.put("lonsec",  "55.903");
 		namedGroups.put("lonhemi", "W");
 		
-		CoordinateOccurrence<LatLonPair> coordinate = 
+		CoordinateOccurrence<LatLon> coordinate = 
 			strategy.parse(testCoordinate, namedGroups, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
@@ -172,7 +173,7 @@ public class DmsPatternParsingStrategyTest
 		namedGroups.put("lonsec",  "55");
 		namedGroups.put("lonhemi", "W");
 		
-		CoordinateOccurrence<LatLonPair> coordinate = 
+		CoordinateOccurrence<LatLon> coordinate = 
 			strategy.parse(testCoordinate, namedGroups, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
@@ -196,7 +197,7 @@ public class DmsPatternParsingStrategyTest
 		namedGroups.put("lonmin",  "56");
 		namedGroups.put("lonhemi", "W");
 		
-		CoordinateOccurrence<LatLonPair> coordinate = 
+		CoordinateOccurrence<LatLon> coordinate = 
 			strategy.parse(testCoordinate, namedGroups, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());

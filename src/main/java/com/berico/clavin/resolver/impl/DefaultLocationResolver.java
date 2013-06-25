@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.berico.clavin.Options;
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.extractor.ExtractionContext;
 import com.berico.clavin.extractor.LocationOccurrence;
@@ -11,6 +12,34 @@ import com.berico.clavin.resolver.LocationResolver;
 import com.berico.clavin.resolver.ResolutionContext;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.ResolvedLocation;
+
+/*#####################################################################
+ * 
+ * CLAVIN (Cartographic Location And Vicinity INdexer)
+ * ---------------------------------------------------
+ * 
+ * Copyright (C) 2012-2013 Berico Technologies
+ * http://clavin.bericotechnologies.com
+ * 
+ * ====================================================================
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ * 
+ * ====================================================================
+ * 
+ * DefaultLocationResolver.java
+ * 
+ *###################################################################*/
 
 /**
  * Non-parallelized workflow for resolving locations and coordinates
@@ -31,6 +60,7 @@ public class DefaultLocationResolver implements LocationResolver {
 	LocationCandidateSelectionStrategy locationSelectionStrategy;
 	CoordinateCandidateSelectionStrategy coordinateSelectionStrategy;
 	ResolutionResultsReductionStrategy reductionStrategy;
+	Options defaultOps = new Options();
 	
 	/**
 	 * Provide the 5 workflow steps necessary to perform resolution.
@@ -75,16 +105,28 @@ public class DefaultLocationResolver implements LocationResolver {
 	 * Provided an ExtractionContext (Locations and Coordinates), return 
 	 * a list of Resolved Locations and Coordinates (ResolutionContext).
 	 * @param context Extraction Context
-	 * @param fuzzy Whether fuzzy matching should be used.
+	 * @return ResolutionContext (Resolved Locations and Coordinates)
+	 */
+	@Override
+	public ResolutionContext resolveLocations(ExtractionContext context) throws Exception {
+		
+		return resolveLocations(context, defaultOps);
+	}
+
+	/**
+	 * Provided an ExtractionContext (Locations and Coordinates), return 
+	 * a list of Resolved Locations and Coordinates (ResolutionContext).
+	 * @param context Extraction Context
+	 * @param options Options used to coach the resolver.
 	 * @return ResolutionContext (Resolved Locations and Coordinates)
 	 */
 	@Override
 	public ResolutionContext resolveLocations(
-			ExtractionContext context, boolean fuzzy)
+			ExtractionContext context, Options options)
 			throws Exception {
 		
 		ArrayList<List<ResolvedLocation>> locationCandidates = 
-				findLocationCandidates(context.getLocations(), fuzzy);
+				findLocationCandidates(context.getLocations(), options.getUseFuzzyMatching());
 		
 		ArrayList<List<ResolvedCoordinate>> coordinateCandidates =
 				findCoordinateCandidates(context.getCoordinates());
@@ -97,7 +139,8 @@ public class DefaultLocationResolver implements LocationResolver {
 		
 		return reductionStrategy.reduce(context, resolvedLocations, resolvedCoordinates);
 	}
-
+	
+	
 	/**
 	 * Find potential location candidates from the extracted occurrences.
 	 * 

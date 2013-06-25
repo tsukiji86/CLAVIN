@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.berico.clavin.extractor.coords.LatLonOccurrence;
-import com.berico.clavin.extractor.coords.LatLonPair;
+import com.berico.clavin.gazetteer.LatLon;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.impl.lucene.LuceneComponents;
 import com.berico.clavin.resolver.impl.lucene.LuceneComponentsFactory;
@@ -34,7 +34,7 @@ public class LuceneCoordinateIndexTest {
 		
 		LatLonOccurrence occurrence = 
 			new LatLonOccurrence("23.211058, -109.653542", -1, 
-				new LatLonPair(23.211058, -109.653542));
+				new LatLon(23.211058, -109.653542));
 		
 		List<ResolvedCoordinate> coordinate = coordinateIndex.search(occurrence);
 		

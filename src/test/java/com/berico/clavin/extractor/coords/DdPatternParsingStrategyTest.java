@@ -7,6 +7,7 @@ import java.util.HashMap;
 import org.junit.Test;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
+import com.berico.clavin.gazetteer.LatLon;
 
 /*#####################################################################
  * 
@@ -93,7 +94,7 @@ public class DdPatternParsingStrategyTest
 		namedGroups.put("latdd",  "40.446195");
 		namedGroups.put("londd",  "79.948862");
 		
-		CoordinateOccurrence<LatLonPair> coordinate = 
+		CoordinateOccurrence<LatLon> coordinate = 
 			strategy.parse(testCoordinate, namedGroups, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
@@ -115,7 +116,7 @@ public class DdPatternParsingStrategyTest
 		namedGroups.put("londd",  "-52.090904");
 		namedGroups.put("lonhemi", null);
 		
-		CoordinateOccurrence<LatLonPair> coordinate = 
+		CoordinateOccurrence<LatLon> coordinate = 
 			strategy.parse(testCoordinate, namedGroups, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
@@ -137,7 +138,7 @@ public class DdPatternParsingStrategyTest
 		namedGroups.put("londd",  "79.948862");
 		namedGroups.put("lonhemi", "W");
 		
-		CoordinateOccurrence<LatLonPair> coordinate = 
+		CoordinateOccurrence<LatLon> coordinate = 
 			strategy.parse(testCoordinate, namedGroups, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
@@ -159,7 +160,7 @@ public class DdPatternParsingStrategyTest
 		namedGroups.put("londd",  "79.948862");
 		namedGroups.put("lonhemi", "E");
 		
-		CoordinateOccurrence<LatLonPair> coordinate = 
+		CoordinateOccurrence<LatLon> coordinate = 
 			strategy.parse(testCoordinate, namedGroups, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());

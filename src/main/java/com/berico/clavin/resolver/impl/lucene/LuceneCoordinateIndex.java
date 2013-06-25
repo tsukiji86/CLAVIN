@@ -10,7 +10,7 @@ import org.apache.lucene.spatial.query.SpatialArgs;
 import org.apache.lucene.spatial.query.SpatialOperation;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
-import com.berico.clavin.extractor.coords.LatLonPair;
+import com.berico.clavin.gazetteer.LatLon;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.impl.CoordinateIndex;
 import com.spatial4j.core.distance.DistanceUtils;
@@ -85,7 +85,7 @@ public class LuceneCoordinateIndex implements CoordinateIndex {
 				distanceInKm, DistanceUtils.EARTH_MEAN_RADIUS_KM);
 		
 		// Convert the coordinate to it's lat/lon representation.
-		LatLonPair center = coordinate.convertToLatLon();
+		LatLon center = coordinate.convertToLatLon();
 		
 		// Create a circular bounding box using the coordinate as the center
 		// and the distance as the circle's radius.

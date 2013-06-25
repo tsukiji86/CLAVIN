@@ -8,10 +8,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import com.berico.clavin.extractor.coords.LatLonPair;
 import com.berico.clavin.gazetteer.CountryCode;
 import com.berico.clavin.gazetteer.FeatureClass;
 import com.berico.clavin.gazetteer.FeatureCode;
+import com.berico.clavin.gazetteer.LatLon;
 import com.berico.clavin.gazetteer.Place;
 import com.berico.clavin.gazetteer.PlaceReference;
 
@@ -167,7 +167,7 @@ public class GeonamesUtils {
 		p.setName(name);
 		p.setAsciiName(asciiName);
 		p.setAlternateNames(alternateNames);
-		p.setCenter(new LatLonPair(latitude, longitude));
+		p.setCenter(new LatLon(latitude, longitude));
 		p.setFeatureClass(featureClass);
 		p.setFeatureCode(featureCode);
 		p.setPrimaryCountryCode(primaryCountryCode);

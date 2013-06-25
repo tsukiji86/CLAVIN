@@ -1,4 +1,4 @@
-package com.berico.clavin.index;
+package com.berico.clavin.resolver.impl.lucene;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.berico.clavin.gazetteer.Place;
-import com.berico.clavin.resolver.impl.lucene.FieldConstants;
 import com.berico.clavin.util.GeonamesUtils;
 import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.shape.Shape;

@@ -22,18 +22,19 @@ import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.berico.clavin.Options;
 import com.berico.clavin.extractor.ExtractionContext;
 import com.berico.clavin.extractor.LocationExtractor;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.gazetteer.CountryCode;
 import com.berico.clavin.gazetteer.Place;
-import com.berico.clavin.index.BinarySimilarity;
-import com.berico.clavin.index.WhitespaceLowerCaseAnalyzer;
 import com.berico.clavin.resolver.LocationResolver;
 import com.berico.clavin.resolver.ResolutionContext;
 import com.berico.clavin.resolver.ResolvedLocation;
+import com.berico.clavin.resolver.impl.lucene.BinarySimilarity;
 import com.berico.clavin.resolver.impl.lucene.FieldConstants;
 import com.berico.clavin.resolver.impl.lucene.LuceneUtils;
+import com.berico.clavin.resolver.impl.lucene.WhitespaceLowerCaseAnalyzer;
 import com.berico.clavin.util.ListUtils;
 
 /*#####################################################################
@@ -464,10 +465,19 @@ public class LuceneLocationResolver implements LocationResolver {
 
 	@Override
 	public ResolutionContext resolveLocations(
-			ExtractionContext extractionContext, boolean fuzzy)
-			throws Exception {
-		
+			ExtractionContext extractionContext) throws Exception {
+		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public ResolutionContext resolveLocations(
+			ExtractionContext extractionContext, Options options)
+			throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 
 }

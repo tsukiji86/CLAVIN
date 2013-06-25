@@ -1,5 +1,13 @@
 package com.berico.clavin.resolver.impl.strategies;
 
+import java.util.List;
+
+import com.berico.clavin.extractor.ExtractionContext;
+import com.berico.clavin.resolver.ResolutionContext;
+import com.berico.clavin.resolver.ResolvedCoordinate;
+import com.berico.clavin.resolver.ResolvedLocation;
+import com.berico.clavin.resolver.impl.ResolutionResultsReductionStrategy;
+
 /*#####################################################################
  * 
  * CLAVIN (Cartographic Location And Vicinity INdexer)
@@ -24,22 +32,29 @@ package com.berico.clavin.resolver.impl.strategies;
  * 
  * ====================================================================
  * 
- * Weigher.java
+ * IdentityReductionStrategy.java
  * 
  *###################################################################*/
 
 /**
- * Given an ITEM and some CONTEXT, provide a numeric weight.
- * 
- * This can be used to reward (positive values) or punish (negative)
- * items.  Keep in mind the value of the weight should be considered in
- * the context of the overall weighting system.
- *
- * @param <ITEM>
- * @param <CONTEXT>
+ * Whatever goes in comes out.  This is the default strategy and assumes you want to
+ * keep everything in the result set and don't need to perform any aggregations.
  */
-public interface Weigher<ITEM, CONTEXT> {
+public class IdentityReductionStrategy implements ResolutionResultsReductionStrategy {
 
-	double weigh(ITEM item, CONTEXT context);
-	
+	/**
+	 * Takes the input from previous processes and returns the ResolutionContext.
+	 * @param extractionContext The results from extraction.
+	 * @param locations resolved locations
+	 * @param coordinates resolved coordinates
+	 * @return ResolutionContext (results from the process).
+	 */
+	@Override
+	public ResolutionContext reduce(ExtractionContext extractionContext,
+			List<ResolvedLocation> locations,
+			List<ResolvedCoordinate> coordinates) {	
+		
+		return new ResolutionContext(locations, coordinates, extractionContext);
+	}
+
 }

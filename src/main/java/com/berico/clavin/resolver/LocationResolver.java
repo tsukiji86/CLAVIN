@@ -2,6 +2,7 @@ package com.berico.clavin.resolver;
 
 import java.util.List;
 
+import com.berico.clavin.Options;
 import com.berico.clavin.extractor.ExtractionContext;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.gazetteer.Place;
@@ -61,7 +62,7 @@ public interface LocationResolver {
 	/**
 	 * Resolves the locations and coordinates specified in the ExtractionContext
 	 * into a {@link ResolutionContext} which contains a list of {@link ResolvedLocation}s
-	 * and {@link OldImplOfResolvedCoordinate}s.
+	 * and {@link ResolvedCoordinate}s.
 	 * 
 	 * @param extractionContext Information related to the extraction of 
 	 * locations and coordinates.
@@ -69,6 +70,20 @@ public interface LocationResolver {
 	 * @throws Exception
 	 */
 	public ResolutionContext resolveLocations(
-			ExtractionContext extractionContext, boolean fuzzy) throws Exception;
+			ExtractionContext extractionContext) throws Exception;
+	
+	/**
+	 * Resolves the locations and coordinates specified in the ExtractionContext
+	 * into a {@link ResolutionContext} which contains a list of {@link ResolvedLocation}s
+	 * and {@link ResolvedCoordinate}s.
+	 * 
+	 * @param extractionContext Information related to the extraction of 
+	 * locations and coordinates.
+	 * @param options Options for configuring the underlying resolver.
+	 * @return The results of resolving locations and coordinates.
+	 * @throws Exception
+	 */
+	public ResolutionContext resolveLocations(
+			ExtractionContext extractionContext, Options options) throws Exception;
 	
 }

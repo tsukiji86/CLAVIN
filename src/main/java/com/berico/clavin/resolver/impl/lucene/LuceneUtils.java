@@ -10,7 +10,7 @@ import org.apache.lucene.search.TopDocs;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.extractor.LocationOccurrence;
-import com.berico.clavin.extractor.coords.LatLonPair;
+import com.berico.clavin.gazetteer.LatLon;
 import com.berico.clavin.gazetteer.Place;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.ResolvedLocation;
@@ -21,35 +21,88 @@ import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.distance.DistanceUtils;
 import com.spatial4j.core.shape.Point;
 
+/*#####################################################################
+ * 
+ * CLAVIN (Cartographic Location And Vicinity INdexer)
+ * ---------------------------------------------------
+ * 
+ * Copyright (C) 2012-2013 Berico Technologies
+ * http://clavin.bericotechnologies.com
+ * 
+ * ====================================================================
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ * 
+ * ====================================================================
+ * 
+ * LuceneUtils.java
+ * 
+ *###################################################################*/
+
+/**
+ * A set of utilities for working with the Lucene index.
+ */
 public class LuceneUtils {
 
+	/**
+	 * Convert a set of Lucene Document Results into a list of
+	 * ResolvedCoordinates.
+	 * @param occurrence the CoordinateOccurrence in the document.
+	 * @param searcher the Lucene Searcher that retrieved the results.
+	 * @param results the Search results context
+	 * @param components LuceneComponents (specifically, the spatial components
+	 * needed to calculate vectors).
+	 * @return a List of ResolvedCoordinates.
+	 * @throws IOException
+	 */
 	public static List<ResolvedCoordinate> convertToCoordinate(
 			CoordinateOccurrence<?> occurrence,
 			IndexSearcher searcher,
 			TopDocs results,
 			LuceneComponents components) throws IOException {
 		
+		// Results
 		ArrayList<ResolvedCoordinate> resolvedCoordinates = 
 				new ArrayList<ResolvedCoordinate>();
 		
+		// Grab the Lucene spatial context
 		SpatialContext spatialContext = components.getSpatialContext();
 		
+		// If we have results
 		if (results.scoreDocs.length > 0){
 			
-			LatLonPair center = occurrence.convertToLatLon();
+			// Get the center coordinate of the location occurrence
+			LatLon center = occurrence.convertToLatLon();
 			
+			// Convert to a Spatial4j point
 			Point occurrencePoint = 
 				spatialContext.makePoint(
 					center.getLongitude(), center.getLatitude());
 			
+			// Iterate over the results
 			for (int i = 0; i < results.scoreDocs.length; i++){
 			
+				// Grab the document from Lucene
 				Document doc = searcher.doc(results.scoreDocs[i].doc);
 				
+				// TODO: Genericize the parsing of the Place record so it's not
+				// specific to Geonames.
+				// Parse the "Place" record.
 				Place record = 
 					GeonamesUtils.parseFromGeoNamesRecord(
 						doc.get(FieldConstants.GEONAME));
 				
+				// Get the centroid of the Place
 				String positionOfLocation = doc.get(FieldConstants.GEOMETRY);
 				
 				// TODO: Spatial4J supposedly has a ShapeReaderWriter implementation
@@ -57,16 +110,19 @@ public class LuceneUtils {
 				@SuppressWarnings("deprecation")
 				Point point = (Point) spatialContext.readShape(positionOfLocation);
 				
+				// Calculate the distance
 				double distanceInDegrees = 
 						spatialContext.getDistCalc().distance(point, occurrencePoint);
 				
 				double distanceInKm = DistanceUtils.degrees2Dist(
 						distanceInDegrees, DistanceUtils.EARTH_MEAN_RADIUS_KM);
 				
+				// Calculate the direction
 				double direction = calculateDirection(
 					point.getX(), point.getY(), 
 					occurrencePoint.getX(), occurrencePoint.getY());
 				
+				// Add the ResolvedCoordinate to the list.
 				resolvedCoordinates.add(
 					new ResolvedCoordinate(occurrence, record, 
 						new Vector(distanceInKm, direction)));
@@ -76,6 +132,14 @@ public class LuceneUtils {
 		return resolvedCoordinates;
 	}
 	
+	/**
+	 * Calculate the direction from a center point "c" to an offset point "o".
+	 * @param cx Center X
+	 * @param cy Center Y
+	 * @param ox Offset X
+	 * @param oy Offset Y
+	 * @return Direction in degrees.
+	 */
 	private static double calculateDirection(double cx, double cy, double ox, double oy){
 		
 		// Direction of a Vector: tanθ = (y2 - y1) / (x2 - x1)
@@ -101,7 +165,15 @@ public class LuceneUtils {
 		return angle;
 	}
 	
-	
+	/**
+	 * Convert a set of Lucene Document Results into a list of ResolvedLocations.
+	 * @param occurrence LocationOccurrence in the document.
+	 * @param searcher the Lucene Searcher used to find the locations.
+	 * @param results the results of the Lucene Search
+	 * @param usingFuzzy whether fuzzy matching was used
+	 * @return List of ResolvedLocations
+	 * @throws IOException
+	 */
 	public static List<ResolvedLocation> convertToLocations(
 			LocationOccurrence occurrence, 
 			IndexSearcher searcher, 
@@ -116,7 +188,7 @@ public class LuceneUtils {
 	    			
 	    			Document doc = searcher.doc(results.scoreDocs[i].doc);
 	    			
-	    			ResolvedLocation location = convertToLocation(doc, occurrence, true);
+	    			ResolvedLocation location = convertToLocation(doc, occurrence, usingFuzzy);
 	    		
 	    			locations.add(location);
 	    		}
@@ -125,9 +197,17 @@ public class LuceneUtils {
 		return locations;
 	}
 	
+	/**
+	 * Convert a single index entry into a ResolvedLocation
+	 * @param document the index entry
+	 * @param location the LocationOccurrence within a document
+	 * @param fuzzy whether fuzzy matching was used.
+	 * @return ResolvedLocation
+	 */
 	public static ResolvedLocation convertToLocation(
 			Document document, LocationOccurrence location, boolean fuzzy){
-		
+	
+		// TODO: Abstract the dependency on Geonames with a customer serializer.
 		Place geoname = 
 				GeonamesUtils.parseFromGeoNamesRecord(document.get(FieldConstants.GEONAME));
 		

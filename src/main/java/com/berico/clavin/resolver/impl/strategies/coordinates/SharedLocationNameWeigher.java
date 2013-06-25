@@ -1,9 +1,10 @@
-package com.berico.clavin.resolver.impl.strategies;
+package com.berico.clavin.resolver.impl.strategies.coordinates;
 
 import java.util.Collection;
 
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.resolver.ResolvedCoordinate;
+import com.berico.clavin.resolver.impl.strategies.Weigher;
 
 /*#####################################################################
 *
@@ -34,9 +35,9 @@ import com.berico.clavin.resolver.ResolvedCoordinate;
 *###################################################################*/
 
 /**
- * Improve the resolution rank of a plain-named location match against
- * a Coordinate, if that plain-named location occurred in the document
- * as well.
+ * Improve the resolution rank of a ResolvedCoordinate if the name of the
+ * resolved coordinate matches a plain-named location occurring in the 
+ * document.
  */
 public class SharedLocationNameWeigher 
 	implements Weigher<ResolvedCoordinate, Collection<LocationOccurrence>> {

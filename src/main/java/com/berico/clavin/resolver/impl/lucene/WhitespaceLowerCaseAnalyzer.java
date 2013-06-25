@@ -1,4 +1,4 @@
-package com.berico.clavin.index;
+package com.berico.clavin.resolver.impl.lucene;
 
 import java.io.Reader;
 

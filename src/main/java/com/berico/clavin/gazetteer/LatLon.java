@@ -1,4 +1,4 @@
-package com.berico.clavin.extractor.coords;
+package com.berico.clavin.gazetteer;
 
 /*#####################################################################
 *
@@ -24,7 +24,7 @@ package com.berico.clavin.extractor.coords;
 *
 * ====================================================================
 *
-* LatLonPair.java
+* LatLon.java
 *
 *###################################################################*/
 
@@ -32,7 +32,7 @@ package com.berico.clavin.extractor.coords;
 /**
  * Represents a latitude/longitude pair.
  */
-public class LatLonPair {
+public class LatLon {
 
 	/**
 	 * Value that we will use to represent a null coordinate.
@@ -46,14 +46,14 @@ public class LatLonPair {
 	 * For serialization purposes.  Please use the parameterized
 	 * constructor.
 	 */
-	public LatLonPair(){}
+	public LatLon(){}
 	
 	/**
 	 * Initialize a lat/lon pair with it's lat/lon!
 	 * @param latitude Latitude
 	 * @param longitude Longitude
 	 */
-	public LatLonPair(double latitude, double longitude){
+	public LatLon(double latitude, double longitude){
 		
 		this.setLatitude(latitude);
 		this.setLongitude(longitude);
@@ -139,7 +139,7 @@ public class LatLonPair {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		LatLonPair other = (LatLonPair) obj;
+		LatLon other = (LatLon) obj;
 		if (Double.doubleToLongBits(latitude) != Double
 				.doubleToLongBits(other.latitude))
 			return false;
@@ -153,7 +153,7 @@ public class LatLonPair {
 	public String toString(){
 		
 		if (isNull())
-			return "LatLonPair is effectively NULL.";
+			return "LatLon is effectively NULL.";
 		
 		return String.format("%s, %s", this.latitude, this.longitude);
 	}

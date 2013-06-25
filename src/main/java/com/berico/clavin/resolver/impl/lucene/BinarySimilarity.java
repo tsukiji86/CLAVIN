@@ -1,4 +1,4 @@
-package com.berico.clavin.index;
+package com.berico.clavin.resolver.impl.lucene;
 
 import org.apache.lucene.search.similarities.DefaultSimilarity;
 

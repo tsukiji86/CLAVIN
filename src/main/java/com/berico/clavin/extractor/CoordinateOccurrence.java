@@ -1,6 +1,6 @@
 package com.berico.clavin.extractor;
 
-import com.berico.clavin.extractor.coords.LatLonPair;
+import com.berico.clavin.gazetteer.LatLon;
 
 /*#####################################################################
 *
@@ -72,5 +72,5 @@ public interface CoordinateOccurrence<T> {
 	 * is that is must be converted to a Lat/Lon Pair.
 	 * @return Lat/Lon representation of the location.
 	 */
-	LatLonPair convertToLatLon();
+	LatLon convertToLatLon();
 }

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
+import com.berico.clavin.gazetteer.LatLon;
 
 /*#####################################################################
  * 
@@ -43,7 +44,7 @@ import com.berico.clavin.extractor.CoordinateOccurrence;
  */
 public abstract class BaseDdPatternParsingStrategy
 		extends BaseRegexPatternParsingStrategy
-		implements RegexCoordinateParsingStrategy<LatLonPair>  {
+		implements RegexCoordinateParsingStrategy<LatLon>  {
 
 	private static final Logger logger = 
 			LoggerFactory.getLogger(BaseDdPatternParsingStrategy.class);
@@ -65,7 +66,7 @@ public abstract class BaseDdPatternParsingStrategy
 	 * @return A lat/lon coordinate occurrence.
 	 */
 	@Override
-	public CoordinateOccurrence<LatLonPair> parse(String matchedString,
+	public CoordinateOccurrence<LatLon> parse(String matchedString,
 			Map<String, String> namedGroups, int startPosition) {
 		
 		double latitude = parseDecimalDegrees(
@@ -79,7 +80,7 @@ public abstract class BaseDdPatternParsingStrategy
 		logger.debug("From '{}', parsed Lat/Lon: {}, {}.", 
 				new Object[]{ matchedString, latitude, longitude });
 		
-		LatLonPair latlon = new LatLonPair(latitude, longitude);
+		LatLon latlon = new LatLon(latitude, longitude);
 		
 		return new LatLonOccurrence(matchedString, startPosition, latlon);
 	}

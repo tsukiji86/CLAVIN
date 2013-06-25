@@ -11,15 +11,15 @@ import org.junit.Test;
 
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.extractor.coords.LatLonOccurrence;
-import com.berico.clavin.extractor.coords.LatLonPair;
+import com.berico.clavin.gazetteer.LatLon;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.impl.CoordinateCandidateSelectionStrategy;
 import com.berico.clavin.resolver.impl.lucene.LuceneComponents;
 import com.berico.clavin.resolver.impl.lucene.LuceneComponentsFactory;
 import com.berico.clavin.resolver.impl.lucene.LuceneCoordinateIndex;
-import com.berico.clavin.resolver.impl.strategies.SharedLocationNameWeigher;
-import com.berico.clavin.resolver.impl.strategies.VectorDistanceWeigher;
 import com.berico.clavin.resolver.impl.strategies.WeightedCoordinateScoringStrategy;
+import com.berico.clavin.resolver.impl.strategies.coordinates.SharedLocationNameWeigher;
+import com.berico.clavin.resolver.impl.strategies.coordinates.VectorDistanceWeigher;
 
 public class WeighedCoordinateStrategyTest {
 
@@ -51,7 +51,7 @@ public class WeighedCoordinateStrategyTest {
 		
 		LatLonOccurrence reston = 
 				new LatLonOccurrence("38.9686° N, 77.3414° W", -1, 
-					new LatLonPair(38.9686, -77.3414));
+					new LatLon(38.9686, -77.3414));
 			
 		List<ResolvedCoordinate> coordinates = coordinateIndex.search(reston);
 		

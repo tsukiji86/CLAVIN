@@ -1,48 +1,110 @@
 package com.berico.clavin.extractor.coords;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
+import com.berico.clavin.gazetteer.LatLon;
 
-public class LatLonOccurrence implements CoordinateOccurrence<LatLonPair> {
+/*#####################################################################
+ * 
+ * CLAVIN (Cartographic Location And Vicinity INdexer)
+ * ---------------------------------------------------
+ * 
+ * Copyright (C) 2012-2013 Berico Technologies
+ * http://clavin.bericotechnologies.com
+ * 
+ * ====================================================================
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ * 
+ * ====================================================================
+ * 
+ * LatLonOccurrence.java
+ * 
+ *###################################################################*/
+
+/**
+ * Represents a CoordinateOccurrence in the form of a Latitude and Longitude (LatLon).
+ */
+public class LatLonOccurrence implements CoordinateOccurrence<LatLon> {
 
 	protected long position;
 	protected String text;
-	protected LatLonPair value;
+	protected LatLon value;
 	
+	/**
+	 * For serialization purposes.
+	 */
 	public LatLonOccurrence(){}
 	
-	public LatLonOccurrence(String text, long position, LatLonPair value) {
+	/**
+	 * Instantiate using the matched text, its position in the document, and the
+	 * LatLon value of the text.
+	 * @param text Matched text in document.
+	 * @param position Position in document.
+	 * @param value LatLon value of the text.
+	 */
+	public LatLonOccurrence(String text, long position, LatLon value) {
 		
 		this.position = position;
 		this.text = text;
 		this.value = value;
 	}
 
+	/**
+	 * Get the position in the document the coordinate was found.
+	 * @return Position in document.
+	 */
 	@Override
 	public long getPosition() {
 		
 		return position;
 	}
-
+	
+	/**
+	 * Get the text representing the coordinate that was extracted from the document.
+	 * @return Extracted text.
+	 */
 	@Override
 	public String getExtractedText() {
 		
 		return text;
 	}
 
+	/**
+	 * Get the underlying coordinate system.
+	 * @return Coordinate system.
+	 */
 	@Override
 	public String getCoordinateSystem() {
 		
 		return "LatLon";
 	}
 
+	/**
+	 * Get the actual coordinate value.
+	 * @return LatLon value of the coordinate.
+	 */
 	@Override
-	public LatLonPair getValue() {
+	public LatLon getValue() {
 		
 		return value;
 	}
 
+	/**
+	 * Convert the value to it's LatLon representation (hey, it's already a LatLon!).
+	 * @return LatLon value of the coordinate.
+	 */
 	@Override
-	public LatLonPair convertToLatLon() {
+	public LatLon convertToLatLon() {
 		
 		return value;
 	}
