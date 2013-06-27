@@ -82,7 +82,7 @@ public abstract class BaseDdPatternParsingStrategy
 		
 		LatLon latlon = new LatLon(latitude, longitude);
 		
-		return new LatLonOccurrence(matchedString, startPosition, latlon);
+		return new LatLonOccurrence(startPosition, matchedString, latlon);
 	}
 	
 	/**

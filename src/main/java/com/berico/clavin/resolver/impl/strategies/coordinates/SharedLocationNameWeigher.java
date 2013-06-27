@@ -40,8 +40,7 @@ import com.berico.clavin.resolver.impl.strategies.Weigher;
  * resolved coordinate matches a plain-named location occurring in the 
  * document.
  */
-public class SharedLocationNameWeigher 
-	implements Weigher<ResolvedCoordinate, Collection<LocationOccurrence>> {
+public class SharedLocationNameWeigher implements ResolvedCoordinateWeigher {
 
 	// Arbitrary multiplier applied to the best matching score.
 	public static double SHARED_LOCATION_MULTIPLIER = 3;

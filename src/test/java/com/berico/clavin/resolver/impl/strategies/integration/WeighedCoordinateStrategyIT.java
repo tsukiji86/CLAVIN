@@ -48,7 +48,7 @@ public class WeighedCoordinateStrategyIT {
 				buildOccurrences("Reston", "Fairfax", "Manassas");
 		
 		LatLonOccurrence reston = 
-				new LatLonOccurrence("38.9686° N, 77.3414° W", -1, 
+				new LatLonOccurrence(-1, "38.9686° N, 77.3414° W", 
 					new LatLon(38.9686, -77.3414));
 			
 		List<ResolvedCoordinate> coordinates = coordinateIndex.search(reston, null);

@@ -36,7 +36,7 @@ import java.util.List;
  *
  */
 public interface LocationExtractor {
-
+	
 	/**
 	 * Extracts a list of location names found in unstructured text.
 	 * 

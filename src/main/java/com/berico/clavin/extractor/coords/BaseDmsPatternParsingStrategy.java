@@ -90,7 +90,7 @@ public abstract class BaseDmsPatternParsingStrategy
 		
 		LatLon latlon = new LatLon(latitude, longitude);
 		
-		return new LatLonOccurrence(matchedString, startPosition, latlon);
+		return new LatLonOccurrence(startPosition, matchedString, latlon);
 	}
 	
 	/**

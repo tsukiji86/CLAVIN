@@ -76,7 +76,7 @@ public class GeonamesIndexBuilder extends IndexBuilder {
 	 * @return Description
 	 */
 	@Override
-	String getDescription() {
+	protected String getDescription() {
 		
 		return "Converts the Geonames gazetteer into a CLAVIN index.";
 	}
@@ -88,7 +88,7 @@ public class GeonamesIndexBuilder extends IndexBuilder {
 	 * @param parser Argument parser to register new arguments with.
 	 */
 	@Override
-	void extend(ArgumentParser parser) {
+	protected void extend(ArgumentParser parser) {
 		
 		 // Register the Geonames source file. 
 		 parser.addArgument("source")
@@ -105,7 +105,7 @@ public class GeonamesIndexBuilder extends IndexBuilder {
 	 * @param namespace The object containing the parsed input.
 	 */
 	@Override
-	void initialize(Namespace namespace) {
+	protected void initialize(Namespace namespace) {
 		
 		geonamesSourceFile = namespace.getString("source");
 	}
@@ -117,7 +117,7 @@ public class GeonamesIndexBuilder extends IndexBuilder {
 	 * out how many records we've already processed.
 	 */
 	@Override
-	void begin(BuilderContext context) throws Exception {
+	protected void begin(BuilderContext context) throws Exception {
 		
 		// Initialize the reader.
 		reader = 
@@ -159,7 +159,7 @@ public class GeonamesIndexBuilder extends IndexBuilder {
 	 * an opportunity to clean up resources.  Here we'll close the reader.
 	 */
 	@Override
-	void cleanup() throws Exception {
+	protected void cleanup() throws Exception {
 		
 		reader.close();
 	}

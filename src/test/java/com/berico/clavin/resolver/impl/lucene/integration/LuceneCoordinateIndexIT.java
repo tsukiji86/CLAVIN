@@ -31,7 +31,7 @@ public class LuceneCoordinateIndexIT {
 	public void test() throws Exception {
 		
 		LatLonOccurrence occurrence = 
-			new LatLonOccurrence("23.211058, -109.653542", -1, 
+			new LatLonOccurrence(-1, "23.211058, -109.653542",
 				new LatLon(23.211058, -109.653542));
 		
 		List<ResolvedCoordinate> coordinate = coordinateIndex.search(occurrence, null);

@@ -305,5 +305,4 @@ public enum CountryCode {
 		this.name = name;
 		this.geonameID = geonameID;
 	}
-	
 }

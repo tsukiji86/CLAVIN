@@ -1,5 +1,6 @@
-package com.berico.clavin.extractor.coords;
+package com.berico.clavin.examples;
 
+import com.berico.clavin.extractor.coords.BaseCoordinateOccurrence;
 import com.berico.clavin.gazetteer.LatLon;
 
 /*#####################################################################
@@ -26,47 +27,48 @@ import com.berico.clavin.gazetteer.LatLon;
  * 
  * ====================================================================
  * 
- * LatLonOccurrence.java
+ * GeoHashOccurrence.java
  * 
  *###################################################################*/
 
 /**
- * Represents a CoordinateOccurrence in the form of a Latitude and Longitude (LatLon).
+ * Represents an occurrence of a GeoHash ({@linkplain http://geohash.org/}) in a document.
  */
-public class LatLonOccurrence extends BaseCoordinateOccurrence<LatLon> {
+public class GeoHashOccurrence extends BaseCoordinateOccurrence<GeoHash>  {
 	
 	/**
 	 * For serialization purposes.
 	 */
-	public LatLonOccurrence() { super(); }
+	public GeoHashOccurrence() { super(); }
 
 	/**
-	 * Initialize with context.
+	 * Initialize with the GeoHash value.
 	 * @param position Position in document.
-	 * @param text Extracted coordinate text.
-	 * @param value LatLon value of the coordinate.
+	 * @param text Extracted GeoHash text.
+	 * @param value The GeoHash.
 	 */
-	public LatLonOccurrence(long position, String text, LatLon value) { 
+	public GeoHashOccurrence(long position, String text, GeoHash value) {
 		super(position, text, value);
 	}
 
 	/**
-	 * Get the underlying coordinate system.
-	 * @return Coordinate system.
+	 * Get the coordinate system, in this case, "geohash".
+	 * @return "geohash"
 	 */
 	@Override
 	public String getCoordinateSystem() {
 		
-		return "LatLon";
+		return "geohash";
 	}
 
 	/**
-	 * Convert the value to it's LatLon representation (hey, it's already a LatLon!).
+	 * Convert the coordinate to it's LatLon representation.
 	 * @return LatLon value of the coordinate.
 	 */
 	@Override
 	public LatLon convertToLatLon() {
 		
-		return value;
+		return this.value.getLatLonValue();
 	}
+
 }

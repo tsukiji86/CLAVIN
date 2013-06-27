@@ -97,20 +97,20 @@ public abstract class IndexBuilder implements BuilderContext {
 	 * Provide a description for this particular implementation of the IndexBuilder.
 	 * @return Description to show on the console.
 	 */
-	abstract String getDescription();
+	protected abstract String getDescription();
 
 	/**
 	 * Extend the argument parser with your own custom parameters.
 	 * @param parser precreated argument parser.
 	 */
-	abstract void extend(ArgumentParser parser);
+	protected abstract void extend(ArgumentParser parser);
 
 	/**
 	 * Provide the parsed argument input to the derived class so it can configure
 	 * itself.
 	 * @param namespace Parsed argument input.
 	 */
-	abstract void initialize(Namespace namespace);
+	protected abstract void initialize(Namespace namespace);
 	
 	/**
 	 * Begin pulling Gazetteer entries from wherever, calling "addPlaceToIndex"
@@ -119,14 +119,14 @@ public abstract class IndexBuilder implements BuilderContext {
 	 * @throws Exception Exceptions may be thrown at any point; the IndexBuilder
 	 * will catch the Exception and call cleanup() so you can release resources.
 	 */
-	abstract void begin(BuilderContext context) throws Exception;
+	protected abstract void begin(BuilderContext context) throws Exception;
 	
 	/**
 	 * Here's your chance to cleanup.
 	 * @throws Exception you can throw an exception in cleanup, but it won't be
 	 * caught.
 	 */
-	abstract void cleanup() throws Exception;
+	protected abstract void cleanup() throws Exception;
 	
 	/**
 	 * Location of the index directory.

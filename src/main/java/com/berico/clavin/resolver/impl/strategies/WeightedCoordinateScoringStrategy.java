@@ -1,10 +1,12 @@
 package com.berico.clavin.resolver.impl.strategies;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.impl.CoordinateCandidateSelectionStrategy;
+import com.berico.clavin.resolver.impl.strategies.coordinates.ResolvedCoordinateWeigher;
 
 /*#####################################################################
  * 
@@ -54,10 +56,22 @@ public class WeightedCoordinateScoringStrategy
 	 * @param weighers Collection of weighers to use for selections.
 	 */
 	public WeightedCoordinateScoringStrategy(
-			Collection<Weigher<ResolvedCoordinate, 
-			Collection<LocationOccurrence>>> weighers) {
+			Collection<ResolvedCoordinateWeigher> weighers) {
 		
-		super(weighers);
+		super();
+		
+		// This is a sad but necessary step due to type erasure in Java.
+		// We need to create a collection of:
+		// Weigher<ResolvedCoordinate, Collection<LocationOccurrence>>
+		// even though ResolvedCoordinateWeigher is the same type.
+		ArrayList<Weigher<ResolvedCoordinate, Collection<LocationOccurrence>>> 
+			reallyGrossTypeErasureNonsense = 
+				new ArrayList<
+					Weigher<ResolvedCoordinate, Collection<LocationOccurrence>>>();
+		
+		reallyGrossTypeErasureNonsense.addAll(weighers);
+		
+		this.setWeighers(reallyGrossTypeErasureNonsense);
 	}
 	
 }

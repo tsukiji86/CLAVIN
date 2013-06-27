@@ -185,7 +185,7 @@ public class GeonamesUtils {
 		
 		p.setPopulation(population);
 		p.setElevation(elevation);
-		p.setTimezone(timezone);
+		if (timezone != null) p.setTimezone(timezone);
 		p.setModificationDate(modificationDate);
 		p.setContext(inputLine);
 		

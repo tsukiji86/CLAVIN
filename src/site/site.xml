@@ -41,7 +41,7 @@
       </item>
       <item name="Building a Gazetteer Index" href="javascript:void(0)">
           <item name="From Geonames" href="documentation/geonames-indexing.html" />
-          <item name="From OpenStreetMap" href="documentation/osm-indexing.html" />
+          <!-- <item name="From OpenStreetMap" href="documentation/osm-indexing.html" /> -->
           <item name="From Custom Source" href="documentation/custom-indexing.html" />
       </item>
       <item name="Advanced Topics" href="javascript:void(0)">

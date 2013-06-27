@@ -1,6 +1,7 @@
 target/**
 indexDirectory/**
 IndexDirectory/
+CustomExampleIndexDirectory/
 .settings/
 .classpath
 .project

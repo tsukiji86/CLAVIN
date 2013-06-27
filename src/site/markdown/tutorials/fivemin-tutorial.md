@@ -63,7 +63,77 @@ for (ResolvedLocation location : results.getLocations(){
 }
 ```
 
-### Step 5 - Grab a cold one!
+### Step 5 - Run your app.
+
+If you are using Maven, this is really simple:
+
+```
+MAVEN_OPTS="-Xmx2048M" mvn exec:java -Dexec.mainClass="your.namespace.YourClass"
+```
+
+This demonstration is identical to the `WorkflowDemo` example:
+
+```
+MAVEN_OPTS="-Xmx2048M" mvn exec:java -Dexec.mainClass="com.berico.clavin.examples.WorkflowDemo"
+```
+
+You're output should look something like this:
+
+```
+14:05:36.625 [...WorkflowDemo.main()] INFO  com.berico.clavin.GeoParser - Input Size: 27837
+14:05:37.360 [...WorkflowDemo.main()] INFO  com.berico.clavin.GeoParser - Extracted Location Count: 42
+14:05:37.381 [...WorkflowDemo.main()] INFO  com.berico.clavin.GeoParser - Extracted Coordinates Count: 0
+14:05:37.382 [...WorkflowDemo.main()] DEBUG c.b.c.r.impl.DefaultLocationResolver - Beginning resolution step.
+14:05:37.611 [...WorkflowDemo.main()] INFO  c.b.c.r.i.l.LuceneLocationNameIndex - Found no results for european union.
+14:05:37.737 [...WorkflowDemo.main()] INFO  c.b.c.r.i.l.LuceneLocationNameIndex - Found no results for hamar\-weyne.
+14:05:37.744 [...WorkflowDemo.main()] INFO  c.b.c.r.i.l.LuceneLocationNameIndex - Found no results for birmingham uk..
+14:05:37.770 [...WorkflowDemo.main()] INFO  c.b.c.r.i.l.LuceneLocationNameIndex - Found no results for southern somalia.
+14:05:37.872 [...WorkflowDemo.main()] INFO  c.b.c.r.i.l.LuceneLocationNameIndex - Found no results for kismayo.
+14:05:37.883 [...WorkflowDemo.main()] INFO  c.b.c.r.i.l.LuceneLocationNameIndex - Found no results for las\-anod.
+14:05:37.961 [...WorkflowDemo.main()] INFO  c.b.c.r.i.l.LuceneLocationNameIndex - Found no results for roadmap.
+14:05:37.962 [...WorkflowDemo.main()] DEBUG c.b.c.r.impl.DefaultLocationResolver - Found 35 location candidate lists.
+14:05:37.962 [...WorkflowDemo.main()] DEBUG c.b.c.r.impl.DefaultLocationResolver - Found 0 coordinate candidate lists.
+14:05:37.962 [...WorkflowDemo.main()] DEBUG c.b.c.r.impl.DefaultLocationResolver - Selected 0 coordinates.
+14:05:38.055 [...WorkflowDemo.main()] DEBUG c.b.c.r.impl.DefaultLocationResolver - Selected 35 locations.
+14:05:38.056 [...WorkflowDemo.main()] INFO  com.berico.clavin.GeoParser - Resolved 35 locations and 0 coordinates.
+Greater London [51.5, -0.16667] was mentioned at character position 2306
+Africa [32.99568, -90.77121] was mentioned at character position 2586
+Muna [20.48628, -89.71399] was mentioned at character position 2957
+Matabaan [5.20401, 45.53353] was mentioned at character position 4161
+City of Birmingham [42.54466, -83.21667] was mentioned at character position 4841
+Hirān [22.9976, 89.95914] was mentioned at character position 5208
+Greater London [51.5, -0.16667] was mentioned at character position 6129
+Africa [1.07818, -79.2871] was mentioned at character position 6724
+Presbyterian Church of East Africa [-1.2564, 36.86494] was mentioned at character position 7589
+Africa [1.07818, -79.2871] was mentioned at character position 7620
+Greater London [51.5, -0.16667] was mentioned at character position 7643
+Somali [-22.33333, 19.9] was mentioned at character position 11059
+Mashonaland East Province [-17.5, 32.0] was mentioned at character position 11422
+Kenya [-22.55, 144.25] was mentioned at character position 12822
+Ethiopia Shoal [9.75, 80.38333] was mentioned at character position 12832
+Bi’r al Banādir [32.54556, 21.58056] was mentioned at character position 14545
+Muna [20.48628, -89.71399] was mentioned at character position 15403
+Parliament [53.34417, -6.26774] was mentioned at character position 16710
+Puntland [9.0, 49.0] was mentioned at character position 17873
+Sool [2.80412, 44.04773] was mentioned at character position 18102
+Somalia [11.63456, 43.34036] was mentioned at character position 18126
+Somalia [11.63456, 43.34036] was mentioned at character position 18224
+Sool [2.80412, 44.04773] was mentioned at character position 18307
+Kenya [-22.55, 144.25] was mentioned at character position 18718
+Kenya [-22.55, 144.25] was mentioned at character position 19151
+Gedo [-8.7268, 122.2866] was mentioned at character position 19404
+Kenya [-22.55, 144.25] was mentioned at character position 19428
+Russia [40.23449, -84.40939] was mentioned at character position 19476
+Muna [-9.9004, 124.1817] was mentioned at character position 20487
+City of New Britain [41.67581, -72.78623] was mentioned at character position 22502
+Africa [32.99568, -90.77121] was mentioned at character position 22753
+City of New Britain [41.67581, -72.78623] was mentioned at character position 23251
+Yemen [47.7083, -110.72577] was mentioned at character position 23352
+Embassy of the Federal Republic of Nigeria [38.90539, -77.04914] was mentioned at character position 23362
+‘Irāq al Ḩamrā’ [32.21667, 35.43333] was mentioned at character position 23404
+```
+
+### Step 6 - Grab a cold one!
 
 In reality, this shouldn't have even taken 5 minutes!
 

@@ -1,13 +1,10 @@
 package com.berico.clavin.examples;
 
-import java.io.File;
-import java.util.List;
-
 import com.berico.clavin.GeoParser;
 import com.berico.clavin.GeoParserFactory;
+import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.resolver.ResolutionContext;
-import com.berico.clavin.resolver.ResolvedLocation;
-import com.berico.clavin.util.TextUtils;
+import com.berico.clavin.resolver.ResolvedCoordinate;
 
 /*#####################################################################
  * 
@@ -33,49 +30,38 @@ import com.berico.clavin.util.TextUtils;
  * 
  * ====================================================================
  * 
- * WorkflowDemo.java
+ * GeoHashDemo.java
  * 
  *###################################################################*/
 
 /**
- * Quick example showing how to use CLAVIN's capabilities.
- * 
+ * Demonstrates using the customer Coordinate Parser.
  */
-public class WorkflowDemo {
-
-	/**
-	 * Run this after installing & configuring CLAVIN to get a sense of
-	 * how to use it.
-	 * 
-	 * @param args				not used
-	 * @throws Exception
-	 */
+public class GeoHashDemo {
+	
 	public static void main(String[] args) throws Exception {
 		
-		// Instantiate the CLAVIN GeoParser
-		GeoParser parser = GeoParserFactory.getDefault("./IndexDirectory");
+		// Register the new Parsing Strategy.
+		GeoParserFactory
+			.DefaultCoordinateParsingStrategies
+				.add(new GeoHashParsingStrategy());
 		
-		// Read a file to string.
-		String input = TextUtils.fileToString( 
-				new File( "src/test/resources/sample-docs/Somalia-doc.txt" ) );
+		// Get a parser instance.
+		GeoParser parser = GeoParserFactory.getDefault("IndexDirectory/");
 		
-		// Perform the extraction and resolution workflow.
-		ResolutionContext results = parser.parse(input);
+		// Parse the document.
+		ResolutionContext results = 
+			parser.parse("Hey mom, I went to geo:u4pruydqqvjs today!");
 		
-		// Display the ResolvedLocations found for the location names
-		for (ResolvedLocation location : results.getLocations()){
-			
-			String msg = String.format(
-		      "%s [%s, %s] was mentioned at character position %s", 
-		      location.getPlace().getName(), 
-		      location.getPlace().getCenter().getLatitude(),
-		      location.getPlace().getCenter().getLongitude(),
-		      location.getLocation().getPosition());
-				 
-			System.out.println( msg );
-		}
+		// Get the CoordinateOccurrence from the Extraction Context
+		CoordinateOccurrence<?> ecoord = 
+				results.getExtractionContext().getCoordinates().get(0);
 		
-		// And we're done...
-		System.out.println("\n\"That's all folks!\"");
+		System.out.println(ecoord);
+		
+		// Get the ResolvedCoordinate from the results
+		ResolvedCoordinate rcoord = results.getCoordinates().get(0);
+		
+		System.out.println(rcoord);
 	}
 }

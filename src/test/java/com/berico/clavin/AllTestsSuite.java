@@ -39,7 +39,6 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	com.berico.clavin.extractor.ApacheExtractorTest.class,
-	com.berico.clavin.gazetteer.GeoNameTest.class,
 	com.berico.clavin.index.BinarySimilarityTest.class,
 	com.berico.clavin.resolver.impl.lucene.integration.LuceneLocationResolverIT.class,
 	com.berico.clavin.resolver.impl.lucene.integration.LuceneLocationResolverHeuristicsIT.class,

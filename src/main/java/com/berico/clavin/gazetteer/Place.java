@@ -54,7 +54,9 @@ public class Place {
 	// longitude, population, elevation, digitalElevationModel)
 	public static final int OUT_OF_BOUNDS = -9999999;
 	
-	// id of record in geonames database
+	//TODO: Make this a string to support a more flexible set of id's.
+	//TODO: Add a Gazetteer and Gazetteer ID field (and use a UUID for CLAVIN's ID).
+	// id of record in the gazetteer's database
 	protected int id;
 	
 	// name of geographical point (utf8)
@@ -64,7 +66,7 @@ public class Place {
 	protected String asciiName;
 	
 	// list of alternate names for location
-	protected List<String> alternateNames;
+	protected List<String> alternateNames = new ArrayList<String>();
 	
 	// The lat/lon center of this place
 	protected LatLon center;
@@ -74,16 +76,16 @@ public class Place {
 	
 	// major feature category
 	// (see http://www.geonames.org/export/codes.html)
-	protected FeatureClass featureClass;
+	protected FeatureClass featureClass = FeatureClass.NULL;
 	
 	// http://www.geonames.org/export/codes.html
-	protected FeatureCode featureCode;
+	protected FeatureCode featureCode = FeatureCode.NULL;
 	
 	// ISO-3166 2-letter country code
-	protected CountryCode primaryCountryCode;
+	protected CountryCode primaryCountryCode = CountryCode.NULL;
 	
 	// list of alternate ISO-3166 2-letter country codes
-	protected List<CountryCode> alternateCountryCodes;
+	protected List<CountryCode> alternateCountryCodes = new ArrayList<CountryCode>();
 	
 	// Arbitrary set of super places this place exists inside of.
 	protected List<PlaceReference> superPlaces = new ArrayList<PlaceReference>();
@@ -95,10 +97,11 @@ public class Place {
 	protected double elevation;
 	
 	// timezone for geographical point
-	protected TimeZone timezone;
+	protected String timezone;
 	
 	// date of last modification in GeoNames database
-	protected Date modificationDate;
+	// This was changed from java.util.Date (which sucks) for serialization purposes.
+	protected long modificationDate;
 	
 	// field storing extra data about this Place (may be specific to the gazetteer).
 	protected String context;
@@ -332,14 +335,32 @@ public class Place {
 	 * @return timezone
 	 */
 	public TimeZone getTimezone() {
-		return timezone;
+		return TimeZone.getTimeZone(timezone);
 	}
 
+	/**
+	 * Get the string representation of the timezone
+	 * in it's ISO abbreviated ID form.
+	 * @return timezone
+	 */
+	public String getTimezoneID(){
+		return this.timezone;
+	}
+	
+	/**
+	 * Set the timezone using a Java TimeZone object
+	 * @param timezone Java TimeZone object
+	 */
+	public void setTimezone(TimeZone timezone){
+		
+		this.timezone = timezone.getID();
+	}
+	
 	/**
 	 * Set the timezone of this place.
 	 * @param timezone timezone
 	 */
-	public void setTimezone(TimeZone timezone) {
+	public void setTimezone(String timezone) {
 		this.timezone = timezone;
 	}
 
@@ -348,7 +369,7 @@ public class Place {
 	 * @return modification date
 	 */
 	public Date getModificationDate() {
-		return modificationDate;
+		return new Date(modificationDate);
 	}
 
 	/**
@@ -356,7 +377,7 @@ public class Place {
 	 * @param modificationDate modification date
 	 */
 	public void setModificationDate(Date modificationDate) {
-		this.modificationDate = modificationDate;
+		this.modificationDate = modificationDate.getTime();
 	}
 
 	/**
@@ -393,4 +414,110 @@ public class Place {
 		
 		return sb.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime
+				* result
+				+ ((alternateCountryCodes == null) ? 0 : alternateCountryCodes
+						.hashCode());
+		result = prime * result
+				+ ((alternateNames == null) ? 0 : alternateNames.hashCode());
+		result = prime * result
+				+ ((asciiName == null) ? 0 : asciiName.hashCode());
+		result = prime * result + ((center == null) ? 0 : center.hashCode());
+		result = prime * result + ((context == null) ? 0 : context.hashCode());
+		long temp;
+		temp = Double.doubleToLongBits(elevation);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result
+				+ ((featureClass == null) ? 0 : featureClass.hashCode());
+		result = prime * result
+				+ ((featureCode == null) ? 0 : featureCode.hashCode());
+		result = prime * result + id;
+		result = prime * result
+				+ (int) (modificationDate ^ (modificationDate >>> 32));
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + (int) (population ^ (population >>> 32));
+		result = prime
+				* result
+				+ ((primaryCountryCode == null) ? 0 : primaryCountryCode
+						.hashCode());
+		result = prime * result
+				+ ((superPlaces == null) ? 0 : superPlaces.hashCode());
+		result = prime * result
+				+ ((timezone == null) ? 0 : timezone.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Place other = (Place) obj;
+		if (alternateCountryCodes == null) {
+			if (other.alternateCountryCodes != null)
+				return false;
+		} else if (!alternateCountryCodes.equals(other.alternateCountryCodes))
+			return false;
+		if (alternateNames == null) {
+			if (other.alternateNames != null)
+				return false;
+		} else if (!alternateNames.equals(other.alternateNames))
+			return false;
+		if (asciiName == null) {
+			if (other.asciiName != null)
+				return false;
+		} else if (!asciiName.equals(other.asciiName))
+			return false;
+		if (center == null) {
+			if (other.center != null)
+				return false;
+		} else if (!center.equals(other.center))
+			return false;
+		if (context == null) {
+			if (other.context != null)
+				return false;
+		} else if (!context.equals(other.context))
+			return false;
+		if (Double.doubleToLongBits(elevation) != Double
+				.doubleToLongBits(other.elevation))
+			return false;
+		if (featureClass != other.featureClass)
+			return false;
+		if (featureCode != other.featureCode)
+			return false;
+		if (id != other.id)
+			return false;
+		if (modificationDate != other.modificationDate)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (population != other.population)
+			return false;
+		if (primaryCountryCode != other.primaryCountryCode)
+			return false;
+		if (superPlaces == null) {
+			if (other.superPlaces != null)
+				return false;
+		} else if (!superPlaces.equals(other.superPlaces))
+			return false;
+		if (timezone == null) {
+			if (other.timezone != null)
+				return false;
+		} else if (!timezone.equals(other.timezone))
+			return false;
+		return true;
+	}
+
+	
 }

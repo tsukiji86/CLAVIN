@@ -2,7 +2,6 @@ package com.berico.clavin.resolver.impl.strategies.coordinates;
 
 import java.util.Collection;
 
-import com.berico.clavin.Options;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.impl.strategies.Weigher;
@@ -31,32 +30,12 @@ import com.berico.clavin.resolver.impl.strategies.Weigher;
 *
 * ====================================================================
 *
-* VectorDistanceWeigher.java
+* ResolvedCoordinateWeigher.java
 *
 *###################################################################*/
 
 /**
- * Improve the resolution rank of a ResolvedCoordinate by it's distance
- * from the coordinate found in the document.
+ * This simply alleviates having to write that Generic type all over the place.
  */
-public class VectorDistanceWeigher implements ResolvedCoordinateWeigher {
-	
-	// Arbitrary weight reduced by greater vector magnitudes (distance from coordinate).
-	public static double DISTANCE_WEIGHT = 2d;
-	
-	/**
-	 * Weigh the ResolvedCoordinate, using distance as weight.
-	 * @param item ResolvedCoordinate to weigh
-	 * @param context Set of plain-named locations found in the document.
-	 * @param options Options for configuring the weigher
-	 * @return A weight for scoring this result against others.
-	 */
-	@Override
-	public double weigh(
-			ResolvedCoordinate item,
-			Collection<LocationOccurrence> context,
-			Options options) {
-		
-		return DISTANCE_WEIGHT / item.getVectorFromKnownLocation().getMagnitude();
-	}
-}
+public interface ResolvedCoordinateWeigher 
+	extends Weigher<ResolvedCoordinate, Collection<LocationOccurrence>> {}

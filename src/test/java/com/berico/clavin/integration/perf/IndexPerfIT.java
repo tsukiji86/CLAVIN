@@ -3,6 +3,8 @@ package com.berico.clavin.integration.perf;
 import java.io.File;
 
 import org.apache.commons.io.FileUtils;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,6 +12,10 @@ import com.berico.clavin.GeoParser;
 import com.berico.clavin.GeoParserFactory;
 import com.berico.clavin.resolver.ResolutionContext;
 
+
+/**
+ * TODO: Figure out good performance targets for each run.
+ */
 public class IndexPerfIT {
 	
 	private static final String TINY_FILE = "src/test/resources/sample-docs/Tornado.txt";
@@ -18,6 +24,11 @@ public class IndexPerfIT {
 	private static final String LARGE_FILE = "src/test/resources/sample-docs/CathedralPeterborough.txt";
 	private static final String MEGA_FILE = "src/test/resources/sample-docs/HistoryOfTioga.txt";
 	
+	private static final long TINY_GOAL_NANO = Long.MAX_VALUE;
+	private static final long SMALL_GOAL_NANO = Long.MAX_VALUE;
+	private static final long MEDIUM_GOAL_NANO = Long.MAX_VALUE;
+	private static final long LARGE_GOAL_NANO = Long.MAX_VALUE;
+	private static final long MEGA_GOAL_NANO = Long.MAX_VALUE;
 	
 	GeoParser geoparser;
 	
@@ -33,6 +44,8 @@ public class IndexPerfIT {
 		PerformanceResults results = runPerformanceTest(TINY_FILE);
 		
 		System.out.println("Tiny File: " + results);
+		
+		assertThat(results.duration, lessThan(TINY_GOAL_NANO));
 	}
 	
 	@Test
@@ -41,6 +54,8 @@ public class IndexPerfIT {
 		PerformanceResults results = runPerformanceTest(SMALL_FILE);
 		
 		System.out.println("Small File: " + results);
+		
+		assertThat(results.duration, lessThan(SMALL_GOAL_NANO));
 	}
 	
 	@Test
@@ -49,6 +64,8 @@ public class IndexPerfIT {
 		PerformanceResults results = runPerformanceTest(MEDIUM_FILE);
 		
 		System.out.println("Medium File: " + results);
+		
+		assertThat(results.duration, lessThan(MEDIUM_GOAL_NANO));
 	}
 	
 	@Test
@@ -57,6 +74,8 @@ public class IndexPerfIT {
 		PerformanceResults results = runPerformanceTest(LARGE_FILE);
 		
 		System.out.println("Large File: " + results);
+		
+		assertThat(results.duration, lessThan(LARGE_GOAL_NANO));
 	}
 	
 	@Test
@@ -65,6 +84,8 @@ public class IndexPerfIT {
 		PerformanceResults results = runPerformanceTest(MEGA_FILE);
 		
 		System.out.println("Mega File: " + results);
+		
+		assertThat(results.duration, lessThan(MEGA_GOAL_NANO));
 	}
 	
 	protected PerformanceResults runPerformanceTest(String file) throws Exception {
@@ -85,14 +106,14 @@ public class IndexPerfIT {
 	public static class PerformanceResults {
 		
 		public PerformanceResults(
-			double duration, int textSize, ResolutionContext results){
+			long duration, int textSize, ResolutionContext results){
 			
 			this.duration = duration;
 			this.textSize = textSize;
 			this.results = results;
 		}
 		
-		public double duration;
+		public long duration;
 		public int textSize;
 		public ResolutionContext results;
 		

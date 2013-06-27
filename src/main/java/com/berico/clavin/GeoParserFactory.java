@@ -1,7 +1,7 @@
 package com.berico.clavin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 
 import com.berico.clavin.extractor.LocationExtractor;
 import com.berico.clavin.extractor.coords.DdPatternParsingStrategy;
@@ -22,6 +22,7 @@ import com.berico.clavin.resolver.impl.lucene.LuceneCoordinateIndex;
 import com.berico.clavin.resolver.impl.lucene.LuceneLocationNameIndex;
 import com.berico.clavin.resolver.impl.strategies.IdentityReductionStrategy;
 import com.berico.clavin.resolver.impl.strategies.WeightedCoordinateScoringStrategy;
+import com.berico.clavin.resolver.impl.strategies.coordinates.ResolvedCoordinateWeigher;
 import com.berico.clavin.resolver.impl.strategies.coordinates.SharedLocationNameWeigher;
 import com.berico.clavin.resolver.impl.strategies.coordinates.VectorDistanceWeigher;
 import com.berico.clavin.resolver.impl.strategies.locations.ContextualOptimizationStrategy;
@@ -58,11 +59,72 @@ import com.berico.clavin.resolver.impl.strategies.locations.ContextualOptimizati
  * Simple Factory for the creation of GeoParser instances.  The 'default'
  * instance being Apache OpenNLP as the Extractor and a local Lucene index
  * as the LocationResolver.
+ * 
+ * If you are going to use CLAVIN in production, please don't use this!
  */
 public class GeoParserFactory {
 	
 	public static int MAX_HIT_DEPTH = 1;
 	public static int MAX_CONTENT_WINDOW = 1;
+	
+	/**
+	 * The default LocationExtractor for CLAVIN.
+	 */
+	public static LocationExtractor DefaultLocationExtractor;
+	
+	/**
+	 * Convenience method for DI/IOC containers to set the default extractor.
+	 * @param extractor New Default Extractor.
+	 */
+	public void setLocationExtractor(LocationExtractor extractor){
+		
+		DefaultLocationExtractor = extractor;
+	}
+	
+	/**
+	 * Default REGEX Coordinate Parsing Strategies to use.
+	 */
+	public static List<RegexCoordinateParsingStrategy<?>> 
+		DefaultCoordinateParsingStrategies = 
+			new ArrayList<RegexCoordinateParsingStrategy<?>>();
+	
+	/**
+	 * Convenience method for DI/IOC containers to add strategies to the static 
+	 * strategy list.
+	 * @param s Strategy to add.
+	 */
+	public void setRegexCoordinateParsingStrategy(RegexCoordinateParsingStrategy<?> s){
+		DefaultCoordinateParsingStrategies.add(s);
+	}
+	
+	/**
+	 * Default Coordinate Weighers to use during resolution.
+	 */
+	public static List<ResolvedCoordinateWeigher> 
+		DefaultCoordinateWeighers = new ArrayList<ResolvedCoordinateWeigher>();
+	
+	/**
+	 * Convenience method for DI/IOC containers to add weighers to the static 
+	 * weigher list.
+	 * @param weigher Resolved Coordinate Weigher to add.
+	 */
+	public void setResolvedCoordinateWeigher(ResolvedCoordinateWeigher weigher){
+		
+		DefaultCoordinateWeighers.add(weigher);
+	}
+	
+	/**
+	 * Initialize the defaults.
+	 */
+	static {
+		// Add the default coordinate parsing strategies.
+		DefaultCoordinateParsingStrategies.add(new DmsPatternParsingStrategy());
+		DefaultCoordinateParsingStrategies.add(new DdPatternParsingStrategy());
+		
+		// Add the default resolved coordinate weighers.
+		DefaultCoordinateWeighers.add(new SharedLocationNameWeigher());
+		DefaultCoordinateWeighers.add(new VectorDistanceWeigher());
+	}
 	
 	/**
 	 * Get the default GeoParser.
@@ -134,40 +196,40 @@ public class GeoParserFactory {
 	public static GeoParser getDefault(
 			String pathToLuceneIndex, Options options) throws Exception {
 		
-		LocationExtractor locationExtractor = new ApacheExtractor();
+		// I know this is a beast, but you have to end up paying the pieper sometime
+		// when you use dependency injection!
 		
-		ArrayList<RegexCoordinateParsingStrategy<?>> coordinateParsingStrategies = 
-				new ArrayList<RegexCoordinateParsingStrategy<?>>();
+		// Instantiate the LocationExtractor
+		LocationExtractor locationExtractor = lazyGetLocationDefaultExtractor();
 		
-		coordinateParsingStrategies.add(new DmsPatternParsingStrategy());
-		coordinateParsingStrategies.add(new DdPatternParsingStrategy());
-		
+		// Instantiate the RegexCoordinateExtractor
 		RegexCoordinateExtractor coordinateExtractor = 
-				new RegexCoordinateExtractor(coordinateParsingStrategies);
+				new RegexCoordinateExtractor(DefaultCoordinateParsingStrategies);
 		
+		// Instantiate the Index and other Lucene components.
 		LuceneComponentsFactory factory = new LuceneComponentsFactory(pathToLuceneIndex);
 		
 		factory.initializeSearcher();
 		
 		LuceneComponents lucene = factory.getComponents();
 		
+		// Instantiate the Indexes.
 		LocationNameIndex locationNameIndex = new LuceneLocationNameIndex(lucene);
 		
 		CoordinateIndex coordinateIndex = new LuceneCoordinateIndex(lucene);
 		
-		@SuppressWarnings("unchecked")
+		// Instantiate the resolution strategies
 		CoordinateCandidateSelectionStrategy coordinateSelectionStrategy = 
-			new WeightedCoordinateScoringStrategy(
-				Arrays.asList(
-					new SharedLocationNameWeigher(), 
-					new VectorDistanceWeigher()));
+			new WeightedCoordinateScoringStrategy(DefaultCoordinateWeighers);
 		
 		LocationCandidateSelectionStrategy locationSelectionStrategy = 
 				new ContextualOptimizationStrategy();
 		
+		// Instantiate the reducer
 		ResolutionResultsReductionStrategy reductionStrategy = 
 				new IdentityReductionStrategy();
 		
+		// Instantiate the LocationResolver
 		LocationResolver resolver = new DefaultLocationResolver(
 				locationNameIndex, 
 				coordinateIndex, 
@@ -175,6 +237,24 @@ public class GeoParserFactory {
 				coordinateSelectionStrategy, 
 				reductionStrategy);
 		
+		// return the GeoParser.
 		return new GeoParser(locationExtractor, coordinateExtractor, resolver);
+	}
+	
+	/**
+	 * Lazily instantiate and return the DefaultLocationExtractor.  This will prevent
+	 * the automatic instantiation of Apache OpenNLP, allowing you to override the 
+	 * Default with your own implementation.
+	 * @return Default LocationExtractor.
+	 * @throws Exception
+	 */
+	private static LocationExtractor lazyGetLocationDefaultExtractor() throws Exception {
+		
+		if (DefaultLocationExtractor == null){
+
+			DefaultLocationExtractor = new ApacheExtractor();	
+		}
+		
+		return DefaultLocationExtractor;
 	}
 }

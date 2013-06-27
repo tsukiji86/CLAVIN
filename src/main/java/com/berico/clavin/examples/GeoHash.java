@@ -1,6 +1,9 @@
-package com.berico.clavin.extractor.coords;
+package com.berico.clavin.examples;
 
 import com.berico.clavin.gazetteer.LatLon;
+import com.spatial4j.core.context.SpatialContext;
+import com.spatial4j.core.io.GeohashUtils;
+import com.spatial4j.core.shape.Point;
 
 /*#####################################################################
  * 
@@ -26,47 +29,55 @@ import com.berico.clavin.gazetteer.LatLon;
  * 
  * ====================================================================
  * 
- * LatLonOccurrence.java
+ * GeoHash.java
  * 
  *###################################################################*/
 
 /**
- * Represents a CoordinateOccurrence in the form of a Latitude and Longitude (LatLon).
+ * Represents a GeoHash, as defined by {@linkplain http://geohash.org/}.
  */
-public class LatLonOccurrence extends BaseCoordinateOccurrence<LatLon> {
+public class GeoHash {
+
+	private String hashValue;
+	private LatLon latlonValue;
 	
 	/**
 	 * For serialization purposes.
 	 */
-	public LatLonOccurrence() { super(); }
-
+	public GeoHash(){}
+	
 	/**
-	 * Initialize with context.
-	 * @param position Position in document.
-	 * @param text Extracted coordinate text.
-	 * @param value LatLon value of the coordinate.
+	 * Initialize with the GeoHash value.
+	 * @param hashValue GeoHash value.
 	 */
-	public LatLonOccurrence(long position, String text, LatLon value) { 
-		super(position, text, value);
-	}
-
-	/**
-	 * Get the underlying coordinate system.
-	 * @return Coordinate system.
-	 */
-	@Override
-	public String getCoordinateSystem() {
+	public GeoHash(String hashValue){
 		
-		return "LatLon";
+		this.hashValue = hashValue;
 	}
 
 	/**
-	 * Convert the value to it's LatLon representation (hey, it's already a LatLon!).
-	 * @return LatLon value of the coordinate.
+	 * Get the GeoHash Value.
+	 * @return GeoHash Value.
 	 */
-	@Override
-	public LatLon convertToLatLon() {
-		
-		return value;
+	public String getHashValue() {
+		return hashValue;
 	}
+	
+	/**
+	 * Get the LatLon Value of the GeoHash.
+	 * @return LatLon value.
+	 */
+	public LatLon getLatLonValue(){
+		
+		if (latlonValue == null){
+			
+			// Spatial4J's Geohashing functionality.
+			Point p = GeohashUtils.decode(this.hashValue, SpatialContext.GEO);
+		
+			latlonValue = new LatLon(p.getY(), p.getX());
+		}
+		
+		return latlonValue;
+	}
+	
 }
