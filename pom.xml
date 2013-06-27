@@ -316,6 +316,14 @@
 	</build>
 
 	<repositories>
+	    <!-- We have a dependency on a Regex Library that we host in our own repo. -->
+		<repository>
+	          <id>nexus.bericotechnologies.com</id>
+	          <name>Berico Technologies Nexus</name>
+	          <url>http://nexus.bericotechnologies.com/content/groups/public</url>
+	          <releases><enabled>true</enabled></releases>
+	          <snapshots><enabled>true</enabled></snapshots>
+	     </repository>
 		<repository>
 			<snapshots>
 				<enabled>false</enabled>

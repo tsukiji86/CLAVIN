@@ -131,11 +131,26 @@ public class GeonamesIndexBuilder extends IndexBuilder {
 		// Iterate over each line of the file.
 		while ((line = reader.readLine()) != null){
 			
+			try {
+			
 			// Parse the line into a Place object
 			Place place = GeonamesUtils.parseFromGeoNamesRecord(line);
 			
 			// Add the place object to the BuilderContext
 			context.add(place);
+			
+			// If an exception occurs in the processing of this file,
+			// catch it, and display what happened.
+			} catch (Exception e){
+				
+				br();
+				
+				pl("Could not parse line %s, an error was encountered: %s", 
+					context.getTotalProcessed(),
+					e.getMessage());
+				
+				br();
+			}
 		}
 	}
 

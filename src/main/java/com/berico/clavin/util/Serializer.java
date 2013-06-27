@@ -36,7 +36,7 @@ public interface Serializer {
 	/**
 	 * Default serializer used by CLAVIN.
 	 */
-	public static Serializer Default = new JsonSerializer();
+	static Serializer Default = new JsonSerializer();
 	
 	/**
 	 * Serialize an object to a string.

@@ -1,8 +1,10 @@
-package com.berico.clavin;
+package com.berico.clavin.examples;
 
 import java.io.File;
 import java.util.List;
 
+import com.berico.clavin.GeoParser;
+import com.berico.clavin.GeoParserFactory;
 import com.berico.clavin.resolver.ResolvedLocation;
 import com.berico.clavin.util.TextUtils;
 

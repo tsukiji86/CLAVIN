@@ -60,6 +60,36 @@ import com.spatial4j.core.shape.Shape;
  * creation process.  Extend this class and implement your Gazetteer specific
  * logic and let us do the heavy lifting of configuring the index and 
  * writing the records to disk.
+ * 
+ * Extend this class, and you will be required to implement five methods:
+ * 
+ * String getDescription();  = Console description of what your IndexBuilder does.
+ * 
+ * void extend(ArgumentParser);  = You are given an opportunity to register arguments
+ * for parsing via command line input.  For directions on how to use, refer to the
+ * Argparse4j library (http://argparse4j.sourceforge.net/).
+ * 
+ * void initialize(Namespace);  =  This is the parsed input from the command line.  
+ * Collect the parameters you need to initialize your application and start up any
+ * services or connections you may need.
+ * 
+ * void begin(BuilderContext);  = Start calling you datasource, converting records to
+ * {@link Place} objects.  Call BuilderContext.add(Place) to index the record.
+ * 
+ * void cleanup();  =  Called when the begin() method falls out of scope.  IndexBuilder
+ * guarantee's this will be called regardless of whether begin() succeeds or not, 
+ * unless you do something crazy like throw a {@link RuntimeException}.
+ * 
+ * I've added some helper methods, partly because I really hate writing
+ * "System.out.println(String.format("blah blah %s", object));" everytime
+ * I want to output to the console.  You're welcome to use the same methods:
+ * 
+ * p(msg); = Print a message to the console (no new line)
+ * p(template, objects...); = Print a message to the console using String.format semantics.
+ * pl(msg); = Print a message on a new line to the console.
+ * pl(template, objects...); = New line, String.format semantics.
+ * br();  = Equivalent of an html <br /> (new line)
+ * hr();  = Equivalent of an html <hr /> (line across the screen)
  */
 public abstract class IndexBuilder implements BuilderContext {
 
@@ -127,8 +157,8 @@ public abstract class IndexBuilder implements BuilderContext {
 	 * Reusable index fields.
 	 */
 	private TextField indexNameField = new TextField(FieldConstants.NAME, "", Field.Store.YES);
-	private StoredField geonameField = new StoredField(FieldConstants.PLACE, "");
-	private IntField geonameIdField = new IntField(FieldConstants.PLACE_ID, -1, Field.Store.NO);
+	private StoredField placeField = new StoredField(FieldConstants.PLACE, "");
+	private IntField recordIdField = new IntField(FieldConstants.PLACE_ID, -1, Field.Store.NO);
 	private NumericDocValuesField populationField = new NumericDocValuesField(FieldConstants.POPULATION, -1l);
 	private StoredField geospatialField = new StoredField(FieldConstants.GEOMETRY, "");
 	
@@ -153,10 +183,10 @@ public abstract class IndexBuilder implements BuilderContext {
 		pl("> Writing index to: %s", absoluteIndexDir);
 		pl("> Each dot represents 1,000 processed records.");
 		
-		pl("---------------------------------------------------------------------");
+		hr();
 		pl("> Press Control-C (or unplug your computer) to terminate");
 		pl("> the indexing process.");
-		pl("---------------------------------------------------------------------");
+		hr();
 		
 		// Initialize the index.
 		initializeIndex();
@@ -180,7 +210,7 @@ public abstract class IndexBuilder implements BuilderContext {
 			
 			// Print elapsed time.
 			pl("");
-			pl("-----------------------------------------------------------");
+			hr();
 			pl("Process started: %s, ended: %s; elasped time: %s seconds.", 
 				df.format(start), df.format(end), totalTime / 1000);
 			
@@ -362,11 +392,11 @@ public abstract class IndexBuilder implements BuilderContext {
 	    
 	    // this is the payload we'll return when matching location
 	    // names to gazetteer records
-	    addGeonameField(doc, Serializer.Default.serialize(place));
+	    addPlaceField(doc, Serializer.Default.serialize(place));
 	    
 	    // TODO: use geonameID to link administrative subdivisions to
 	    //		 each other
-	    addGeonameIdField(doc, place.getId());
+	    addRecordIdField(doc, place.getId());
 	    
 	    // we'll initially sort match results based on population
 	    addPopulationField(doc, place.getPopulation());
@@ -387,6 +417,11 @@ public abstract class IndexBuilder implements BuilderContext {
 	    return doc;
   	}
   	
+  	/**
+  	 * Add an Indexed Name Field.
+  	 * @param doc Document to set on.
+  	 * @param value Field value.
+  	 */
   	private void addIndexNameField(Document doc, String value){
   		
   		indexNameField.setStringValue(value);
@@ -394,20 +429,35 @@ public abstract class IndexBuilder implements BuilderContext {
   		doc.add(indexNameField);  		
   	}
   	
-  	private void addGeonameField(Document doc, String geoname){
+  	/**
+  	 * Add the Place field to the document. 
+  	 * @param doc Document to set on.
+  	 * @param place String representation of place.
+  	 */
+  	private void addPlaceField(Document doc, String place){
   		
-  		geonameField.setStringValue(geoname);
+  		placeField.setStringValue(place);
   		
-  		doc.add(geonameField);
+  		doc.add(placeField);
   	}
   	
-  	private void addGeonameIdField(Document doc, int geonameId){
+  	/**
+  	 * Add the Id field to the document.
+  	 * @param doc Document to set on.
+  	 * @param recordId Id of the record.
+  	 */
+  	private void addRecordIdField(Document doc, int recordId){
   		
-  		geonameIdField.setIntValue(geonameId);
+  		recordIdField.setIntValue(recordId);
   		
-  		doc.add(geonameIdField);
+  		doc.add(recordIdField);
   	}
   	
+  	/**
+  	 * Add the population to the document.
+  	 * @param doc Document to set on.
+  	 * @param population Population size.
+  	 */
   	private void addPopulationField(Document doc, long population){
   		
   		populationField.setLongValue(population);
@@ -415,6 +465,11 @@ public abstract class IndexBuilder implements BuilderContext {
   		doc.add(populationField);
   	}
   	
+  	/**
+  	 * Add the geospatial index field.
+  	 * @param doc Document to set on.
+  	 * @param shape Geospatial value (typically a Point, like a lat/lon).
+  	 */
   	@SuppressWarnings("deprecation")
 	private void addGeospatialField(Document doc, Shape shape){
   		
@@ -477,6 +532,13 @@ public abstract class IndexBuilder implements BuilderContext {
 	 * Print a line return to the console.
 	 */
 	public static void br(){ p("\n"); }
+	
+	/**
+	 * Print a horizontal rule (line) to the console.
+	 */
+	public static void hr(){
+		pl("-----------------------------------------------------------");
+	}
 	
 	/**
 	 * Print a nice CLAVIN Banner, hurray!
