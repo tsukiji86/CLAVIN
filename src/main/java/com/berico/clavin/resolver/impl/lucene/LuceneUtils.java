@@ -16,7 +16,7 @@ import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.ResolvedLocation;
 import com.berico.clavin.resolver.Vector;
 import com.berico.clavin.util.DamerauLevenshtein;
-import com.berico.clavin.util.GeonamesUtils;
+import com.berico.clavin.util.Serializer;
 import com.spatial4j.core.context.SpatialContext;
 import com.spatial4j.core.distance.DistanceUtils;
 import com.spatial4j.core.shape.Point;
@@ -95,12 +95,8 @@ public class LuceneUtils {
 				// Grab the document from Lucene
 				Document doc = searcher.doc(results.scoreDocs[i].doc);
 				
-				// TODO: Genericize the parsing of the Place record so it's not
-				// specific to Geonames.
-				// Parse the "Place" record.
-				Place record = 
-					GeonamesUtils.parseFromGeoNamesRecord(
-						doc.get(FieldConstants.GEONAME));
+				// Get the Place record
+				Place record = dehydrate(doc);
 				
 				// Get the centroid of the Place
 				String positionOfLocation = doc.get(FieldConstants.GEOMETRY);
@@ -207,9 +203,7 @@ public class LuceneUtils {
 	public static ResolvedLocation convertToLocation(
 			Document document, LocationOccurrence location, boolean fuzzy){
 	
-		// TODO: Abstract the dependency on Geonames with a customer serializer.
-		Place geoname = 
-				GeonamesUtils.parseFromGeoNamesRecord(document.get(FieldConstants.GEONAME));
+		Place place = dehydrate(document);
 		
 		String matchedName = document.get(FieldConstants.NAME);
 		
@@ -218,8 +212,19 @@ public class LuceneUtils {
 				.damerauLevenshteinDistanceCaseInsensitive(
 					location.getText(), matchedName);
 		
-		return new ResolvedLocation(matchedName, geoname, location, fuzzy, confidence);
+		return new ResolvedLocation(matchedName, place, location, fuzzy, confidence);
 	}
 	
-	
+	/**
+	 * Dehydrate a Place object from the Lucene index using the default
+	 * serializer.
+	 * @param document Document with the Place field to dehydrate.
+	 * @return Place object.
+	 */
+	public static Place dehydrate(Document document){
+		
+		String serializedPlace = document.get(FieldConstants.PLACE);
+		
+		return Serializer.Default.deserialize(serializedPlace, Place.class);
+	}
 }

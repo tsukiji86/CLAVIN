@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import com.berico.clavin.resolver.LocationResolver;
 import com.berico.clavin.resolver.ResolvedLocation;
-import com.berico.clavin.resolver.impl.lucene.integration.LuceneLocationResolverTest;
+import com.berico.clavin.resolver.impl.lucene.integration.LuceneLocationResolverIT;
 
-public abstract class ResolverHeuristicsTest {
+public abstract class ResolverHeuristicsIT {
 
 	public Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -62,7 +62,8 @@ public abstract class ResolverHeuristicsTest {
 	public void testHeuristicsMassachusetts() throws Exception {
 		String[] locations = {"Boston", "Haverhill", "Worcester", "Springfield", "Leominister"};
 		
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(LuceneLocationResolverTest.makeOccurrencesFromNames(locations), true);
+		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(
+				LuceneLocationResolverIT.makeOccurrencesFromNames(locations)).getLocations();
 		
 		assertEquals("LocationResolver chose the wrong \"Boston\"", BOSTON_MA, resolvedLocations.get(0).getPlace().getId());
 		assertEquals("LocationResolver chose the wrong \"Haverhill\"", HAVERHILL_MA, resolvedLocations.get(1).getPlace().getId());
@@ -80,7 +81,8 @@ public abstract class ResolverHeuristicsTest {
 	public void testHeuristicsIllinois() throws Exception {
 		String[] locations = {"Chicago", "Rockford", "Springfield", "Decatur"};
 		
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(LuceneLocationResolverTest.makeOccurrencesFromNames(locations), true);
+		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(
+				LuceneLocationResolverIT.makeOccurrencesFromNames(locations)).getLocations();
 	    
 		assertEquals("LocationResolver chose the wrong \"Chicago\"", CHICAGO_IL, resolvedLocations.get(0).getPlace().getId());
 		assertEquals("LocationResolver chose the wrong \"Rockford\"", ROCKFORD_IL, resolvedLocations.get(1).getPlace().getId());
@@ -98,7 +100,9 @@ public abstract class ResolverHeuristicsTest {
 	public void testHeuristicsMissouri() throws Exception {	    
 		String[] locations = {"Kansas City", "Springfield", "St. Louis", "Independence"};
 		
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(LuceneLocationResolverTest.makeOccurrencesFromNames(locations), true);
+		List<ResolvedLocation> resolvedLocations = 
+				getResolver().resolveLocations
+				(LuceneLocationResolverIT.makeOccurrencesFromNames(locations)).getLocations();
 	    
 		assertEquals("LocationResolver chose the wrong \"Kansas City\"", KANSAS_CITY_MO, resolvedLocations.get(0).getPlace().getId());
 		assertEquals("LocationResolver chose the wrong \"Springfield\"", SPRINGFIELD_MO, resolvedLocations.get(1).getPlace().getId());
@@ -116,7 +120,8 @@ public abstract class ResolverHeuristicsTest {
 	public void testHeuristicsEngland() throws Exception {	 		
 		String[] locations = {"London", "Manchester", "Haverhill"};
 		
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(LuceneLocationResolverTest.makeOccurrencesFromNames(locations), true);
+		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(
+				LuceneLocationResolverIT.makeOccurrencesFromNames(locations)).getLocations();
 	    
 		assertEquals("LocationResolver chose the wrong \"London\"", LONDON_UK, resolvedLocations.get(0).getPlace().getId());
 		assertEquals("LocationResolver chose the wrong \"Manchester\"", MANCHESTER_UK, resolvedLocations.get(1).getPlace().getId());
@@ -133,7 +138,8 @@ public abstract class ResolverHeuristicsTest {
 	public void testHeuristicsOntario() throws Exception {	 		
 		String[] locations = {"Toronto", "Ottawa", "Hamilton", "Kitchener", "London"};
 		
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(LuceneLocationResolverTest.makeOccurrencesFromNames(locations), true);
+		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(
+				LuceneLocationResolverIT.makeOccurrencesFromNames(locations)).getLocations();
 	    
 	    assertEquals("LocationResolver chose the wrong \"Toronto\"", TORONTO_ON, resolvedLocations.get(0).getPlace().getId());
 		assertEquals("LocationResolver chose the wrong \"Ottawa\"", OTTAWA_ON, resolvedLocations.get(1).getPlace().getId());

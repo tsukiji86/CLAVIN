@@ -34,6 +34,11 @@ import com.google.code.regexp.Pattern;
  * 
  *###################################################################*/
 
+/**
+ * Simplifies the creation of REGEX-based parsing strategies, reducing the 
+ * process to supplying the REGEX pattern and handling the resulting
+ * matched REGEX groups.
+ */
 public abstract class BaseRegexPatternParsingStrategy 
 	implements RegexCoordinateParsingStrategy<LatLon> {
 

@@ -1,5 +1,7 @@
 package com.berico.clavin.resolver.impl.lucene;
 
+import com.berico.clavin.gazetteer.Place;
+
 /*#####################################################################
  * 
  * CLAVIN (Cartographic Location And Vicinity INdexer)
@@ -24,19 +26,25 @@ package com.berico.clavin.resolver.impl.lucene;
  * 
  * ====================================================================
  * 
- * FieldConstants.java
+ * BuilderContext.java
  * 
  *###################################################################*/
 
 /**
- * These are the official names of the index fields.
+ * This is injected into the begin() method to make the use of the IndexBuilder
+ * more intuitive.
  */
-public class FieldConstants {
-
-	public static final String NAME = "indexName";
-	public static final String POPULATION = "population";
-	public static final String PLACE = "place";
-	public static final String PLACE_ID = "placeId";
-	public static final String GEOMETRY = "geometry";
+public interface BuilderContext {
 	
+	/**
+	 * Add a Place to the index.
+	 * @param place
+	 */
+	void add(Place place);
+	
+	/**
+	 * Get the total number of records processed.
+	 * @return Total records processed.
+	 */
+	long getTotalProcessed();
 }

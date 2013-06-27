@@ -1,5 +1,7 @@
 package com.berico.clavin.resolver.impl.strategies;
 
+import com.berico.clavin.Options;
+
 /*#####################################################################
  * 
  * CLAVIN (Cartographic Location And Vicinity INdexer)
@@ -40,6 +42,13 @@ package com.berico.clavin.resolver.impl.strategies;
  */
 public interface Weigher<ITEM, CONTEXT> {
 
-	double weigh(ITEM item, CONTEXT context);
+	/**
+	 * Given an item and some context, provide a weight for the value.
+	 * @param item Item to weigh
+	 * @param context Extra context to help in weighing
+	 * @param options Options to help configure the weigher
+	 * @return Weight for the item
+	 */
+	double weigh(ITEM item, CONTEXT context, Options options);
 	
 }

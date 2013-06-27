@@ -38,7 +38,6 @@ import com.berico.clavin.gazetteer.Place;
  * Encapsulates a {@link Place} object representing the best match
  * between a given location name and gazetteer record, along with some
  * information about the geographic entity resolution process.
- *
  */
 public class ResolvedLocation {
 	
@@ -127,28 +126,51 @@ public class ResolvedLocation {
 		return confidence;
 	}
 
-	/**
-	 * Tests equivalence between {@link ResolvedLocation} objects.
-	 * 
-	 * @param obj	the other object being compared against
-	 */
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Float.floatToIntBits(confidence);
+		result = prime * result + (fuzzy ? 1231 : 1237);
+		result = prime * result
+				+ ((location == null) ? 0 : location.hashCode());
+		result = prime * result
+				+ ((matchedName == null) ? 0 : matchedName.hashCode());
+		result = prime * result + ((place == null) ? 0 : place.hashCode());
+		return result;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
-	    if (obj == this) return true;
-	    if (obj == null) return false;
-	    
-	    // only a ResolvedLocation can equal a ResolvedLocation
-	    if (this.getClass() != obj.getClass()) return false;
-	    
-	    // cast the other object into a ResolvedLocation, now that we
-	    // know that it is one
-	    ResolvedLocation other = (ResolvedLocation)obj;
-	    
-	    // as long as the Place IDs are the same, we'll treat these
-	    // ResolvedLocations as equal since they point to the same
-	    // geographic entity (even if the circumstances of the entity
-	    // resolution process differed)
-	    return (this.place.getId() == other.place.getId());
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ResolvedLocation other = (ResolvedLocation) obj;
+		if (Float.floatToIntBits(confidence) != Float
+				.floatToIntBits(other.confidence))
+			return false;
+		if (fuzzy != other.fuzzy)
+			return false;
+		if (location == null) {
+			if (other.location != null)
+				return false;
+		} else if (!location.equals(other.location))
+			return false;
+		if (matchedName == null) {
+			if (other.matchedName != null)
+				return false;
+		} else if (!matchedName.equals(other.matchedName))
+			return false;
+		if (place == null) {
+			if (other.place != null)
+				return false;
+		} else if (!place.equals(other.place))
+			return false;
+		return true;
 	}
 	
 	private static final char dblquote = '"';

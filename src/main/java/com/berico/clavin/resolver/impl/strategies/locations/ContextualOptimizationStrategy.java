@@ -5,10 +5,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import com.berico.clavin.Options;
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.gazetteer.CountryCode;
 import com.berico.clavin.resolver.ResolvedLocation;
 import com.berico.clavin.resolver.impl.LocationCandidateSelectionStrategy;
+import com.berico.clavin.util.ListUtils;
 
 /*#####################################################################
  * 
@@ -49,18 +51,42 @@ import com.berico.clavin.resolver.impl.LocationCandidateSelectionStrategy;
 public class ContextualOptimizationStrategy implements LocationCandidateSelectionStrategy {
 	
 	/**
+	 * Represents how much content to consider when resolving the set of locations.
+	 */
+	public static final int DEFAULT_MAX_CONTEXT_WINDOW = 5;
+	public static final String KEY_DEFAULT_MAX_CONTEXT_WINDOW = "resolver.selection.maxContextWindow";
+	
+	/**
 	 * For each candidate list, select the best candidate.
 	 * @param allPossibilities Set of candidate lists to sort through.
 	 * @param cooccurringCoordinates Coordinates that occurred within the document.
+	 * @param options Options to help configure the optimization strategy.
 	 * @return Set of the best candidate choices.
 	 */
 	@Override
 	public List<ResolvedLocation> select(
 			List<List<ResolvedLocation>> allPossibilities,
-			Collection<CoordinateOccurrence<?>> cooccurringCoordinates)
+			Collection<CoordinateOccurrence<?>> cooccurringCoordinates, 
+			Options options)
 			throws Exception {
 		
-		return pickBestCandidates(allPossibilities);
+		options = (options == null)? new Options() : options;
+		
+		int maxContextWindow = options.getInt(
+				KEY_DEFAULT_MAX_CONTEXT_WINDOW, DEFAULT_MAX_CONTEXT_WINDOW);
+		
+		if (maxContextWindow <= 1) return pickBestCandidates(allPossibilities);
+			
+		List<ResolvedLocation> bestCandidates = new ArrayList<ResolvedLocation>();
+		
+		// Chunk the list and process in pieces to reduce the processing load
+		for (List<List<ResolvedLocation>> theseCandidates : ListUtils.chunkifyList(allPossibilities, maxContextWindow)) {
+			// select the best match for each location name based
+			// based on heuristics
+			bestCandidates.addAll(pickBestCandidates(theseCandidates));
+		}
+		
+		return bestCandidates;
 	}
 
 	/**
@@ -215,4 +241,14 @@ public class ContextualOptimizationStrategy implements LocationCandidateSelectio
 		
 		return result;
 	}
+  	
+  	/**
+  	 * Set the max context window on the Options object
+  	 * @param options Options to set on.
+  	 * @param maxContextWindow Size of the context window.
+  	 */
+  	public static void configureMaxContextWindow(Options options, int maxContextWindow){
+  		
+  		options.put(KEY_DEFAULT_MAX_CONTEXT_WINDOW, Integer.toString(maxContextWindow));
+  	}
 }

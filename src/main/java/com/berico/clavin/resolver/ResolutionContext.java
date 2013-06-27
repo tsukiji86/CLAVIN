@@ -2,6 +2,7 @@ package com.berico.clavin.resolver;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.berico.clavin.extractor.ExtractionContext;
 
@@ -84,7 +85,7 @@ public class ResolutionContext {
 	 * Get the Locations Resolved from the Extraction Context
 	 * @return Collection of Resolved Locations.
 	 */
-	public Collection<ResolvedLocation> getLocations() {
+	public List<ResolvedLocation> getLocations() {
 		return locations;
 	}
 
@@ -103,7 +104,7 @@ public class ResolutionContext {
 	 * Get the Collection of Coordinates that were resolved to Places.
 	 * @return Collection of Resolved Coordinates.
 	 */
-	public Collection<ResolvedCoordinate> getCoordinates() {
+	public List<ResolvedCoordinate> getCoordinates() {
 		return coordinates;
 	}
 

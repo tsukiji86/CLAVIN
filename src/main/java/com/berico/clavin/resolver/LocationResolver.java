@@ -1,11 +1,8 @@
 package com.berico.clavin.resolver;
 
-import java.util.List;
-
 import com.berico.clavin.Options;
 import com.berico.clavin.extractor.ExtractionContext;
-import com.berico.clavin.extractor.LocationOccurrence;
-import com.berico.clavin.gazetteer.Place;
+import com.berico.clavin.extractor.LocationExtractor;
 
 /*#####################################################################
  * 
@@ -47,19 +44,6 @@ import com.berico.clavin.gazetteer.Place;
 public interface LocationResolver {
 	
 	/**
-     * Resolves the supplied list of location names into
-     * {@link ResolvedLocation}s containing {@link Place} objects.
-     * 
-     * @param locations 		list of location names to be resolved
-     * @param fuzzy			switch for turning on/off fuzzy matching
-     * @return 				list of {@link ResolvedLocation} objects
-     * @throws Exception 
-     **/
-	@Deprecated
-	public List<ResolvedLocation> resolveLocations(
-			List<LocationOccurrence> locations, boolean fuzzy) throws Exception;
-	
-	/**
 	 * Resolves the locations and coordinates specified in the ExtractionContext
 	 * into a {@link ResolutionContext} which contains a list of {@link ResolvedLocation}s
 	 * and {@link ResolvedCoordinate}s.
@@ -69,7 +53,7 @@ public interface LocationResolver {
 	 * @return The results of resolving locations and coordinates.
 	 * @throws Exception
 	 */
-	public ResolutionContext resolveLocations(
+	 ResolutionContext resolveLocations(
 			ExtractionContext extractionContext) throws Exception;
 	
 	/**
@@ -83,7 +67,7 @@ public interface LocationResolver {
 	 * @return The results of resolving locations and coordinates.
 	 * @throws Exception
 	 */
-	public ResolutionContext resolveLocations(
+	 ResolutionContext resolveLocations(
 			ExtractionContext extractionContext, Options options) throws Exception;
 	
 }

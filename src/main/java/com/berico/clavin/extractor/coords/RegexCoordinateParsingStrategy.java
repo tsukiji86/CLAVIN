@@ -36,8 +36,20 @@ import com.berico.clavin.extractor.CoordinateOccurrence;
 
 public interface RegexCoordinateParsingStrategy<T> {
 
+	/**
+	 * Get the REGEX pattern used to find and extract coordinate occurrences.
+	 * @return REGEX pattern.
+	 */
 	Pattern getPattern();
 	
+	/**
+	 * Given the REGEX-matched text, the named capture groups, and start position
+	 * in the document, return a CoordinateOccurrence.
+	 * @param matchedString Matched text in the document.
+	 * @param namedGroups Named Capture Groups in the REGEX pattern.
+	 * @param startPosition Start position in the document.
+	 * @return CoordianteOccurrence.
+	 */
 	CoordinateOccurrence<T> parse(
 		String matchedString, Map<String, String> namedGroups, int startPosition);
 	

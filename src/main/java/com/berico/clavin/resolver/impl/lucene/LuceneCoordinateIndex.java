@@ -9,12 +9,41 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.spatial.query.SpatialArgs;
 import org.apache.lucene.spatial.query.SpatialOperation;
 
+import com.berico.clavin.Options;
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.gazetteer.LatLon;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.impl.CoordinateIndex;
 import com.spatial4j.core.distance.DistanceUtils;
 import com.spatial4j.core.shape.Circle;
+
+/*#####################################################################
+ * 
+ * CLAVIN (Cartographic Location And Vicinity INdexer)
+ * ---------------------------------------------------
+ * 
+ * Copyright (C) 2012-2013 Berico Technologies
+ * http://clavin.bericotechnologies.com
+ * 
+ * ====================================================================
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ * 
+ * ====================================================================
+ * 
+ * LuceneCoordinateIndex.java
+ * 
+ *###################################################################*/
 
 /**
  * Coordinate Index backed by a Lucene 4+ index with a spatial field.
@@ -28,7 +57,10 @@ import com.spatial4j.core.shape.Circle;
 public class LuceneCoordinateIndex implements CoordinateIndex {
 
 	public static int DEFAULT_DISTANCE_KM = 20;
-	public static int DEFAULT_NUMBER_OF_RESULTS = 5000;
+	public static String KEY_DEFAULT_DISTANCE_KM = "coord.index.distance";
+	
+	public static int DEFAULT_LIMIT = 5000;
+	public static String KEY_DEFAULT_LIMIT = "coord.index.limit";
 	
 	protected LuceneComponents lucene;
 	
@@ -58,9 +90,18 @@ public class LuceneCoordinateIndex implements CoordinateIndex {
 	 */
 	@Override
 	public List<ResolvedCoordinate> search(
-			CoordinateOccurrence<?> coordinate) throws Exception {
+			CoordinateOccurrence<?> coordinate, Options options) throws Exception {
 		
-		return this.search(coordinate, DEFAULT_DISTANCE_KM);
+		// Guard against null.
+		options = (options == null)? new Options() : options;
+		
+		int distance = 
+				options.getInt(KEY_DEFAULT_DISTANCE_KM, DEFAULT_DISTANCE_KM);
+
+		int limit = 
+				options.getInt(KEY_DEFAULT_LIMIT, DEFAULT_LIMIT);
+		
+		return performSearch(coordinate, distance, limit);
 	}
 	
 	/**
@@ -68,12 +109,13 @@ public class LuceneCoordinateIndex implements CoordinateIndex {
 	 * @param coordinate Coordinate to search for nearby locations.
 	 * @param distanceInKm Kilometer radius to search around the
 	 * target coordinate for named locations.
+	 * @param limit Max number of results to return from the index.
 	 * @return ResolvedCoordinate instance.
 	 */
-	@Override
-	public List<ResolvedCoordinate> search(
+	List<ResolvedCoordinate> performSearch(
 			CoordinateOccurrence<?> coordinate, 
-			int distanceInKm)
+			int distanceInKm,
+			int limit)
 			throws Exception {
 		
 		// Acquire a searcher.
@@ -102,11 +144,30 @@ public class LuceneCoordinateIndex implements CoordinateIndex {
 		
 		// Search the index using the circle as a bounding box (er...circle).
 		TopDocs results = searcher.search(
-			new MatchAllDocsQuery(), filter, DEFAULT_NUMBER_OF_RESULTS);
+			new MatchAllDocsQuery(), filter, DEFAULT_LIMIT);
 		
 		// Convert the results to a ResolvedCoordinate
 		return LuceneUtils.convertToCoordinate(
 				coordinate, searcher, results, lucene);
 	}
 
+	/**
+	 * Set the max radius in which to look for matches in the index.
+	 * @param options Options to set on
+	 * @param km Max distance in Kilometers
+	 */
+	public static void configureLookupDistance(Options options, int km){
+		
+		options.put(KEY_DEFAULT_DISTANCE_KM, Integer.toString(km));
+	}
+	
+	/**
+	 * Set the max number of results to return from the index.
+	 * @param options Options to set on
+	 * @param limit Max number of results to return.
+	 */
+	public static void configureLimit(Options options, int limit){
+		
+		options.put(KEY_DEFAULT_LIMIT, Integer.toString(limit));
+	}
 }

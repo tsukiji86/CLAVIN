@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.berico.clavin.Options;
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.extractor.ExtractionContext;
@@ -55,6 +58,8 @@ import com.berico.clavin.resolver.ResolvedLocation;
  */
 public class DefaultLocationResolver implements LocationResolver {
 
+	private static final Logger logger = LoggerFactory.getLogger(DefaultLocationResolver.class);
+	
 	LocationNameIndex locationNameIndex;
 	CoordinateIndex coordinateIndex;
 	LocationCandidateSelectionStrategy locationSelectionStrategy;
@@ -85,23 +90,6 @@ public class DefaultLocationResolver implements LocationResolver {
 	}
 
 	/**
-	 * Provide a list of ResolvedLocations given a list of Occurrences.
-	 * @param locations Locations to resolve.
-	 * @param fuzzy Whether fuzzy matching should be used.
-	 * @return List of ResolvedLocations
-	 */
-	@Override
-	public List<ResolvedLocation> resolveLocations(
-			List<LocationOccurrence> locations, 
-			boolean fuzzy) throws Exception {
-		
-		ArrayList<List<ResolvedLocation>> candidates = 
-				findLocationCandidates(locations, fuzzy);
-		
-		return locationSelectionStrategy.select(candidates, null);
-	}
-
-	/**
 	 * Provided an ExtractionContext (Locations and Coordinates), return 
 	 * a list of Resolved Locations and Coordinates (ResolutionContext).
 	 * @param context Extraction Context
@@ -125,17 +113,29 @@ public class DefaultLocationResolver implements LocationResolver {
 			ExtractionContext context, Options options)
 			throws Exception {
 		
+		logger.debug("Beginning resolution step.");
+		
 		ArrayList<List<ResolvedLocation>> locationCandidates = 
-				findLocationCandidates(context.getLocations(), options.getUseFuzzyMatching());
+				findLocationCandidates(context.getLocations(), options);
+		
+		logger.debug("Found {} location candidate lists.", locationCandidates.size());
 		
 		ArrayList<List<ResolvedCoordinate>> coordinateCandidates =
-				findCoordinateCandidates(context.getCoordinates());
+				findCoordinateCandidates(context.getCoordinates(), options);
+		
+		logger.debug("Found {} coordinate candidate lists.", coordinateCandidates.size());
 		
 		List<ResolvedCoordinate> resolvedCoordinates = 
-			coordinateSelectionStrategy.select(coordinateCandidates, context.getLocations());
+			coordinateSelectionStrategy.select(
+					coordinateCandidates, context.getLocations(), options);
+		
+		logger.debug("Selected {} coordinates.", resolvedCoordinates.size());
 		
 		List<ResolvedLocation> resolvedLocations = 
-			locationSelectionStrategy.select(locationCandidates, context.getCoordinates());
+			locationSelectionStrategy.select(
+					locationCandidates, context.getCoordinates(), options);
+		
+		logger.debug("Selected {} locations.", resolvedLocations.size());
 		
 		return reductionStrategy.reduce(context, resolvedLocations, resolvedCoordinates);
 	}
@@ -145,13 +145,12 @@ public class DefaultLocationResolver implements LocationResolver {
 	 * Find potential location candidates from the extracted occurrences.
 	 * 
 	 * @param locations Location Occurrences found in text.
-	 * @param useFuzzy Should fuzzy name matching be used?
+	 * @param options Options to help configure the index.
 	 * @return List of candidates for each Location Occurrence.
 	 * @throws Exception
 	 */
 	protected ArrayList<List<ResolvedLocation>> findLocationCandidates(
-			Collection<LocationOccurrence> locations, 
-			boolean useFuzzy) 
+			Collection<LocationOccurrence> locations, Options options) 
 			throws Exception {
 		
 		ArrayList<List<ResolvedLocation>> candidates = 
@@ -159,8 +158,11 @@ public class DefaultLocationResolver implements LocationResolver {
 		
 		for (LocationOccurrence occurrence : locations){
 			
-			candidates.add(
-				locationNameIndex.search(occurrence, useFuzzy));
+			List<ResolvedLocation> searchResults = locationNameIndex.search(occurrence, options);
+			
+			// We absolutely do not want empty lists since they will
+			// screw up the optimization step!
+			if (searchResults.size() > 0) candidates.add(searchResults);
 		}
 		
 		return candidates;
@@ -170,11 +172,12 @@ public class DefaultLocationResolver implements LocationResolver {
 	 * Find potential coordinate candidates from the extracted coordinates.
 	 * 
 	 * @param coordinates Coordinate Occurrences found in text.
+	 * @param options Options to help configure the index.
 	 * @return List of candidates for each Coordinate Occurrence.
 	 * @throws Exception
 	 */
 	protected ArrayList<List<ResolvedCoordinate>> findCoordinateCandidates(
-			Collection<CoordinateOccurrence<?>> coordinates) 
+			Collection<CoordinateOccurrence<?>> coordinates, Options options) 
 			throws Exception {
 		
 		ArrayList<List<ResolvedCoordinate>> candidates =
@@ -182,7 +185,11 @@ public class DefaultLocationResolver implements LocationResolver {
 		
 		for (CoordinateOccurrence<?> coordinate : coordinates){
 			
-			candidates.add(coordinateIndex.search(coordinate));
+			List<ResolvedCoordinate> searchResults = coordinateIndex.search(coordinate, options);
+			
+			// We absolutely do not want empty lists since they will
+			// screw up the optimization step!
+			if (searchResults.size() > 0) candidates.add(searchResults);
 		}
 		
 		return candidates;

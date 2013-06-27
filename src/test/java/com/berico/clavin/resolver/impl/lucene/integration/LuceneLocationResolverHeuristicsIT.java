@@ -2,20 +2,20 @@ package com.berico.clavin.resolver.impl.lucene.integration;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.berico.clavin.GeoParserFactory;
+import com.berico.clavin.Options;
 import com.berico.clavin.resolver.LocationResolver;
 import com.berico.clavin.resolver.ResolvedLocation;
-import com.berico.clavin.resolver.integration.ResolverHeuristicsTest;
-import com.berico.clavin.resolver.lucene.LuceneLocationResolver;
+import com.berico.clavin.resolver.impl.lucene.LuceneLocationNameIndex;
+import com.berico.clavin.resolver.impl.strategies.locations.ContextualOptimizationStrategy;
+import com.berico.clavin.resolver.integration.ResolverHeuristicsIT;
 
 /*#####################################################################
  * 
@@ -50,27 +50,40 @@ import com.berico.clavin.resolver.lucene.LuceneLocationResolver;
  * {@link ResolvedLocation} objects as performed by
  * {@link LocationResolver#resolveLocations(List<String>)}.
  */
-public class LuceneLocationResolverHeuristicsTest extends ResolverHeuristicsTest {
+public class LuceneLocationResolverHeuristicsIT extends ResolverHeuristicsIT {
 	
-	public final static Logger logger = LoggerFactory.getLogger(LuceneLocationResolverHeuristicsTest.class);
+	public final static Logger logger = LoggerFactory.getLogger(LuceneLocationResolverHeuristicsIT.class);
 	
 	// objects required for running tests
-	File indexDirectory;
-	LuceneLocationResolver resolverNoHeuristics;
-	LuceneLocationResolver resolverWithHeuristics;
+	LocationResolver resolverNoHeuristics;
+	LocationResolver resolverWithHeuristics;
 	
 	/**
 	 * Instantiate two {@link LuceneLocationResolver} objects, one without
 	 * context-based heuristic matching and other with it turned on.
-	 * 
-	 * @throws IOException
-	 * @throws ParseException 
+	 * @throws Exception 
 	 */
 	@Before
-	public void setUp() throws IOException, ParseException {
-		indexDirectory = new File("./IndexDirectory");
-		resolverNoHeuristics = new LuceneLocationResolver(indexDirectory, 1, 1);
-		resolverWithHeuristics = new LuceneLocationResolver(indexDirectory, 5, 5);
+	public void setUp() throws Exception {
+		String indexDirectory = "./IndexDirectory";
+		
+		Options noHeuristics = new Options();
+		LuceneLocationNameIndex.configureLimit(noHeuristics, 1);
+		ContextualOptimizationStrategy.configureMaxContextWindow(noHeuristics, 1);
+		
+		resolverNoHeuristics = 
+			GeoParserFactory.getDefault(
+				indexDirectory, noHeuristics)
+					.getLocationResolver();
+		
+		Options withHeuristics = new Options();
+		LuceneLocationNameIndex.configureLimit(withHeuristics, 5);
+		ContextualOptimizationStrategy.configureMaxContextWindow(withHeuristics, 5);
+		
+		resolverWithHeuristics = 
+			GeoParserFactory.getDefault(
+				indexDirectory, withHeuristics)
+					.getLocationResolver();
 	}
 
 	@Override
@@ -95,7 +108,8 @@ public class LuceneLocationResolverHeuristicsTest extends ResolverHeuristicsTest
 		String[] locations = {"Haverhill", "Worcester", "Springfield", "Kansas City"};
 		
 		List<ResolvedLocation> resolvedLocations = 
-			resolverNoHeuristics.resolveLocations(LuceneLocationResolverTest.makeOccurrencesFromNames(locations), false);
+			resolverNoHeuristics.resolveLocations(
+				LuceneLocationResolverIT.makeOccurrencesFromNames(locations)).getLocations();
 		
 		assertEquals("LocationResolver chose the wrong \"Haverhill\"", HAVERHILL_MA, resolvedLocations.get(0).getPlace().getId());
 		assertEquals("LocationResolver chose the wrong \"Worcester\"", WORCESTER_UK, resolvedLocations.get(1).getPlace().getId());

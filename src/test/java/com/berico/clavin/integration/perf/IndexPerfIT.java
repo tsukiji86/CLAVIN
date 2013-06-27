@@ -1,7 +1,6 @@
 package com.berico.clavin.integration.perf;
 
 import java.io.File;
-import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -9,9 +8,9 @@ import org.junit.Test;
 
 import com.berico.clavin.GeoParser;
 import com.berico.clavin.GeoParserFactory;
-import com.berico.clavin.resolver.ResolvedLocation;
+import com.berico.clavin.resolver.ResolutionContext;
 
-public class IndexPerfTest {
+public class IndexPerfIT {
 	
 	private static final String TINY_FILE = "src/test/resources/sample-docs/Tornado.txt";
 	private static final String SMALL_FILE = "src/test/resources/sample-docs/IraqViolence.txt";
@@ -25,7 +24,7 @@ public class IndexPerfTest {
 	@Before
 	public void setup() throws Exception {
 		
-		geoparser = GeoParserFactory.getDefault("./IndexDirectory");
+		geoparser = GeoParserFactory.getDefault("./IndexDirectory", 1, 1, true);
 	}
 	
 	@Test
@@ -74,35 +73,35 @@ public class IndexPerfTest {
 		
 		long start = System.nanoTime();
 		
-		List<ResolvedLocation> locations = geoparser.parse(testDocument);
+		ResolutionContext results = geoparser.parse(testDocument);
 		
 		long end = System.nanoTime();
 		
 		long duration = end - start;
 		
-		return new PerformanceResults(duration, testDocument.length(), locations);
+		return new PerformanceResults(duration, testDocument.length(), results);
 	}
 	
 	public static class PerformanceResults {
 		
 		public PerformanceResults(
-			double duration, int textSize, List<ResolvedLocation> locations){
+			double duration, int textSize, ResolutionContext results){
 			
 			this.duration = duration;
 			this.textSize = textSize;
-			this.locations = locations;
+			this.results = results;
 		}
 		
 		public double duration;
 		public int textSize;
-		public List<ResolvedLocation> locations;
+		public ResolutionContext results;
 		
 		@Override
 		public String toString(){
 			
 			return String.format(
 				"%s locations parsed in %s seconds from %s characters of text", 
-				locations.size(), duration / 1000000000l, textSize);
+				results.getLocations().size(), duration / 1000000000l, textSize);
 		}
 	}
 	

@@ -11,7 +11,10 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.berico.clavin.Options;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.resolver.ResolvedLocation;
 import com.berico.clavin.resolver.impl.LocationNameIndex;
@@ -60,10 +63,20 @@ import com.berico.clavin.resolver.impl.LocationNameIndex;
  */
 public class LuceneLocationNameIndex implements LocationNameIndex {
 
+	private static final Logger logger = 
+			LoggerFactory.getLogger(LuceneLocationNameIndex.class);
+	
 	/**
 	 * Default maximum number of results to return (by Lucene).
 	 */
 	public static final int DEFAULT_LIMIT = 10;
+	public static final String KEY_DEFAULT_LIMIT = "location.index.limit";
+	
+	/**
+	 * Whether fuzzy matching should be used by default.
+	 */
+	public static final boolean DEFAULT_USE_FUZZY = false;
+	public static final String KEY_DEFAULT_USE_FUZZY = "location.index.useFuzzy";
 	
 	/**
 	 * Default sorting mechanism (Population, then Field Score).
@@ -95,27 +108,20 @@ public class LuceneLocationNameIndex implements LocationNameIndex {
 	 * Return a list of Resolved Locations that best match the Location Occurrence
 	 * found in a document.
 	 * @param occurrence The Location Occurrence.
-	 * @param useFuzzy Whether fuzzy matching should be used.
+	 * @param options Options for the index.
 	 * @return List of Resolved Locations matching the occurrence.
 	 */
 	@Override
 	public List<ResolvedLocation> search(
-			LocationOccurrence occurrence, boolean useFuzzy) throws Exception {
+			LocationOccurrence occurrence, Options options) throws Exception {
 		
-		return search(occurrence, DEFAULT_LIMIT, useFuzzy);
-	}
-
-	/**
-	 * Return a list of Resolved Locations that best match the Location Occurrence
-	 * found in a document.
-	 * @param occurrence The Location Occurrence.
-	 * @param limit Max number of locations to return.
-	 * @param useFuzzy Whether fuzzy matching should be used.
-	 * @return List of Resolved Locations matching the occurrence.
-	 */
-	@Override
-	public List<ResolvedLocation> search(
-			LocationOccurrence occurrence, int limit, boolean useFuzzy) throws Exception {
+		options = (options == null)? new Options() : options;
+		
+		// Get the max number of records to return.
+		int limit = options.getInt(KEY_DEFAULT_LIMIT, DEFAULT_LIMIT);
+		
+		// Get whether fuzzy matching is enabled.
+		boolean useFuzzy = options.getBoolean(KEY_DEFAULT_USE_FUZZY, DEFAULT_USE_FUZZY);
 		
 		IndexSearcher searcher = lucene.getSearcherManager().acquire();
 		
@@ -124,7 +130,7 @@ public class LuceneLocationNameIndex implements LocationNameIndex {
 		// We need to sanitize the name so it doesn't have unescaped Lucene syntax that
 		// would throw off the search index.
 		String escapedName = 
-				QueryParserBase.escape(occurrence.getText());
+				QueryParserBase.escape(occurrence.getText().toLowerCase());
 		
 		// Try an exact query
 		Query query = getExactQuery(escapedName);
@@ -133,7 +139,7 @@ public class LuceneLocationNameIndex implements LocationNameIndex {
 		TopDocs results = searcher.search(query, null, limit, DEFAULT_SORTER);
 		
 		// If there are no results, and a fuzzy query was requested
-		if (results.totalHits == 0 && useFuzzy) {
+		if (results.scoreDocs.length == 0 && useFuzzy) {
 			
 			usedFuzzy = true;
 			
@@ -143,6 +149,9 @@ public class LuceneLocationNameIndex implements LocationNameIndex {
 			// Gather the results
 			results = searcher.search(query, null, limit, DEFAULT_SORTER);
 		}
+		
+		if (results.scoreDocs.length == 0)
+			logger.info("Found no results for {}.", escapedName);
 		
 		return LuceneUtils.convertToLocations(occurrence, searcher, results, usedFuzzy);
 	}
@@ -189,4 +198,23 @@ public class LuceneLocationNameIndex implements LocationNameIndex {
 		DEFAULT_SORTER = sorter;
 	}
 
+	/**
+	 * Set the max number of results to return from the index.
+	 * @param options Options to set on
+	 * @param limit Max number of results.
+	 */
+	public static void configureLimit(Options options, int limit){
+		
+		options.put(KEY_DEFAULT_LIMIT, Integer.toString(limit));
+	}
+	
+	/**
+	 * Set whether fuzzy matching should be used.
+	 * @param options Options to set on
+	 * @param useFuzzy true if fuzzy matching should be used.
+	 */
+	public static void configureUseFuzzy(Options options, boolean useFuzzy){
+		
+		options.put(KEY_DEFAULT_USE_FUZZY, Boolean.toString(useFuzzy));
+	}
 }

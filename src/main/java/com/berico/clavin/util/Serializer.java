@@ -1,4 +1,4 @@
-package com.berico.clavin.resolver.impl.lucene;
+package com.berico.clavin.util;
 
 /*#####################################################################
  * 
@@ -24,19 +24,33 @@ package com.berico.clavin.resolver.impl.lucene;
  * 
  * ====================================================================
  * 
- * FieldConstants.java
+ * Serializer.java
  * 
  *###################################################################*/
 
 /**
- * These are the official names of the index fields.
+ * Defines a really simple contract for serializing and deserializing objects.
  */
-public class FieldConstants {
+public interface Serializer {
 
-	public static final String NAME = "indexName";
-	public static final String POPULATION = "population";
-	public static final String PLACE = "place";
-	public static final String PLACE_ID = "placeId";
-	public static final String GEOMETRY = "geometry";
+	/**
+	 * Default serializer used by CLAVIN.
+	 */
+	public static Serializer Default = new JsonSerializer();
+	
+	/**
+	 * Serialize an object to a string.
+	 * @param object Object to serialize.
+	 * @return String representation of that object.
+	 */
+	<T> String serialize(T object);
+	
+	/**
+	 * Deserialize an object from a string.
+	 * @param content String to deserialize to an object.
+	 * @param returnType Type of object that should return.
+	 * @return A deserialized object.
+	 */
+	<T> T deserialize(String content, Class<T> returnType);
 	
 }

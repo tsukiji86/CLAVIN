@@ -1,7 +1,5 @@
 package com.berico.clavin.resolver.impl.lucene.integration;
 
-import static org.junit.Assert.*;
-
 import java.util.List;
 
 import org.junit.Before;
@@ -14,7 +12,7 @@ import com.berico.clavin.resolver.impl.lucene.LuceneComponents;
 import com.berico.clavin.resolver.impl.lucene.LuceneComponentsFactory;
 import com.berico.clavin.resolver.impl.lucene.LuceneCoordinateIndex;
 
-public class LuceneCoordinateIndexTest {
+public class LuceneCoordinateIndexIT {
 	
 	LuceneCoordinateIndex coordinateIndex;
 	
@@ -23,7 +21,7 @@ public class LuceneCoordinateIndexTest {
 		
 		LuceneComponents lucene = 
 			new LuceneComponentsFactory("./IndexDirectory/")
-				.initialize()
+				.initializeSearcher()
 				.getComponents();
 		
 		coordinateIndex = new LuceneCoordinateIndex(lucene);
@@ -36,7 +34,7 @@ public class LuceneCoordinateIndexTest {
 			new LatLonOccurrence("23.211058, -109.653542", -1, 
 				new LatLon(23.211058, -109.653542));
 		
-		List<ResolvedCoordinate> coordinate = coordinateIndex.search(occurrence);
+		List<ResolvedCoordinate> coordinate = coordinateIndex.search(occurrence, null);
 		
 		System.out.println(coordinate);
 	}

@@ -97,12 +97,9 @@ public abstract class BaseDdPatternParsingStrategy
 		
 		int hemi = 1;
 		
-		if (hemisphere != null && !hemisphere.trim().isEmpty()){
-		
-			hemi = 
-				(hemisphere.toUpperCase().equalsIgnoreCase("N")
-				  || hemisphere.toUpperCase().equalsIgnoreCase("E"))? 1 : -1;
-		}
+		if (hemisphere != null && !hemisphere.trim().isEmpty())
+			hemi = hemisphere.toUpperCase().equalsIgnoreCase("N")
+				  || hemisphere.toUpperCase().equalsIgnoreCase("E") ? 1 : -1;
 		
 		double dd = tryParse(decimalDegrees, 0.0d);
 		

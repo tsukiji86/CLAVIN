@@ -41,34 +41,56 @@ import java.util.Map;
 public class Options extends HashMap<String, String> {
 	
 	private static final long serialVersionUID = -2651858281391010640L;
-
-	private static final String KEY_USE_FUZZY_MATCHING = "clavin.use.fuzzy";
 	
 	/**
-	 * Set whether fuzzy matching should be used by the index (default is false).
-	 * @param useFuzzyMatching True if fuzzy matching should be used.
+	 * Get the value of a Long integer property.
+	 * @param key Name of the property.
+	 * @param defaultValue Default value if it does not exist.
+	 * @return Value or default if the property doesn't exist.
 	 */
-	public void setUseFuzzyMatching(boolean useFuzzyMatching){
+	public long getLong(String key, long defaultValue){
 		
-		this.put(KEY_USE_FUZZY_MATCHING, Boolean.toString(useFuzzyMatching));
+		String value = this.get(key);
+		
+		if (value == null) return defaultValue;
+		
+		return Long.parseLong(value);
 	}
 	
 	/**
-	 * Get whether fuzzy matching should be used by the index.
-	 * @return True if fuzzy matching should be used.
+	 * Get the value of an integer property.
+	 * @param key Name of the property.
+	 * @param defaultValue Default value if it does not exist.
+	 * @return Value or default if the property doesn't exist.
 	 */
-	public boolean getUseFuzzyMatching(){
+	public int getInt(String key, int defaultValue){
 		
-		return  Boolean.parseBoolean( this.get(KEY_USE_FUZZY_MATCHING) );
+		String value = this.get(key);
+		
+		if (value == null) return defaultValue;
+		
+		return Integer.parseInt(value);
+	}
+	
+	/**
+	 * Get the value of an boolean property.
+	 * @param key Name of the property.
+	 * @param defaultValue Default value if it does not exist.
+	 * @return Value or default if the property doesn't exist.
+	 */
+	public boolean getBoolean(String key, boolean defaultValue){
+		
+		String value = this.get(key);
+		
+		if (value == null) return defaultValue;
+		
+		return Boolean.parseBoolean(value);
 	}
 	
 	/**
 	 * Instantiate the Options object with the default settings.
 	 */
-	public Options(){ 
-		super(); 
-		setUseFuzzyMatching(false);
-	}
+	public Options(){ super(); }
 	
 	/**
 	 * Instantiate the options from a Map of <String, String>.

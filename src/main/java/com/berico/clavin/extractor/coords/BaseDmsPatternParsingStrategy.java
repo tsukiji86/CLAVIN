@@ -107,14 +107,13 @@ public abstract class BaseDmsPatternParsingStrategy
 	public static double convertToDecimal(
 		String degrees, String minutes, String seconds, String hemisphere){
 		
-		int hemi = 
-			(hemisphere.toUpperCase().equalsIgnoreCase("N")
-			  || hemisphere.toUpperCase().equalsIgnoreCase("E"))? 1 : -1;
+		int hemi = hemisphere.toUpperCase().equalsIgnoreCase("N")
+			  || hemisphere.toUpperCase().equalsIgnoreCase("E") ? 1 : -1;
 		
 		int deg = tryParse(degrees, 0);
 		int min = tryParse(minutes, 0);
 		double sec = tryParse(seconds, 0.0d);
 		
-		return hemi * (deg + (min / 60.0) + (sec / 3600.0));
+		return hemi * (deg + min / 60.0 + sec / 3600.0);
 	}
 }

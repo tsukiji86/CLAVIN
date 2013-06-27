@@ -12,11 +12,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.berico.clavin.extractor.ExtractionContext;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.resolver.LocationResolver;
 import com.berico.clavin.resolver.ResolvedLocation;
 
-public abstract class ResolverBehaviorTest {
+public abstract class ResolverBehaviorIT {
 
 	public Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -37,19 +38,20 @@ public abstract class ResolverBehaviorTest {
 
     //this convenience method turns an array of location name strings into a list of occurrences with fake positions.
     //(useful for tests that don't care about position in the document)
-    public static List<LocationOccurrence> makeOccurrencesFromNames(String[] locationNames) {
+    public static ExtractionContext makeOccurrencesFromNames(String[] locationNames) {
         List<LocationOccurrence> locations = new ArrayList<LocationOccurrence>(locationNames.length);
         for(int i = 0; i < locationNames.length; ++i ) {
             locations.add(new LocationOccurrence(locationNames[i], i));
         }
-        return locations;
+        return new ExtractionContext("", locations, null);
     }
 	
 	@Test
 	public void resolver_correctly_matches_locations_by_name() throws Exception {
 		String[] locationNames = {"Reston", "reston", "RESTON", "Рестон", "Straßenhaus"};
 
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(makeOccurrencesFromNames(locationNames), true);
+		List<ResolvedLocation> resolvedLocations = 
+				getResolver().resolveLocations(makeOccurrencesFromNames(locationNames)).getLocations();
 		
 		assertNotNull("Null results list received from LocationResolver", resolvedLocations);
 		assertFalse("Empty results list received from LocationResolver", resolvedLocations.isEmpty());
@@ -67,7 +69,9 @@ public abstract class ResolverBehaviorTest {
 		
 		String[] noLocations = {};
 		
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(makeOccurrencesFromNames(noLocations), true);
+		List<ResolvedLocation> resolvedLocations = 
+				getResolver().resolveLocations(
+					makeOccurrencesFromNames(noLocations)).getLocations();
 		
 		assertNotNull("Null results list received from LocationResolver", resolvedLocations);
 		assertTrue("Non-empty results from LocationResolver on empty input", resolvedLocations.isEmpty());
@@ -76,9 +80,9 @@ public abstract class ResolverBehaviorTest {
 	@Test
 	public void resolver_handles_null_input_correctly() throws Exception{
 		
-		List<LocationOccurrence> nullLocationList = null;
+		ExtractionContext context = new ExtractionContext("", null, null);
 		
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(nullLocationList, true);
+		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(context).getLocations();
 		
 		assertNotNull("Null results list received from LocationResolver", resolvedLocations);
 		assertTrue("Non-empty results from LocationResolver on empty input", resolvedLocations.isEmpty());
@@ -92,7 +96,7 @@ public abstract class ResolverBehaviorTest {
 				"Dallas/Fort Worth Airport", "New Delhi/Chennai", "Falkland ] Islands", "Baima ] County",
 				"MUSES \" City Hospital", "North \" Carolina State"};
 		
-		getResolver().resolveLocations(makeOccurrencesFromNames(locations), true);
+		getResolver().resolveLocations(makeOccurrencesFromNames(locations));
 		
 		assertTrue(true);
 		// if no exceptions are thrown, the test is assumed to have succeeded
@@ -102,7 +106,8 @@ public abstract class ResolverBehaviorTest {
 	public void resolver_selects_the_correct_locations_when_using_fuzzy_matching() throws Exception {
 		String[] locations = {"Bostonn", "Reston12", "Bostn", "Straßenha", "Straßenhaus Airport", "Gun Barrel"};
 		
-		List<ResolvedLocation> resolvedLocations = getResolver().resolveLocations(makeOccurrencesFromNames(locations), true);
+		List<ResolvedLocation> resolvedLocations = 
+				getResolver().resolveLocations(makeOccurrencesFromNames(locations)).getLocations();
 		
 		assertEquals("LocationResolver failed on extra char", BOSTON_MA, resolvedLocations.get(0).getPlace().getId());
 		assertEquals("LocationResolver failed on extra chars", RESTON_VA, resolvedLocations.get(1).getPlace().getId());

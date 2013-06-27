@@ -1,4 +1,6 @@
-package com.berico.clavin.resolver.impl.lucene;
+package com.berico.clavin.util;
+
+import com.google.gson.Gson;
 
 /*#####################################################################
  * 
@@ -24,19 +26,52 @@ package com.berico.clavin.resolver.impl.lucene;
  * 
  * ====================================================================
  * 
- * FieldConstants.java
+ * JsonSerializer.java
  * 
  *###################################################################*/
 
 /**
- * These are the official names of the index fields.
+ * A dead simple and fast way to serialize and deserialize objects.
  */
-public class FieldConstants {
+public class JsonSerializer implements Serializer {
 
-	public static final String NAME = "indexName";
-	public static final String POPULATION = "population";
-	public static final String PLACE = "place";
-	public static final String PLACE_ID = "placeId";
-	public static final String GEOMETRY = "geometry";
+	Gson gson = new Gson();
 	
+	/**
+	 * Instantiate!
+	 */
+	public JsonSerializer(){}
+	
+	/**
+	 * Instantiate with a configured instance of Gson.
+	 * @param gson Preconfigured Gson instance.
+	 */
+	public JsonSerializer(Gson gson){
+		this.gson = gson;
+	}
+	
+	/**
+	 * Serialize an object to a JSON String.
+	 * @param object Object to serialize.
+	 * @return Object as JSON String.
+	 */
+	@Override
+	public <T> String serialize(T object) {
+		
+		return gson.toJson(object);
+	}
+
+	/**
+	 * Deserialize Json string to an object of desired type (you must know the type
+	 * ahead of time!!!!).
+	 * @param content Content to deserialize.
+	 * @param returnType The object type the JSON should be deserialize to.
+	 * @return Deserialized object or null.
+	 */
+	@Override
+	public <T> T deserialize(String content, Class<T> returnType) {
+		
+		return gson.fromJson(content, returnType);
+	}
+
 }

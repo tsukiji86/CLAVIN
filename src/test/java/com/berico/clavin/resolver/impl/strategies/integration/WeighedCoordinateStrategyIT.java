@@ -1,7 +1,5 @@
 package com.berico.clavin.resolver.impl.strategies.integration;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +19,7 @@ import com.berico.clavin.resolver.impl.strategies.WeightedCoordinateScoringStrat
 import com.berico.clavin.resolver.impl.strategies.coordinates.SharedLocationNameWeigher;
 import com.berico.clavin.resolver.impl.strategies.coordinates.VectorDistanceWeigher;
 
-public class WeighedCoordinateStrategyTest {
+public class WeighedCoordinateStrategyIT {
 
 	LuceneCoordinateIndex coordinateIndex;
 	CoordinateCandidateSelectionStrategy strategy;
@@ -32,7 +30,7 @@ public class WeighedCoordinateStrategyTest {
 		
 		LuceneComponents lucene = 
 				new LuceneComponentsFactory("./IndexDirectory/")
-					.initialize()
+					.initializeSearcher()
 					.getComponents();
 			
 		coordinateIndex = new LuceneCoordinateIndex(lucene);
@@ -53,16 +51,14 @@ public class WeighedCoordinateStrategyTest {
 				new LatLonOccurrence("38.9686° N, 77.3414° W", -1, 
 					new LatLon(38.9686, -77.3414));
 			
-		List<ResolvedCoordinate> coordinates = coordinateIndex.search(reston);
+		List<ResolvedCoordinate> coordinates = coordinateIndex.search(reston, null);
 		
 		System.out.println(coordinates.size());
-		
-		//System.out.println(coordinates);
 		
 		@SuppressWarnings("unchecked")
 		List<List<ResolvedCoordinate>> candidateLists = Arrays.asList(coordinates);
 		
-		List<ResolvedCoordinate> coords = strategy.select(candidateLists, occurrences);
+		List<ResolvedCoordinate> coords = strategy.select(candidateLists, occurrences, null);
 		
 		System.out.println(coords.get(0).getKnownLocation());
 	}

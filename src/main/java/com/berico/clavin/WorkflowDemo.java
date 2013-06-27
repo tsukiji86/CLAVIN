@@ -59,7 +59,7 @@ public class WorkflowDemo {
 		String inputString = TextUtils.fileToString(inputFile);
 		
 		// Parse location names in the text into geographic entities
-		List<ResolvedLocation> resolvedLocations = parser.parse(inputString);
+		List<ResolvedLocation> resolvedLocations = parser.parse(inputString).getLocations();
 		
 		// Display the ResolvedLocations found for the location names
 		for (ResolvedLocation resolvedLocation : resolvedLocations)

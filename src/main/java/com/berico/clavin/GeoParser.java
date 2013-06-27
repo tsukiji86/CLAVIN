@@ -5,10 +5,13 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.berico.clavin.extractor.CoordinateExtractor;
+import com.berico.clavin.extractor.CoordinateOccurrence;
+import com.berico.clavin.extractor.ExtractionContext;
 import com.berico.clavin.extractor.LocationExtractor;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.resolver.LocationResolver;
-import com.berico.clavin.resolver.ResolvedLocation;
+import com.berico.clavin.resolver.ResolutionContext;
 
 /*#####################################################################
  * 
@@ -52,19 +55,28 @@ public class GeoParser {
 	private static final Logger logger = LoggerFactory.getLogger(GeoParser.class);
 
 	// entity extractor to find location names in text
-	private LocationExtractor extractor;
+	private LocationExtractor locationExtractor;
+	
+	// finds coordinates in text.
+	private CoordinateExtractor coordinateExtractor;
 	
 	// resolver to match location names against gazetteer records
 	private LocationResolver resolver;
 	
-	// switch controlling use of fuzzy matching
-	private final boolean fuzzy;
-	
-	public GeoParser(LocationExtractor extractor, LocationResolver resolver, boolean fuzzy){
+	/**
+	 * Initialize the GeoParse with its dependent interfaces.
+	 * @param locationExtractor Extract Locations from Text
+	 * @param coordinateExtractor Extract Coordinates from Text
+	 * @param resolver Resolve Locations and Coordinates.
+	 */
+	public GeoParser(
+			LocationExtractor locationExtractor, 
+			CoordinateExtractor coordinateExtractor, 
+			LocationResolver resolver){
 		
-		this.extractor = extractor;
+		this.locationExtractor = locationExtractor;
+		this.coordinateExtractor = coordinateExtractor;
 		this.resolver = resolver;
-		this.fuzzy = fuzzy;
 	}
 	
 	/**
@@ -74,28 +86,60 @@ public class GeoParser {
 	 * location names.
 	 * 
 	 * @param inputText		unstructured text to be processed
-	 * @return				list of geo entities resolved from text
+	 * @return				Locations and Coordinates resolved to Places and where
+	 * they occurred in the text.
 	 * @throws Exception
 	 */
-	public List<ResolvedLocation> parse(String inputText) throws Exception {
+	public ResolutionContext parse(String inputText) throws Exception {
 		
 		logger.info("Input Size: {}", inputText.length());
 		
 		// first, extract location names from the text
-		List<LocationOccurrence> locationNames = extractor.extractLocationNames(inputText);
+		List<LocationOccurrence> locationNames = locationExtractor.extractLocationNames(inputText);
 		
 		logger.info("Extracted Location Count: {}", locationNames.size());
 		
-		// then, resolve the extracted location names against a
+		// next, extract coordinates from the text
+		List<CoordinateOccurrence<?>> coordinates = coordinateExtractor.extractCoordinates(inputText);
+		
+		logger.info("Extracted Coordinates Count: {}", coordinates.size());
+		
+		// build an extraction context
+		ExtractionContext extractionContext = new ExtractionContext(inputText, locationNames, coordinates);
+		
+		// then, resolve the extracted location names and coordinates against a
 		// gazetteer to produce geographic entities representing the
 		// locations mentioned in the original text
-		List<ResolvedLocation> resolvedLocations = resolver.resolveLocations(locationNames, fuzzy);
+		ResolutionContext resolutionContext = resolver.resolveLocations(extractionContext);
 		
-		logger.info("Resolved Location Count: {}", resolvedLocations.size());
+		logger.info("Resolved {} locations and {} coordinates.", 
+				resolutionContext.getLocations().size(),
+				resolutionContext.getCoordinates().size());
 		
-		// TODO: extract & resolve coords (lat/lon & MGRS) to nearest named location in gazetteer
-		
-		return resolvedLocations;
+		return resolutionContext;
 	}
-	
+
+	/**
+	 * Get the Location Extractor.
+	 * @return Location Extractor.
+	 */
+	public LocationExtractor getLocationExtractor() {
+		return locationExtractor;
+	}
+
+	/**
+	 * Get the Coordinate Extractor.
+	 * @return Coordinate Extractor.
+	 */
+	public CoordinateExtractor getCoordinateExtractor() {
+		return coordinateExtractor;
+	}
+
+	/**
+	 * Get the Location Resolver.
+	 * @return Location Resolver.
+	 */
+	public LocationResolver getLocationResolver() {
+		return resolver;
+	}
 }

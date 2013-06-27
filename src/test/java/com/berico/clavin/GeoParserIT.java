@@ -42,7 +42,7 @@ import com.berico.clavin.resolver.ResolvedLocation;
  * integration test than a unit test.
  *
  */
-public class GeoParserTest {
+public class GeoParserIT {
 	
 	// expected geonameID numbers for given location names
 	int UNITED_STATES = 6252001;
@@ -66,7 +66,7 @@ public class GeoParserTest {
 				"died in Massachusetts.";
 		
 		// parse location names in the text into geographic entities
-		List<ResolvedLocation> resolvedLocations = parser.parse(inputText);
+		List<ResolvedLocation> resolvedLocations = parser.parse(inputText).getLocations();
 		
 		// check the output
 		assertEquals("Wrong number of ResolvedLocations", 3, 

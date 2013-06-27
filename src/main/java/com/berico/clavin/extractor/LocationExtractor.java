@@ -43,5 +43,5 @@ public interface LocationExtractor {
 	 * @param plainText		source of location names to be extracted
 	 * @return
 	 */
-	public List<LocationOccurrence> extractLocationNames(String plainText);
+	List<LocationOccurrence> extractLocationNames(String plainText);
 }

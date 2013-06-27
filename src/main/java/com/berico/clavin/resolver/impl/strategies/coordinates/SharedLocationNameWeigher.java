@@ -2,6 +2,7 @@ package com.berico.clavin.resolver.impl.strategies.coordinates;
 
 import java.util.Collection;
 
+import com.berico.clavin.Options;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 import com.berico.clavin.resolver.impl.strategies.Weigher;
@@ -50,12 +51,14 @@ public class SharedLocationNameWeigher
 	 * as extra context.
 	 * @param item ResolvedCoordinate to weigh
 	 * @param context Set of plain-named locations found in the document.
+	 * @param options Options for configuring the weigher
 	 * @return A weight for scoring this result against others.
 	 */
 	@Override
 	public double weigh(
 			ResolvedCoordinate item,
-			Collection<LocationOccurrence> context) {
+			Collection<LocationOccurrence> context,
+			Options options) {
 		
 		double bestMatch = -1;
 		

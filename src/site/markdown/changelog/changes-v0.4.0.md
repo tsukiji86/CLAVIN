@@ -1,6 +1,6 @@
-# Changelog v0.3.4
+# Changelog v0.4.0
 
-Version 0.3.4 represents a major departure from the old CLAVIN API.  The primary intent for version 0.3.4 was to support coordinate (e.g. latitude/longitude) extraction from plain text and reverse resolution (finding the most likely named location).
+Version 0.4.0 represents a major departure from the old CLAVIN API.  The primary intent for version 0.4.0 was to support coordinate (e.g. latitude/longitude) extraction from plain text and reverse resolution (finding the most likely named location).
 
 Unfortunately, the original CLAVIN API made it very difficult to efficiently add this feature, as well as, a number of planned features (like supporting other indexing technologies).  Instead of putting a *bandaid* on the version 0.3.3, we decided to add the essential features that will be necessary to maintaining CLAVIN in the future.
 

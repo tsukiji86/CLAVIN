@@ -3,6 +3,7 @@ package com.berico.clavin.extractor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /*#####################################################################
 *
@@ -95,7 +96,7 @@ public class ExtractionContext {
 	 * An unmodifiable list of locations found in the document.
 	 * @return Locations found.
 	 */
-	public Collection<LocationOccurrence> getLocations() {
+	public List<LocationOccurrence> getLocations() {
 		
 		return Collections.unmodifiableList(locations);
 	}
@@ -104,7 +105,7 @@ public class ExtractionContext {
 	 * An unmodifiable list of coodinates found in the document.
 	 * @return Coordinates found.
 	 */
-	public Collection<CoordinateOccurrence<?>> getCoordinates() {
+	public List<CoordinateOccurrence<?>> getCoordinates() {
 		
 		return Collections.unmodifiableList(coordinates);
 	}

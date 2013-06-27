@@ -32,7 +32,7 @@
         <item name="5-Minute Tutorial" href="tutorials/fivemin-tutorial.html" />
     </menu>
     <menu name="Changelog">
-        <item name="v0.3.4" href="changelog/changes-v0.3.4.html" />
+        <item name="v0.4.0" href="changelog/changes-v0.4.0.html" />
     </menu>
     <menu name="Documentation">
       <item name="How CLAVIN Works" href="javascript:void(0)">

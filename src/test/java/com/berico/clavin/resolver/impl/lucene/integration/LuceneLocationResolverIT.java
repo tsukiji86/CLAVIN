@@ -1,14 +1,15 @@
 package com.berico.clavin.resolver.impl.lucene.integration;
 
 import java.io.File;
-import java.io.IOException;
 
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
 
+import com.berico.clavin.GeoParserFactory;
+import com.berico.clavin.Options;
 import com.berico.clavin.resolver.LocationResolver;
-import com.berico.clavin.resolver.integration.ResolverBehaviorTest;
-import com.berico.clavin.resolver.lucene.LuceneLocationResolver;
+import com.berico.clavin.resolver.impl.lucene.LuceneLocationNameIndex;
+import com.berico.clavin.resolver.impl.strategies.locations.ContextualOptimizationStrategy;
+import com.berico.clavin.resolver.integration.ResolverBehaviorIT;
 
 /*#####################################################################
  * 
@@ -43,24 +44,28 @@ import com.berico.clavin.resolver.lucene.LuceneLocationResolver;
  * working properly in {@link LuceneLocationResolver}.
  *
  */
-public class LuceneLocationResolverTest extends ResolverBehaviorTest {
+public class LuceneLocationResolverIT extends ResolverBehaviorIT {
 	
 	// objects required for running tests
 	File indexDirectory;
-	LuceneLocationResolver resolverNoHeuristics;
+	LocationResolver resolverNoHeuristics;
 	
 	/**
 	 * Instantiate a {@link LuceneLocationResolver} without context-based
 	 * heuristic matching and with fuzzy matching turned on.
-	 * 
-	 * @throws IOException
-	 * @throws ParseException 
+	 * @throws Exception 
 	 */
 	@Before
-	public void setUp() throws IOException, ParseException {
-		// indexDirectory = new File("./src/test/resources/indices/GeoNamesSampleIndex");
-		indexDirectory = new File("./IndexDirectory");
-		resolverNoHeuristics = new LuceneLocationResolver(indexDirectory, 1, 1);
+	public void setUp() throws Exception {
+		
+		Options noHeuristics = new Options();
+		LuceneLocationNameIndex.configureLimit(noHeuristics, 1);
+		ContextualOptimizationStrategy.configureMaxContextWindow(noHeuristics, 1);
+		
+		resolverNoHeuristics = 
+			GeoParserFactory.getDefault(
+				"./IndexDirectory", noHeuristics)
+					.getLocationResolver();
 	}
 	
 	@Override

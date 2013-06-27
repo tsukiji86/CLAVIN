@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.berico.clavin.Options;
+
 /*#####################################################################
  * 
  * CLAVIN (Cartographic Location And Vicinity INdexer)
@@ -76,10 +78,11 @@ public class GenericWeightedSelectionStrategy<ITEM, CONTEXT> {
 	 * the best selection for that collection.
 	 * @param candidatesList List of Candidate Lists
 	 * @param context Context to help weighers.
+	 * @param options Options for configuring the weighers
 	 * @return List of the best selections.
 	 * @throws Exception
 	 */
-	public List<ITEM> select(List<List<ITEM>> candidatesList, CONTEXT context) 
+	public List<ITEM> select(List<List<ITEM>> candidatesList, CONTEXT context, Options options) 
 			throws Exception {
 		
 		ArrayList<ITEM> bestSelections = new ArrayList<ITEM>();
@@ -87,7 +90,7 @@ public class GenericWeightedSelectionStrategy<ITEM, CONTEXT> {
 		for (List<ITEM> candidates : candidatesList){
 			
 			ITEM bestSelection = 
-				makeSelection(candidates, context);
+				makeSelection(candidates, context, options);
 			
 			if (bestSelection != null){
 				
@@ -102,9 +105,10 @@ public class GenericWeightedSelectionStrategy<ITEM, CONTEXT> {
 	 * Given a list of Candidates, select the best item.
 	 * @param candidates Candidates to choose from.
 	 * @param context Context to help coach the weighers.
+	 * @param options Options to help configure the weighers.
 	 * @return Best Selection or null.
 	 */
-	protected ITEM makeSelection(List<ITEM> candidates,CONTEXT context){
+	protected ITEM makeSelection(List<ITEM> candidates, CONTEXT context, Options options){
 		
 		ITEM bestSelection = null;
 		double bestWeight = -1;
@@ -113,7 +117,7 @@ public class GenericWeightedSelectionStrategy<ITEM, CONTEXT> {
 			
 			for (ITEM candidate : candidates){
 				
-				double weight = getWeight(candidate, context);
+				double weight = getWeight(candidate, context, options);
 				
 				if (weight > bestWeight){
 					
@@ -136,16 +140,17 @@ public class GenericWeightedSelectionStrategy<ITEM, CONTEXT> {
 	 * taking the sum of weights provided by our weighers.
 	 * @param candidate Candidate item to weigh
 	 * @param context Addition context for the weighing algorithms.
+	 * @param options Options to help configure the weighers.
 	 * @return The numeric score of the selection based on the
 	 * weight provided by the weighing algorithms.
 	 */
-	protected double getWeight(ITEM candidate, CONTEXT context){
+	protected double getWeight(ITEM candidate, CONTEXT context, Options options){
 		
 		double weight = 0;
 		
 		for (Weigher<ITEM, CONTEXT> weigher : this.weighers){
 			
-			weight += weigher.weigh(candidate, context);
+			weight += weigher.weigh(candidate, context, options);
 		}
 		
 		return weight;
