@@ -1,2 +1,2 @@
 language: java
-script: ./script/ci/run_build.sh
+script: ./scripts/ci/run_build.sh
