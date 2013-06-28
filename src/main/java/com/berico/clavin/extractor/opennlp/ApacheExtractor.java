@@ -1,11 +1,9 @@
 package com.berico.clavin.extractor.opennlp;
 
-import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.berico.clavin.extractor.LocationExtractor;
-import com.berico.clavin.extractor.LocationOccurrence;
 
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinderModel;
@@ -14,6 +12,9 @@ import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
+
+import com.berico.clavin.extractor.LocationExtractor;
+import com.berico.clavin.extractor.LocationOccurrence;
 
 /*#####################################################################
  * 
@@ -60,21 +61,52 @@ public class ApacheExtractor implements LocationExtractor {
     private SentenceDetectorME sentenceDetector;
 	
 	// resource files used by Apache OpenNLP Name Finder
-	private static final String pathToNERModel = "/en-ner-location.bin";
-	private static final String pathToTokenizerModel = "/en-token.bin";
-    private static final String pathToSentenceDetectorModel = "/en-sent.bin";
-
+	public static InputStream pathToNERModel = 
+			ApacheExtractor.class.getResourceAsStream("/en-ner-location.bin");
+	public static InputStream pathToTokenizerModel = 
+			ApacheExtractor.class.getResourceAsStream("/en-token.bin");
+    public static InputStream pathToSentenceDetectorModel = 
+    			ApacheExtractor.class.getResourceAsStream("/en-sent.bin");
 	
 	/**
 	 * Builds an {@link ApacheExtractor} by instantiating the OpenNLP
-	 * Name Finder and Tokenizer.
+	 * Name Finder and Tokenizer using the default ENGLISH models.
 	 * 
-	 * @throws IOException 
+	 * @throws Exception 
 	 */
-	public ApacheExtractor() throws IOException {
-		nameFinder = new NameFinderME(new TokenNameFinderModel(ApacheExtractor.class.getResourceAsStream(pathToNERModel)));
-		tokenizer = new TokenizerME(new TokenizerModel(ApacheExtractor.class.getResourceAsStream(pathToTokenizerModel)));
-        sentenceDetector = new SentenceDetectorME(new SentenceModel(ApacheExtractor.class.getResourceAsStream(pathToSentenceDetectorModel)));
+	public ApacheExtractor() throws Exception {
+		
+		this(pathToNERModel, pathToTokenizerModel, pathToSentenceDetectorModel);
+	}
+	
+	/**
+	 * Initialize the Apache OpenNLP extractor with the appropriate models.
+	 * @param nerModel NER Location Model
+	 * @param tokenizerModel Word Tokenizer Model
+	 * @param sentenceModel Sentence Detector Model
+	 * @throws Exception
+	 */
+	public ApacheExtractor(String nerModel, String tokenizerModel, String sentenceModel) throws Exception {
+		
+		this(new FileInputStream(nerModel), 
+			 new FileInputStream(tokenizerModel), 
+			 new FileInputStream(sentenceModel));
+	}
+	
+	/**
+	 * Instantiate core components of the Extractor from InputStreams.
+	 * @param nerModel NER Location Model
+	 * @param tokenizerModel Word Tokenizer Model
+	 * @param sentenceModel Sentence Detector Model
+	 * @throws Exception
+	 */
+	protected ApacheExtractor(InputStream nerModel, InputStream tokenizerModel, InputStream sentenceModel) throws Exception{
+		
+		nameFinder = new NameFinderME(new TokenNameFinderModel(nerModel));
+		
+		tokenizer = new TokenizerME(new TokenizerModel(tokenizerModel));
+		
+        sentenceDetector = new SentenceDetectorME(new SentenceModel(sentenceModel));
 	}
 	
 	/**

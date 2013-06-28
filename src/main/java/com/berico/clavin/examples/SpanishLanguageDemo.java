@@ -4,6 +4,8 @@ import java.io.File;
 
 import com.berico.clavin.GeoParser;
 import com.berico.clavin.GeoParserFactory;
+import com.berico.clavin.extractor.LocationOccurrence;
+import com.berico.clavin.extractor.opennlp.ApacheExtractor;
 import com.berico.clavin.resolver.ResolutionContext;
 import com.berico.clavin.resolver.ResolvedLocation;
 import com.berico.clavin.util.TextUtils;
@@ -32,49 +34,54 @@ import com.berico.clavin.util.TextUtils;
  * 
  * ====================================================================
  * 
- * WorkflowDemo.java
+ * SpanishLanguageDemo.java
  * 
  *###################################################################*/
 
 /**
- * Quick example showing how to use CLAVIN's capabilities.
- * 
+ * Demonstrates the use of CLAVIN against a Spanish dataset.
  */
-public class WorkflowDemo {
+public class SpanishLanguageDemo {
 
 	/**
-	 * Run this after installing & configuring CLAVIN to get a sense of
-	 * how to use it.
-	 * 
-	 * @param args				not used
+	 * Extract and resolve a Spanish language document.
+	 * @param args ignored.
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
+
+		// Instantiate a new Apache OpenNLP LocationExtractor with
+		// Spanish Language NER Location model, but with English tokenizers.
+		ApacheExtractor locationExtractor = 
+				new ApacheExtractor(
+						"src/main/resources/es-ner-location.bin", 
+						"src/main/resources/en-token.bin", 
+						"src/main/resources/en-sent.bin");
 		
-		// Instantiate the CLAVIN GeoParser
-		GeoParser parser = GeoParserFactory.getDefault("./IndexDirectory");
+		// Override the default extractor with the new Spanish Language extractor.
+		GeoParserFactory.DefaultLocationExtractor = locationExtractor;
 		
-		// Read a file to string.
-		String input = TextUtils.fileToString( 
-				new File( "src/test/resources/sample-docs/Somalia-doc.txt" ) );
+		// Get an instance of the GeoParser.
+		GeoParser geoParser = GeoParserFactory.getDefault("IndexDirectory/");
 		
-		// Perform the extraction and resolution workflow.
-		ResolutionContext results = parser.parse(input);
+		// Read the test article to a String.
+		String spanishText = TextUtils.fileToString(
+				new File("src/test/resources/sample-docs/SpanishNewsArticle.txt"));
 		
-		// Display the ResolvedLocations found for the location names
-		for (ResolvedLocation location : results.getLocations()){
+		// Parse the article.
+		ResolutionContext results = geoParser.parse(spanishText);
+		
+		// Play with the results.
+		for (LocationOccurrence location : results.getExtractionContext().getLocations()){
 			
-			String msg = String.format(
-		      "%s [%s, %s] was mentioned at character position %s", 
-		      location.getPlace().getName(), 
-		      location.getPlace().getCenter().getLatitude(),
-		      location.getPlace().getCenter().getLongitude(),
-		      location.getLocation().getPosition());
-				 
-			System.out.println( msg );
+			System.out.println(location);
 		}
 		
-		// And we're done...
-		System.out.println("\n\"That's all folks!\"");
+		System.out.println("----------------------------------------------------------");
+		
+		for (ResolvedLocation location : results.getLocations()){
+			
+			System.out.println(location);
+		}
 	}
 }

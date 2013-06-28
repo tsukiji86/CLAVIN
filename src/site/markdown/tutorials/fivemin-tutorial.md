@@ -79,7 +79,7 @@ MAVEN_OPTS="-Xmx2048M" mvn exec:java -Dexec.mainClass="com.berico.clavin.example
 
 You're output should look something like this:
 
-```
+<pre>
 14:05:36.625 [...WorkflowDemo.main()] INFO  com.berico.clavin.GeoParser - Input Size: 27837
 14:05:37.360 [...WorkflowDemo.main()] INFO  com.berico.clavin.GeoParser - Extracted Location Count: 42
 14:05:37.381 [...WorkflowDemo.main()] INFO  com.berico.clavin.GeoParser - Extracted Coordinates Count: 0
@@ -131,7 +131,7 @@ City of New Britain [41.67581, -72.78623] was mentioned at character position 23
 Yemen [47.7083, -110.72577] was mentioned at character position 23352
 Embassy of the Federal Republic of Nigeria [38.90539, -77.04914] was mentioned at character position 23362
 ‘Irāq al Ḩamrā’ [32.21667, 35.43333] was mentioned at character position 23404
-```
+</pre>
 
 ### Step 6 - Grab a cold one!
 

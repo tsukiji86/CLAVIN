@@ -20,7 +20,7 @@ A lot of the work happens in the `IndexBuilder` constructor, so it needs to be c
 
 ```
 public CustomIndexBuilder(String[] args) throws Exception {
-	super(args);
+  super(args);
 }
 ```
 
@@ -30,7 +30,7 @@ You can&apos;t inherit a static method, so you will have to declare the main met
 
 ```
 public static void main(String[] args) throws Exception {
-	new CustomIndexBuilder(args);
+  new CustomIndexBuilder(args);
 }
 ```
 
@@ -40,8 +40,8 @@ Provide a simple description of what your implementation of `IndexBuilder` does.
 
 ```
 @Override
-protected String getDescription() {	
-	return "There's only one reliable place to find Cliff.";
+protected String getDescription() {  
+  return "There's only one reliable place to find Cliff.";
 }
 ```
 
@@ -52,18 +52,18 @@ We use [Argparse4J](http://argparse4j.sourceforge.net/) to parse the command lin
 ```
 @Override
 protected void extend(ArgumentParser parser) {
-	
-	parser.addArgument("tagline")
-		.metavar("Tagline")
-		.type(String.class)
-		.required(true)
-		.help("Something you want to say about this place.");
-	
-	parser.addArgument("ssn")
-		.metavar("SocialSecurityNumber")
-		.type(String.class)
-		.required(true)
-		.help("SSN of user, you don't need to know why we collect this!");
+
+  parser.addArgument("tagline")
+    .metavar("Tagline")
+    .type(String.class)
+    .required(true)
+    .help("Something you want to say about this place.");
+  
+  parser.addArgument("ssn")
+    .metavar("SocialSecurityNumber")
+    .type(String.class)
+    .required(true)
+    .help("SSN of user, you don't need to know why we collect this!");
 }
 ```
 
@@ -74,12 +74,12 @@ You will be provide an object that has your command line arguments.  It is poorl
 ```
 @Override
 protected void initialize(Namespace namespace) {
-	
-	tagline = namespace.getString("tagline");
-	
-	String ssn = namespace.getString("ssn");
-	
-	pl("Can you believe it?  This guy just gave me his SSN: %s", ssn);
+  
+  tagline = namespace.getString("tagline");
+  
+  String ssn = namespace.getString("ssn");
+  
+  pl("Can you believe it?  This guy just gave me his SSN: %s", ssn);
 }
 ```
 
@@ -96,39 +96,39 @@ In the future, if new functionality is exposed, it will be in the context, allev
 ```
 @Override
 protected void begin(BuilderContext context) throws Exception {
-	
-	Place cheersBoston = new Place();
-	
-	cheersBoston.setName("Cheers Bar and Grill, Boston");
-	
-	cheersBoston.setAsciiName("Cheers");
-	
-	cheersBoston.setAlternateNames(
-		Arrays.asList(
-			"A place where everbody knows you name",
-			"A place where everbody's glad you came"));
-	
-	cheersBoston.setCenter(new LatLon(42.355927, -71.071137));
-	
-	cheersBoston.setPrimaryCountryCode(CountryCode.US);
-	
-	// You see, you can put whatever it is you want here.
-	cheersBoston.setContext(tagline);
-	
-	// A Spot location.
-	cheersBoston.setFeatureClass(FeatureClass.S);
-	
-	// A Restaurant.
-	cheersBoston.setFeatureCode(FeatureCode.REST);
-	
-	// I doubt this place ever has 35 patrons.
-	cheersBoston.setPopulation(35);
-	
-	// Add the place to the context to get indexed.
-	context.add(cheersBoston);
-	
-	// You can get the record count at any time.
-	pl("Wrote %s record(s).", context.getTotalProcessed());
+  
+  Place cheersBoston = new Place();
+  
+  cheersBoston.setName("Cheers Bar and Grill, Boston");
+  
+  cheersBoston.setAsciiName("Cheers");
+  
+  cheersBoston.setAlternateNames(
+    Arrays.asList(
+      "A place where everbody knows you name",
+      "A place where everbody's glad you came"));
+  
+  cheersBoston.setCenter(new LatLon(42.355927, -71.071137));
+  
+  cheersBoston.setPrimaryCountryCode(CountryCode.US);
+  
+  // You see, you can put whatever it is you want here.
+  cheersBoston.setContext(tagline);
+  
+  // A Spot location.
+  cheersBoston.setFeatureClass(FeatureClass.S);
+  
+  // A Restaurant.
+  cheersBoston.setFeatureCode(FeatureCode.REST);
+  
+  // I doubt this place ever has 35 patrons.
+  cheersBoston.setPopulation(35);
+  
+  // Add the place to the context to get indexed.
+  context.add(cheersBoston);
+  
+  // You can get the record count at any time.
+  pl("Wrote %s record(s).", context.getTotalProcessed());
 }
 ```
 
@@ -141,8 +141,8 @@ Finally, the `IndexBuilder` will give you an opportunity to clean up resources. 
 ```
 @Override
 protected void cleanup() throws Exception {
-	
-	pl("Cleaning up the joint, throwing out the drunks.");
+  
+  pl("Cleaning up the joint, throwing out the drunks.");
 }
 ```
 

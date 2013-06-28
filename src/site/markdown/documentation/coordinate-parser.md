@@ -30,48 +30,48 @@ import com.spatial4j.core.shape.Point;
 
 public class GeoHash {
 
-	private String hashValue;
-	private LatLon latlonValue;
-	
-	/**
-	 * For serialization purposes.
-	 */
-	public GeoHash(){}
-	
-	/**
-	 * Initialize with the GeoHash value.
-	 * @param hashValue GeoHash value.
-	 */
-	public GeoHash(String hashValue){
-		
-		this.hashValue = hashValue;
-	}
+  private String hashValue;
+  private LatLon latlonValue;
+  
+  /**
+   * For serialization purposes.
+   */
+  public GeoHash(){}
+  
+  /**
+   * Initialize with the GeoHash value.
+   * @param hashValue GeoHash value.
+   */
+  public GeoHash(String hashValue){
+    
+    this.hashValue = hashValue;
+  }
 
-	/**
-	 * Get the GeoHash Value.
-	 * @return GeoHash Value.
-	 */
-	public String getHashValue() {
-		return hashValue;
-	}
-	
-	/**
-	 * Get the LatLon Value of the GeoHash.
-	 * @return LatLon value.
-	 */
-	public LatLon getLatLonValue(){
-		
-		if (latlonValue == null){
-			
-			// Spatial4J's Geohashing functionality.
-			Point p = GeohashUtils.decode(this.hashValue, SpatialContext.GEO);
-		
-			latlonValue = new LatLon(p.getY(), p.getX());
-		}
-		
-		return latlonValue;
-	}
-	
+  /**
+   * Get the GeoHash Value.
+   * @return GeoHash Value.
+   */
+  public String getHashValue() {
+    return hashValue;
+  }
+  
+  /**
+   * Get the LatLon Value of the GeoHash.
+   * @return LatLon value.
+   */
+  public LatLon getLatLonValue(){
+    
+    if (latlonValue == null){
+      
+      // Spatial4J's Geohashing functionality.
+      Point p = GeohashUtils.decode(this.hashValue, SpatialContext.GEO);
+    
+      latlonValue = new LatLon(p.getY(), p.getX());
+    }
+    
+    return latlonValue;
+  }
+  
 }
 ```
 
@@ -85,41 +85,41 @@ import com.berico.clavin.extractor.coords.BaseCoordinateOccurrence;
 import com.berico.clavin.gazetteer.LatLon;
 
 public class GeoHashOccurrence extends BaseCoordinateOccurrence<GeoHash>  {
-	
-	/**
-	 * For serialization purposes.
-	 */
-	public GeoHashOccurrence() { super(); }
+  
+  /**
+   * For serialization purposes.
+   */
+  public GeoHashOccurrence() { super(); }
 
-	/**
-	 * Initialize with the GeoHash value.
-	 * @param position Position in document.
-	 * @param text Extracted GeoHash text.
-	 * @param value The GeoHash.
-	 */
-	public GeoHashOccurrence(long position, String text, GeoHash value) {
-		super(position, text, value);
-	}
+  /**
+   * Initialize with the GeoHash value.
+   * @param position Position in document.
+   * @param text Extracted GeoHash text.
+   * @param value The GeoHash.
+   */
+  public GeoHashOccurrence(long position, String text, GeoHash value) {
+    super(position, text, value);
+  }
 
-	/**
-	 * Get the coordinate system, in this case, "geohash".
-	 * @return "geohash"
-	 */
-	@Override
-	public String getCoordinateSystem() {
-		
-		return "geohash";
-	}
+  /**
+   * Get the coordinate system, in this case, "geohash".
+   * @return "geohash"
+   */
+  @Override
+  public String getCoordinateSystem() {
+    
+    return "geohash";
+  }
 
-	/**
-	 * Convert the coordinate to it's LatLon representation.
-	 * @return LatLon value of the coordinate.
-	 */
-	@Override
-	public LatLon convertToLatLon() {
-		
-		return this.value.getLatLonValue();
-	}
+  /**
+   * Convert the coordinate to it's LatLon representation.
+   * @return LatLon value of the coordinate.
+   */
+  @Override
+  public LatLon convertToLatLon() {
+    
+    return this.value.getLatLonValue();
+  }
 
 }
 ```
@@ -138,38 +138,38 @@ import com.google.code.regexp.Pattern;
 
 public class GeoHashParsingStrategy implements RegexCoordinateParsingStrategy<GeoHash> {
 
-	public static final String GEOHASH_PATTERN = "(geo[:](?<hash>\\w*))";
-	
-	/**
-	 * Return a compiled REGEX with the GeoHash pattern.
-	 * @return Compiled REGEX Pattern
-	 */
-	@Override
-	public Pattern getPattern() {
-		
-		return Pattern.compile(GEOHASH_PATTERN);
-	}
+  public static final String GEOHASH_PATTERN = "(geo[:](?<hash>\\w*))";
+  
+  /**
+   * Return a compiled REGEX with the GeoHash pattern.
+   * @return Compiled REGEX Pattern
+   */
+  @Override
+  public Pattern getPattern() {
+    
+    return Pattern.compile(GEOHASH_PATTERN);
+  }
 
-	/**
-	 * Parse the GeoHash from the returned REGEX named groups, returning
-	 * a GeoHashOccurrence.
-	 * @param matchedString String matching the REGEX statement in the document.
-	 * @param namedGroups REGEX named capture groups.
-	 * @param startPosition The position the occurrence occurred in the document.
-	 * @return A GeoHashOccurrence.
-	 */
-	@Override
-	public CoordinateOccurrence<GeoHash> parse(
-			String matchedString, 
-			Map<String, String> namedGroups, 
-			int startPosition) {
-		
-		String geohashString = namedGroups.get("hash");
-		
-		GeoHash geohash = new GeoHash(geohashString);
-		
-		return new GeoHashOccurrence(startPosition, matchedString, geohash);
-	}
+  /**
+   * Parse the GeoHash from the returned REGEX named groups, returning
+   * a GeoHashOccurrence.
+   * @param matchedString String matching the REGEX statement in the document.
+   * @param namedGroups REGEX named capture groups.
+   * @param startPosition The position the occurrence occurred in the document.
+   * @return A GeoHashOccurrence.
+   */
+  @Override
+  public CoordinateOccurrence<GeoHash> parse(
+      String matchedString, 
+      Map<String, String> namedGroups, 
+      int startPosition) {
+    
+    String geohashString = namedGroups.get("hash");
+    
+    GeoHash geohash = new GeoHash(geohashString);
+    
+    return new GeoHashOccurrence(startPosition, matchedString, geohash);
+  }
 
 }
 ```
@@ -180,8 +180,8 @@ Probably the easiest way to add support for your new coordinate system is to reg
 
 ```
 GeoParserFactory
-			.DefaultCoordinateParsingStrategies
-				.add(new GeoHashParsingStrategy());
+      .DefaultCoordinateParsingStrategies
+        .add(new GeoHashParsingStrategy());
 ```
 
 ### Step 5 - That&apos;s it, Perform an extraction.
@@ -196,38 +196,38 @@ import com.berico.clavin.resolver.ResolutionContext;
 import com.berico.clavin.resolver.ResolvedCoordinate;
 
 public class GeoHashDemo {
-	
-	public static void main(String[] args) throws Exception {
-		
-		// Register the new Parsing Strategy.
-		GeoParserFactory
-			.DefaultCoordinateParsingStrategies
-				.add(new GeoHashParsingStrategy());
-		
-		// Get a parser instance.
-		GeoParser parser = GeoParserFactory.getDefault("IndexDirectory/");
-		
-		// Parse the document.
-		ResolutionContext results = 
-			parser.parse("Hey mom, I went to geo:u4pruydqqvjs today!");
-		
-		// Get the CoordinateOccurrence from the Extraction Context
-		CoordinateOccurrence<?> ecoord = 
-				results.getExtractionContext().getCoordinates().get(0);
-		
-		System.out.println(ecoord);
-		
-		// Get the ResolvedCoordinate from the results
-		ResolvedCoordinate rcoord = results.getCoordinates().get(0);
-		
-		System.out.println(rcoord);
-	}
+  
+  public static void main(String[] args) throws Exception {
+    
+    // Register the new Parsing Strategy.
+    GeoParserFactory
+      .DefaultCoordinateParsingStrategies
+        .add(new GeoHashParsingStrategy());
+    
+    // Get a parser instance.
+    GeoParser parser = GeoParserFactory.getDefault("IndexDirectory/");
+    
+    // Parse the document.
+    ResolutionContext results = 
+      parser.parse("Hey mom, I went to geo:u4pruydqqvjs today!");
+    
+    // Get the CoordinateOccurrence from the Extraction Context
+    CoordinateOccurrence<?> ecoord = 
+        results.getExtractionContext().getCoordinates().get(0);
+    
+    System.out.println(ecoord);
+    
+    // Get the ResolvedCoordinate from the results
+    ResolvedCoordinate rcoord = results.getCoordinates().get(0);
+    
+    System.out.println(rcoord);
+  }
 }
 ```
 
 And you should see the following output to the console:
 
-```
+<pre>
 17:24:57.836 [main] INFO  com.berico.clavin.GeoParser - Input Size: 42
 17:24:57.852 [main] INFO  com.berico.clavin.GeoParser - Extracted Location Count: 0
 17:24:57.858 [main] INFO  com.berico.clavin.GeoParser - Extracted Coordinates Count: 1
@@ -239,12 +239,12 @@ New Best: 24.033824275546056, Loc: Resolved: "geo:u4pruydqqvjs" as 0.07398139381
 17:24:58.403 [main] DEBUG c.b.c.r.impl.DefaultLocationResolver - Selected 0 locations.
 17:24:58.403 [main] INFO  com.berico.clavin.GeoParser - Resolved 0 locations and 1 coordinates.
 com.berico.clavin.examples.GeoHashOccurrence: 
-	Text: geo:u4pruydqqvjs
-	Position: 19
-	Value: com.berico.clavin.examples.GeoHash@79c0f654
+  Text: geo:u4pruydqqvjs
+  Position: 19
+  Value: com.berico.clavin.examples.GeoHash@79c0f654
 
 Resolved: "geo:u4pruydqqvjs" as 0.07398139381297736km NE of Råbjerg Mile, [DK]
-```
+</pre>
 
 ### Step 5 - Go have another cold one!
 
