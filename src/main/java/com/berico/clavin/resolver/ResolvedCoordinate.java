@@ -44,6 +44,8 @@ public class ResolvedCoordinate {
 	
 	protected Place knownLocation;
 
+	// TODO: Add confidence as a function of the normalized result set.
+	
 	/**
 	 * For serialization purposes.
 	 */

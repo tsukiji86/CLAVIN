@@ -36,8 +36,8 @@
     </menu>
     <menu name="Documentation">
       <item name="How CLAVIN Works" href="javascript:void(0)">
-          <item name="Processing Workflow" href="documentation/workflow-tutorial.html" />
           <item name="CLAVIN's Model" href="documentation/model.html" />
+          <item name="Processing Workflow" href="documentation/workflow-tutorial.html" />
       </item>
       <item name="Building a Gazetteer Index" href="javascript:void(0)">
           <item name="From Geonames" href="documentation/geonames-indexing.html" />

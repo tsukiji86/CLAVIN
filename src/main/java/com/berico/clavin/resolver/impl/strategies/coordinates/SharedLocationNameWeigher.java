@@ -5,7 +5,6 @@ import java.util.Collection;
 import com.berico.clavin.Options;
 import com.berico.clavin.extractor.LocationOccurrence;
 import com.berico.clavin.resolver.ResolvedCoordinate;
-import com.berico.clavin.resolver.impl.strategies.Weigher;
 
 /*#####################################################################
 *
