@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.berico.clavin.extractor.opennlp.ApacheExtractor;
 import com.berico.clavin.util.TextUtils;
 
 /*#####################################################################
@@ -55,7 +56,7 @@ public class ApacheExtractorTest {
 	 * @throws IOException 
 	 */
 	@Test
-	public void testExtractLocationNames() throws IOException {
+	public void testExtractLocationNames() throws Exception {
 		ApacheExtractor extractor = new ApacheExtractor();
 		File inputFile = new File("src/test/resources/sample-docs/Somalia-doc.txt");
 		String inputString = TextUtils.fileToString(inputFile);
