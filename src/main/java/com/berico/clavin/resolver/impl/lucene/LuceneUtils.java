@@ -63,13 +63,13 @@ public class LuceneUtils {
 	 * @param components LuceneComponents (specifically, the spatial components
 	 * needed to calculate vectors).
 	 * @return a List of ResolvedCoordinates.
-	 * @throws IOException
+	 * @throws Exception 
 	 */
 	public static List<ResolvedCoordinate> convertToCoordinate(
 			CoordinateOccurrence<?> occurrence,
 			IndexSearcher searcher,
 			TopDocs results,
-			LuceneComponents components) throws IOException {
+			LuceneComponents components) throws Exception {
 		
 		// Results
 		ArrayList<ResolvedCoordinate> resolvedCoordinates = 

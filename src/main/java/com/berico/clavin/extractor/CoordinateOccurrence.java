@@ -72,5 +72,5 @@ public interface CoordinateOccurrence<T> {
 	 * is that is must be converted to a Lat/Lon Pair.
 	 * @return Lat/Lon representation of the location.
 	 */
-	LatLon convertToLatLon();
+	LatLon convertToLatLon() throws Exception;
 }

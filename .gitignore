@@ -10,3 +10,4 @@ allCountries.txt
 !.gitignore
 .DS_Store
 /target
+/GeoIP
