@@ -1,10 +1,9 @@
 package com.berico.clavin.examples;
 
-import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.extractor.coords.RegexCoordinateParsingStrategy;
-import com.google.code.regexp.Pattern;
 
 /*#####################################################################
  * 
@@ -57,17 +56,15 @@ public class GeoHashParsingStrategy implements RegexCoordinateParsingStrategy<Ge
 	 * Parse the GeoHash from the returned REGEX named groups, returning
 	 * a GeoHashOccurrence.
 	 * @param matchedString String matching the REGEX statement in the document.
-	 * @param namedGroups REGEX named capture groups.
 	 * @param startPosition The position the occurrence occurred in the document.
 	 * @return A GeoHashOccurrence.
 	 */
 	@Override
 	public CoordinateOccurrence<GeoHash> parse(
 			String matchedString, 
-			Map<String, String> namedGroups, 
 			int startPosition) {
 		
-		String geohashString = namedGroups.get("hash");
+		String geohashString = matchedString.substring(4);
 		
 		GeoHash geohash = new GeoHash(geohashString);
 		

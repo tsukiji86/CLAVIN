@@ -28,9 +28,7 @@ package com.berico.clavin.extractor.coords;
  * 
  *###################################################################*/
 
-import static org.junit.Assert.*;
-
-import java.util.HashMap;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -136,19 +134,8 @@ public class DmsPatternParsingStrategyTest
 		String testCoordinate = "40:26:46.302N 079:56:55.903W";
 		int position = 42;
 		
-		HashMap<String, String> namedGroups = new HashMap<String, String>();
-		
-		namedGroups.put("latdeg",  "40");
-		namedGroups.put("latmin",  "26");
-		namedGroups.put("latsec",  "46.302");
-		namedGroups.put("lathemi", "N");
-		namedGroups.put("londeg",  "079");
-		namedGroups.put("lonmin",  "56");
-		namedGroups.put("lonsec",  "55.903");
-		namedGroups.put("lonhemi", "W");
-		
 		CoordinateOccurrence<LatLon> coordinate = 
-			strategy.parse(testCoordinate, namedGroups, position);
+			strategy.parse(testCoordinate, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
 		assertEquals(position, coordinate.getPosition());
@@ -162,19 +149,8 @@ public class DmsPatternParsingStrategyTest
 		String testCoordinate = "40:26:46N 079:56:55W";
 		int position = 42;
 		
-		HashMap<String, String> namedGroups = new HashMap<String, String>();
-		
-		namedGroups.put("latdeg",  "40");
-		namedGroups.put("latmin",  "26");
-		namedGroups.put("latsec",  "46");
-		namedGroups.put("lathemi", "N");
-		namedGroups.put("londeg",  "079");
-		namedGroups.put("lonmin",  "56");
-		namedGroups.put("lonsec",  "55");
-		namedGroups.put("lonhemi", "W");
-		
 		CoordinateOccurrence<LatLon> coordinate = 
-			strategy.parse(testCoordinate, namedGroups, position);
+			strategy.parse(testCoordinate, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
 		assertEquals(position, coordinate.getPosition());
@@ -188,17 +164,8 @@ public class DmsPatternParsingStrategyTest
 		String testCoordinate = "40:26N 079:56W";
 		int position = 42;
 		
-		HashMap<String, String> namedGroups = new HashMap<String, String>();
-		
-		namedGroups.put("latdeg",  "40");
-		namedGroups.put("latmin",  "26");
-		namedGroups.put("lathemi", "N");
-		namedGroups.put("londeg",  "079");
-		namedGroups.put("lonmin",  "56");
-		namedGroups.put("lonhemi", "W");
-		
 		CoordinateOccurrence<LatLon> coordinate = 
-			strategy.parse(testCoordinate, namedGroups, position);
+			strategy.parse(testCoordinate, position);
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
 		assertEquals(position, coordinate.getPosition());

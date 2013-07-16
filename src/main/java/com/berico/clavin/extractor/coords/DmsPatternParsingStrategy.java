@@ -1,5 +1,11 @@
 package com.berico.clavin.extractor.coords;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*#####################################################################
  * 
  * CLAVIN (Cartographic Location And Vicinity INdexer)
@@ -34,6 +40,9 @@ package com.berico.clavin.extractor.coords;
  */
 public class DmsPatternParsingStrategy extends BaseDmsPatternParsingStrategy {
 	
+	private static final Logger logger = 
+			LoggerFactory.getLogger(DmsPatternParsingStrategy.class);
+	
 	/**
 	 * From: http://en.wikipedia.org/wiki/Geographic_coordinate_conversion
 	 * 	#Ways_of_writing_coordinates:
@@ -44,28 +53,83 @@ public class DmsPatternParsingStrategy extends BaseDmsPatternParsingStrategy {
 	 *  Pattern 2 (ex: 40°26′47″N 079°58′36″W or 40°26'47"N 079°58'36"W)
 	 *  Pattern 3 (ex: 40d 26′ 47″ N 079d 58′ 36″ W or 40d 26' 47" N 079d 58' 36" W)
 	 */
-	public static String REGEX_PATTERN = 
-		"(" + // Capture Start 
-		"(?<latdeg>\\d+)" + // Latitude Degrees
-		"\\s?[:°dD]*\\s?" +
-		"(?<latmin>\\d+)\\s?" + // Latitude Minutes
-		"\\s?[:'′]*\\s?" +
-		"(?<latsec>\\d+([.]\\d+)?)?" + // (optional) Latitude Seconds
-		"\\s?[:\"″]*\\s?" +
-		"(?<lathemi>[NnSs])\\s?" + // North or South
-		"([,;]\\s?)?" + // Latitude/Longitude Barrier
-		"(?<londeg>\\d+)" + // Longitude Degrees
-		"\\s?[:°dD]*\\s?" +
-		"(?<lonmin>\\d+)" + // Longitude Minutes
-		"\\s?[:'′]*\\s?" +
-		"(?<lonsec>\\d+([.]\\d+)?)?" + // (optional) Longitude Seconds
-		"\\s?[:\"″]*\\s?" +
-		"(?<lonhemi>[EeWw])" + // East or West
-		")"; // Capture End
-
+	public static String REGEX_PATTERN = "(" +
+			"\\d+" +       // Degrees 
+			"\\s?" +       // Whitespace
+			"[:°dD]*" +    // Degree Symbol
+			"\\s?" +       // Whitespace
+			"\\d+" +       // Minutes
+			"\\s?" +       // Whitespace
+			"[:'′]*" +     // Minutes Symbol
+			"\\s?" +       // Whitespace
+			"(?:\\d+" +    // Seconds
+			"(?:[.]\\d+)?)?" + // Decimal Seconds (optional)  
+			"\\s?" +       // Whitespace
+			"[\"″]*" +     // Seconds symbol
+			"\\s?" +       // Whitespace
+			"[NnSs]" +     // Hemisphere
+			"\\s?" +       // Whitespace
+			"(?:[,;]\\s?)?" +  // Separator
+			"\\d+" +       // Degrees
+			"\\s?" +       // Whitespace
+			"[:°dD]*" +    // Degree Symbol
+			"\\s?" +       // Whitespace
+			"\\d+" +       // Minutes 
+			"\\s?" +       // Whitespace
+			"[:'′]*" +     // Minutes Symbol
+			"\\s?" +       // Whitespace
+			"(?:\\d+" +    // Seconds
+			"(?:[.]\\d+)?)?" + // Decimal Seconds (optional)
+			"\\s?" +       // Whitespace
+			"[\"″]*" +     // Seconds Symbol
+			"\\s?" +       // Whitespace
+			"[EeWw]" +     // Hemisphere
+			")";
+	
+	public static Pattern CAPTURE_PATTERN = Pattern.compile("(\\d+)\\s?[:°dD]*\\s?(\\d+)\\s?\\s?[:'′]*\\s?(\\d+(?:[.]\\d+)?)?\\s?[:\"″]*\\s?([NnSs])\\s?(?:[,;]\\s?)?(\\d+)\\s?[:°dD]*\\s?(\\d+)\\s?[:'′]*\\s?(\\d+(?:[.]\\d+)?)?\\s?[:\"″]*\\s?([EeWw])");
+	
 	@Override
 	protected String getRegexPattern() {
 		
 		return REGEX_PATTERN;
+	}
+
+	@Override
+	protected DegreeMinutesSecondsStringParts extractParts(String matchedString) {
+		
+		Matcher matches = CAPTURE_PATTERN.matcher(matchedString);
+		
+		if (matches.find()){
+		
+			String 	latDeg = null, lonDeg = null, 
+					latMin = null, lonMin = null, 
+					latSec = null, lonSec = null, 
+				    latHemi = null, lonHemi = null;
+			
+			if (matches.groupCount() == 8){
+				
+				latDeg = matches.group(1);
+				latMin = matches.group(2);
+				latSec = (matches.group(3) != null)? matches.group(3) : "0";
+				latHemi = matches.group(4);
+				lonDeg = matches.group(5);
+				lonMin = matches.group(6);
+				lonSec = (matches.group(7) != null)? matches.group(7) : "0";
+				lonHemi = matches.group(8);
+			}
+			else {
+				
+				logger.warn("Unmatched set of capture groups.  Total: {}", 
+						matches.groupCount());
+			}
+			
+			boolean isNorth = latHemi.toUpperCase().equals("N");
+			boolean isEast = lonHemi.toUpperCase().equals("E");
+			
+			return new DegreeMinutesSecondsStringParts(
+					latDeg, latMin, latSec, isNorth, lonDeg, lonMin, lonSec, isEast);
+		}
+		
+		return null;
 	}
 }

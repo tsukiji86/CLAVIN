@@ -2,6 +2,7 @@ package com.berico.clavin.extractor.coords;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
@@ -31,52 +32,31 @@ import com.berico.clavin.gazetteer.LatLon;
  * 
  * ====================================================================
  * 
- * DdPatternParsingStrategyTest.java
+ * DdHemiLetterPatternParsingStrategyTest.java
  * 
  *###################################################################*/
 
-
-public class DdPatternParsingStrategyTest 
+public class DdHemiLetterPatternParsingStrategyTest 
 		extends BaseRegexParsingStrategyTest {
 
-	DdPatternParsingStrategy strategy = new DdPatternParsingStrategy();
+	DdHemiLetterPatternParsingStrategy strategy = new DdHemiLetterPatternParsingStrategy();
 	
-	@Test
-	public void pattern_matches_decimal_degree_coordinate_with_positive_hemisphere_in_text() {
-		
-		String text = "I went to this great place (40.446195, 79.948862) last week.";
-		
-		this.assertPatternMatches(strategy, text, "40.446195, 79.948862");
+	@Before
+	public void setUp() throws Exception {
 	}
 	
 	@Test
-	public void pattern_matches_decimal_degree_coordinate_with_negative_lat_hemisphere_in_text() {
+	public void pattern_matches_decimal_degree_coordinate_with_letter_for_hemisphere_in_text() {
 		
-		String text = "I went to this great place (-40.446195, 79.948862) last week.";
-			
-		this.assertPatternMatches(strategy, text, "-40.446195, 79.948862");
-	}
-	
-	@Test
-	public void pattern_matches_decimal_degree_coordinate_with_negative_lon_hemisphere_in_text() {
+		String text = "I went to this great place (40.446195N 79.948862W) last week.";
 		
-		String text = "I went to this great place (40.446195, -79.948862) last week.";
-			
-		this.assertPatternMatches(strategy, text, "40.446195, -79.948862");
-	}
-	
-	@Test
-	public void pattern_matches_decimal_degree_coordinate_with_negative_lat_lon_hemisphere_in_text() {
-		
-		String text = "I went to this great place (-23.399437,-52.090904) last week.";
-			
-		this.assertPatternMatches(strategy, text, "-23.399437,-52.090904");
+		this.assertPatternMatches(strategy, text, "40.446195N 79.948862W");
 	}
 
 	@Test
-	public void strategy_correctly_parses_matched_decimal_degrees_with_positive_hemispheres_string(){
+	public void strategy_correctly_parses_matched_decimal_degrees_with_letter_for_hemispheres_string(){
 		
-		String testCoordinate = "40.446195, 79.948862";
+		String testCoordinate = "40.446195N 79.948862W";
 		int position = 42;
 		
 		CoordinateOccurrence<LatLon> coordinate = 
@@ -85,13 +65,13 @@ public class DdPatternParsingStrategyTest
 		assertEquals(testCoordinate, coordinate.getExtractedText());
 		assertEquals(position, coordinate.getPosition());
 		assertEquals(40.446195, coordinate.getValue().getLatitude(), 0.0001);
-		assertEquals(79.948862, coordinate.getValue().getLongitude(), 0.0001);
+		assertEquals(-79.948862, coordinate.getValue().getLongitude(), 0.0001);
 	}
 	
 	@Test
-	public void strategy_correctly_parses_matched_decimal_degrees_with_negative_hemispheres_string(){
+	public void strategy_correctly_parses_matched_decimal_degrees_with_letter_for_hemispheres__swap_negative__string(){
 		
-		String testCoordinate = "-23.399437,-52.090904";
+		String testCoordinate = "40.446195S 79.948862E";
 		int position = 42;
 		
 		CoordinateOccurrence<LatLon> coordinate = 
@@ -99,8 +79,8 @@ public class DdPatternParsingStrategyTest
 		
 		assertEquals(testCoordinate, coordinate.getExtractedText());
 		assertEquals(position, coordinate.getPosition());
-		assertEquals(-23.399437, coordinate.getValue().getLatitude(), 0.0001);
-		assertEquals(-52.090904, coordinate.getValue().getLongitude(), 0.0001);
+		assertEquals(-40.446195, coordinate.getValue().getLatitude(), 0.0001);
+		assertEquals(79.948862, coordinate.getValue().getLongitude(), 0.0001);
 	}
 	
 }

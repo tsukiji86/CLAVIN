@@ -1,14 +1,13 @@
 package com.berico.clavin.examples;
 
 
-import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.extractor.coords.RegexCoordinateParsingStrategy;
-import com.google.code.regexp.Pattern;
 
 /*#####################################################################
  * 
@@ -38,12 +37,17 @@ import com.google.code.regexp.Pattern;
  * 
  *###################################################################*/
 
+/**
+ * Extracts IP Addresses from text.
+ */
 public class IpAddressParsingStrategy implements RegexCoordinateParsingStrategy<IpAddress> {
-
-	private static final Logger logger = LoggerFactory.getLogger(IpAddressParsingStrategy.class);
 	
-	//public static final String IPADDRESS_PATTERN = "(?<ipaddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})";
-	public static final String IPADDRESS_PATTERN = "(?<ipaddress>([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5]))";
+	/**
+	 * Borrowed this IP Address expression from the aweseme @mkyong 
+	 * (instead of spending the time to write it ourselves):
+	 * http://www.mkyong.com/regular-expressions/how-to-validate-ip-address-with-regular-expression/
+	 */
+	public static final String IPADDRESS_PATTERN = "((?:[01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.(?:[01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.(?:[01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.(?:[01]?\\d\\d?|2[0-4]\\d|25[0-5]))";
 	
 	/**
 	 * Return a compiled REGEX with the IpAddress pattern.
@@ -52,38 +56,24 @@ public class IpAddressParsingStrategy implements RegexCoordinateParsingStrategy<
 	@Override
 	public Pattern getPattern() {
 		
-		logger.info("Getting compiled Pattern");
-		
 		return Pattern.compile(IPADDRESS_PATTERN);
 	}
 
 	/**
-	 * Parse the IpAddress from the returned REGEX named groups, returning
+	 * Parse the IpAddress from the returned string, returning
 	 * a IpAddressOccurrence.
-	 * @param matchedString String matching the REGEX statement in the document.
-	 * @param namedGroups REGEX named capture groups.
+	 * @param ipaddressString String matching the REGEX statement in the document.
 	 * @param startPosition The position the occurrence occurred in the document.
 	 * @return A IpAddressOccurrence.
 	 */
 	@Override
 	public CoordinateOccurrence<IpAddress> parse(
-			String matchedString, 
-			Map<String, String> namedGroups, 
+			String ipaddressString, 
 			int startPosition) {
-		
-		logger.info("Parsing ip address.");
-		
-		String ipaddressString = matchedString;
-		
-		//String ipaddressString = namedGroups.get("ipaddress");
-		
-		logger.info("Parsed", ipaddressString);
 		
 		IpAddress ipaddress = new IpAddress(ipaddressString);
 		
-		logger.info("Instantiated IpAddress object {}", ipaddress);
-		
-		return new IpAddressOccurrence(startPosition, matchedString, ipaddress);
+		return new IpAddressOccurrence(startPosition, ipaddressString, ipaddress);
 	}
 
 }

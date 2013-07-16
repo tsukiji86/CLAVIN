@@ -3,6 +3,9 @@ package com.berico.clavin.extractor.coords;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*#####################################################################
  * 
  * CLAVIN (Cartographic Location And Vicinity INdexer)
@@ -37,6 +40,8 @@ import java.util.regex.Pattern;
  */
 public class DdPatternParsingStrategy extends BaseDdPatternParsingStrategy {
 
+	private static final Logger logger = LoggerFactory.getLogger(DdPatternParsingStrategy.class);
+	
 	/**
 	 * From: http://en.wikipedia.org/wiki/Geographic_coordinate_conversion
 	 * 	#Ways_of_writing_coordinates:
@@ -44,7 +49,6 @@ public class DdPatternParsingStrategy extends BaseDdPatternParsingStrategy {
 	 * This statement satisfies the following patterns listed:
 	 *  
 	 *  Pattern 1 (ex: -23.399437,-52.090904 or 40.446195, -79.948862)
-	 *  Pattern 2 (ex: 40.446195N 79.948862W)
 	 */
 	public static String REGEX_PATTERN = "(" +
 			"-?" +    // A negative sign (optional)
@@ -65,19 +69,45 @@ public class DdPatternParsingStrategy extends BaseDdPatternParsingStrategy {
 		"(-?\\d+[.]\\d+)"    // Capture second decimal
 	);
 	
-	
+	/**
+	 * Get the REGEX pattern.
+	 * @return regex expression.
+	 */
 	@Override
 	protected String getRegexPattern() {
 		
 		return REGEX_PATTERN;
 	}
 
+	/**
+	 * Given the matching string, extract the string parts necessary to 
+	 * convert the coordinate to it's LatLon representation.
+	 * @param matchedString The string the matched the primary Regex pattern.
+	 * @return A simple parsed structure representing the coordinate.
+	 */
 	@Override
 	protected DecimalDegreeStringParts extractParts(String matchedString) {
 		
 		Matcher matches = CAPTURE_PATTERN.matcher(matchedString);
 		
-		//matches
+		matches.find();
+		
+		String latitude = matches.group(1);
+		
+		logger.trace("Extracted latitude: {}", latitude);
+		
+		boolean isNorth = !latitude.startsWith("-");
+		
+		String longitude = matches.group(2);
+		
+		logger.trace("Extracted longitude: {}", longitude);
+		
+		boolean isEast = !longitude.startsWith("-");
+		
+		return new DecimalDegreeStringParts(
+			latitude.replace("-", ""), 
+			longitude.replace("-", ""), 
+			isNorth, isEast);
 	}
 
 }
