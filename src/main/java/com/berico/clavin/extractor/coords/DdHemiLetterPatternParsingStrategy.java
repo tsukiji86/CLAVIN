@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DdHemiLetterPatternParsingStrategy extends BaseDdPatternParsingStrategy {
 
-	private static final Logger logger = LoggerFactory.getLogger(DdHemiLetterPatternParsingStrategyTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(DdHemiLetterPatternParsingStrategy.class);
 	
 	/**
 	 * From: http://en.wikipedia.org/wiki/Geographic_coordinate_conversion
