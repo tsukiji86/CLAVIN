@@ -1,10 +1,11 @@
 package com.berico.clavin.extractor.coords;
 
+import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.berico.clavin.gazetteer.LatLon;
-import com.google.code.regexp.Pattern;
 
 /*#####################################################################
  * 

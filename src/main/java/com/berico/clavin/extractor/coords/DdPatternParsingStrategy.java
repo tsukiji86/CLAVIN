@@ -1,5 +1,8 @@
 package com.berico.clavin.extractor.coords;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /*#####################################################################
  * 
  * CLAVIN (Cartographic Location And Vicinity INdexer)
@@ -43,21 +46,38 @@ public class DdPatternParsingStrategy extends BaseDdPatternParsingStrategy {
 	 *  Pattern 1 (ex: -23.399437,-52.090904 or 40.446195, -79.948862)
 	 *  Pattern 2 (ex: 40.446195N 79.948862W)
 	 */
-	public static String REGEX_PATTERN = 
-		"(" + // Capture Start
-		"(?<latdd>-?\\d+[.]\\d+)" + // Decimal Degrees Latitude
-		"\\s*" +  // Whitespace
-		"(?<lathemi>[NnSs])?" + // (optional) Latitude Hemisphere 
-		"(\\s*[,;]?\\s*)?" +  // Latitude-Longitude Boundary
-		"(?<londd>-?\\d+[.]\\d+)" + // Decimal Degrees Longitude
-		"\\s*" +  // Whitespace
-		"(?<lonhemi>[WwEe])?" + // (optional) Longitude Hemisphere
-		")"; // Capture End
+	public static String REGEX_PATTERN = "(" +
+			"-?" +    // A negative sign (optional)
+			"\\d+" +  // Characteristic (integer before decimal)
+			"[.]" +   // Decimal
+			"\\d+" +  // Mantissa (float after decimal)
+			"," +     // Separator
+			"\\s*" +  // Whitespace
+			"-?" +    // A negative sign (optional)
+			"\\d+" +  // Characteristic (integer before decimal)
+			"[.]" +   // Decimal
+			"\\d+" +  // Mantissa (float after decimal)
+			")";
+	
+	public static Pattern CAPTURE_PATTERN = Pattern.compile(
+		"(-?\\d+[.]\\d+)" +  // Capture first decimal
+		",\\s*" +
+		"(-?\\d+[.]\\d+)"    // Capture second decimal
+	);
+	
 	
 	@Override
 	protected String getRegexPattern() {
 		
 		return REGEX_PATTERN;
+	}
+
+	@Override
+	protected DecimalDegreeStringParts extractParts(String matchedString) {
+		
+		Matcher matches = CAPTURE_PATTERN.matcher(matchedString);
+		
+		//matches
 	}
 
 }

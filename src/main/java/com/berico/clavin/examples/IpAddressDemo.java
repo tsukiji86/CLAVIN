@@ -11,6 +11,8 @@ public class IpAddressDemo {
 	
 	public static void main(String[] args) throws Exception {
 		
+		GeoParserFactory.DefaultCoordinateParsingStrategies.clear();
+		
 		// Register the new Parsing Strategy.
 		GeoParserFactory
 			.DefaultCoordinateParsingStrategies
@@ -21,7 +23,7 @@ public class IpAddressDemo {
 		
 		
 		ResolutionContext results = 
-			parser.parse("21.1.1.1   Foo 34.55.44.22   asfsadfadfadfas");
+			parser.parse("This is a test 34.55.44.22 and here is another one 23.1.24.255.");
 		
 		
 		// Get the CoordinateOccurrence from the Extraction Context
@@ -29,6 +31,10 @@ public class IpAddressDemo {
 				results.getExtractionContext().getCoordinates().get(0);
 		
 		System.out.println(ecoord);
+		
+		System.out.println(String.format("%s, %s", 
+				ecoord.convertToLatLon().getLatitude(), 
+				ecoord.convertToLatLon().getLongitude()));
 		
 		// Get the ResolvedCoordinate from the results
 		ResolvedCoordinate rcoord = results.getCoordinates().get(0);

@@ -1,7 +1,5 @@
 package com.berico.clavin.extractor.coords;
 
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +48,15 @@ public abstract class BaseDmsPatternParsingStrategy
 		LoggerFactory.getLogger(BaseDmsPatternParsingStrategy.class);
 	
 	/**
+	 * All derived classes need to be able to extract the Degree/Minutes/Seconds parts 
+	 * from a String match so BaseDmsPatternParsingStrategy can convert the String
+	 * to LatLon.
+	 * @param matchedString A matched string.
+	 * @return Degree Minute Seconds parts.
+	 */
+	protected abstract DegreeMinutesSecondsStringParts extractParts(String matchedString);
+	
+	/**
 	 * Parse the matchedString returning a lat/lon occurrence.  This
 	 * implementation relies on named capture groups:
 	 * 
@@ -71,19 +78,21 @@ public abstract class BaseDmsPatternParsingStrategy
 	 */
 	@Override
 	public CoordinateOccurrence<LatLon> parse(
-			String matchedString, Map<String, String> namedGroups, int startPosition) {
+			String matchedString, int startPosition) {
+		
+		DegreeMinutesSecondsStringParts parts = extractParts(matchedString);
 		
 		double latitude = convertToDecimal(
-				namedGroups.get("latdeg"), 
-				namedGroups.get("latmin"), 
-				namedGroups.get("latsec"), 
-				namedGroups.get("lathemi"));
+				parts.latitudeDegrees, 
+				parts.latitudeMinutes, 
+				parts.latitudeSeconds, 
+				parts.isNorthernHemisphere);
 		
 		double longitude = convertToDecimal(
-				namedGroups.get("londeg"), 
-				namedGroups.get("lonmin"), 
-				namedGroups.get("lonsec"), 
-				namedGroups.get("lonhemi"));
+				parts.longitudeDegrees, 
+				parts.longitudeMinutes, 
+				parts.longitudeSeconds, 
+				parts.isEasternHemisphere);
 		
 		logger.debug("From '{}', parsed Lat/Lon: {}, {}.", 
 				new Object[]{ matchedString, latitude, longitude });
@@ -101,19 +110,52 @@ public abstract class BaseDmsPatternParsingStrategy
 	 * @param minutes Minutes latitude or longitude.
 	 * @param seconds Seconds latitude or longitude (optionally a decimal value
 	 * for subseconds).
-	 * @param hemisphere Hemisphere of the latitude or longitude.
+	 * @param isNorthernOrEasternHemisphere Is this either the northern or eastern
+	 * hemisphere?
 	 * @return Decimal representation of the latitude or longitude.
 	 */
 	public static double convertToDecimal(
-		String degrees, String minutes, String seconds, String hemisphere){
+		String degrees, String minutes, String seconds, 
+		boolean isNorthernOrEasternHemisphere){
 		
-		int hemi = hemisphere.toUpperCase().equalsIgnoreCase("N")
-			  || hemisphere.toUpperCase().equalsIgnoreCase("E") ? 1 : -1;
+		int hemi = (isNorthernOrEasternHemisphere)? 1 : -1;
 		
 		int deg = tryParse(degrees, 0);
 		int min = tryParse(minutes, 0);
 		double sec = tryParse(seconds, 0.0d);
 		
 		return hemi * (deg + min / 60.0 + sec / 3600.0);
+	}
+	
+	/**
+	 * Container for the String parts we ask derived classes to generate
+	 * so we can convert the coordinate to a LatLon.
+	 */
+	protected static class DegreeMinutesSecondsStringParts {
+		
+		public final String latitudeDegrees;
+		public final String latitudeMinutes;
+		public final String latitudeSeconds;
+		public final boolean isNorthernHemisphere;
+		public final String longitudeDegrees;
+		public final String longitudeMinutes;
+		public final String longitudeSeconds;
+		public final boolean isEasternHemisphere;
+		
+		public DegreeMinutesSecondsStringParts(String latitudeDegrees,
+				String latitudeMinutes, String latitudeSeconds,
+				boolean isNorthernHemisphere, String longitudeDegrees,
+				String longitudeMinutes, String longitudeSeconds,
+				boolean isEasternHemisphere) {
+			
+			this.latitudeDegrees = latitudeDegrees;
+			this.latitudeMinutes = latitudeMinutes;
+			this.latitudeSeconds = latitudeSeconds;
+			this.isNorthernHemisphere = isNorthernHemisphere;
+			this.longitudeDegrees = longitudeDegrees;
+			this.longitudeMinutes = longitudeMinutes;
+			this.longitudeSeconds = longitudeSeconds;
+			this.isEasternHemisphere = isEasternHemisphere;
+		}
 	}
 }

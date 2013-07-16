@@ -107,7 +107,7 @@ public abstract class BaseCoordinateOccurrence<T> implements CoordinateOccurrenc
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		BaseCoordinateOccurrence other = (BaseCoordinateOccurrence) obj;
+		BaseCoordinateOccurrence<?> other = (BaseCoordinateOccurrence<?>) obj;
 		if (position != other.position)
 			return false;
 		if (text == null) {

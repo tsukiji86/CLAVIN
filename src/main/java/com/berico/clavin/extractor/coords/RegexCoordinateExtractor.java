@@ -3,11 +3,15 @@ package com.berico.clavin.extractor.coords;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import com.google.code.regexp.Pattern;
-import com.google.code.regexp.Matcher;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.berico.clavin.extractor.CoordinateExtractor;
 import com.berico.clavin.extractor.CoordinateOccurrence;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /*#####################################################################
  * 
@@ -42,6 +46,8 @@ import com.berico.clavin.extractor.CoordinateOccurrence;
  * extraction strategies.
  */
 public class RegexCoordinateExtractor implements CoordinateExtractor {
+	
+	private static final Logger logger = LoggerFactory.getLogger(RegexCoordinateExtractor.class);
 	
 	ArrayList<RegexCoordinateParsingStrategy<?>> strategies 
 		= new ArrayList<RegexCoordinateParsingStrategy<?>>();
@@ -80,9 +86,11 @@ public class RegexCoordinateExtractor implements CoordinateExtractor {
 			// If a match is found, iterate through the matches
 			while (matcher.find()){
 				
+				logger.info("Found another match.");
+				
 				// Extracting the coordinate occurrence
 				CoordinateOccurrence<?> occurrence = 
-					strategy.parse(matcher.group(), matcher.namedGroups(), matcher.start());
+					strategy.parse(matcher.group(), matcher.start());
 				
 				// and adding the results.
 				occurrences.add(occurrence);

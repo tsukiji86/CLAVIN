@@ -3,8 +3,9 @@ package com.berico.clavin.extractor.coords;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.google.code.regexp.Pattern;
-import com.google.code.regexp.Matcher;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 /*#####################################################################
  * 

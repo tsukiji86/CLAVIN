@@ -1,7 +1,5 @@
 package com.berico.clavin.extractor.coords;
 
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +48,16 @@ public abstract class BaseDdPatternParsingStrategy
 			LoggerFactory.getLogger(BaseDdPatternParsingStrategy.class);
 	
 	/**
+	 * All derived classes need to be able to extract the Decimal Degree parts from
+	 * a String match so BaseDdPatternParsingStrategy can convert the String
+	 * to LatLon.
+	 * @param matchedString A matched string.
+	 * @return Decimal Degree parts.
+	 */
+	protected abstract DecimalDegreeStringParts extractParts(String matchedString);
+	
+	
+	/**
 	 * Parse the matchedString returning a lat/lon occurrence.  This
 	 * implementation relies on named capture groups:
 	 * 
@@ -66,16 +74,17 @@ public abstract class BaseDdPatternParsingStrategy
 	 * @return A lat/lon coordinate occurrence.
 	 */
 	@Override
-	public CoordinateOccurrence<LatLon> parse(String matchedString,
-			Map<String, String> namedGroups, int startPosition) {
+	public CoordinateOccurrence<LatLon> parse(String matchedString, int startPosition) {
+		
+		DecimalDegreeStringParts parts = extractParts(matchedString);
 		
 		double latitude = parseDecimalDegrees(
-				namedGroups.get("latdd"),
-				namedGroups.get("lathemi"));
+				parts.decimalLatitude,
+				parts.isNorthernHemisphere);
 		
 		double longitude = parseDecimalDegrees(
-				namedGroups.get("londd"),
-				namedGroups.get("lonhemi"));
+				parts.decimalLongitude,
+				parts.isEasternHemisphere);
 		
 		logger.debug("From '{}', parsed Lat/Lon: {}, {}.", 
 				new Object[]{ matchedString, latitude, longitude });
@@ -90,21 +99,37 @@ public abstract class BaseDdPatternParsingStrategy
 	 * or longitude from a string.
 	 * 
 	 * @param decimalDegrees Decimal representation of the coordinate.
-	 * @param hemisphere Hemisphere of the latitude or longitude.
+	 * @param isNorthernOrEasternHemisphere Is this either the northern or eastern
+	 *   hemisphere?
 	 * @return Decimal representation of the latitude or longitude.
 	 */
-	public double parseDecimalDegrees(String decimalDegrees, String hemisphere){
+	public double parseDecimalDegrees(
+			String decimalDegrees, boolean isNorthernOrEasternHemisphere){
 		
-		int hemi = 1;
-		
-		if (hemisphere != null && !hemisphere.trim().isEmpty())
-			hemi = hemisphere.toUpperCase().equalsIgnoreCase("N")
-				  || hemisphere.toUpperCase().equalsIgnoreCase("E") ? 1 : -1;
+		int hemi = (isNorthernOrEasternHemisphere)? 1 : -1;
 		
 		double dd = tryParse(decimalDegrees, 0.0d);
 		
 		return hemi * dd;
 	}
 	
-
+	/**
+	 * Container for the String parts we ask derived classes to generate
+	 * so we can convert the coordinate to a LatLon.
+	 */
+	protected static class DecimalDegreeStringParts {
+		
+		public final String decimalLatitude;
+		public final String decimalLongitude;
+		public final boolean isNorthernHemisphere;
+		public final boolean isEasternHemisphere;
+		
+		public DecimalDegreeStringParts(String decimalLatitude, String decimalLongitude,
+				boolean isNorthernHemisphere, boolean isEasternHemisphere) {
+			this.decimalLatitude = decimalLatitude;
+			this.decimalLongitude = decimalLongitude;
+			this.isNorthernHemisphere = isNorthernHemisphere;
+			this.isEasternHemisphere = isEasternHemisphere;
+		}
+	}
 }

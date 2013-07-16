@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.berico.clavin.gazetteer.LatLon;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
@@ -44,6 +47,8 @@ import com.maxmind.geoip2.record.LocationRecord;
  */
 public class IpAddress {
 
+	private static final Logger logger = LoggerFactory.getLogger(IpAddress.class);
+	
 	private String ipaddressValue;
 	private LatLon latlonValue;
 	
@@ -77,16 +82,31 @@ public class IpAddress {
 	 */
 	public LatLon getLatLonValue() throws IOException, GeoIp2Exception{
 		
+		logger.info("Getting LatLon Value");
+		
 		if (latlonValue == null){
+			
+			 logger.info("Reading from Database.");
 			
 			 DatabaseReader reader = new DatabaseReader(new File("GeoIP/GeoLite2-City.mmdb"));
 
+			 logger.info("Omni from IP Address");
+			 
 		     Omni o = reader.omni(InetAddress.getByName(ipaddressValue));
-		     LocationRecord l = o.getLocation();
 		     
-		
+		     logger.info("Getting location record.");
+		     
+		     LocationRecord l = o.getLocation();
+		    
+		    logger.info("Converting record to Lat Lon Value.");
+		     
 			latlonValue = new LatLon(l.getLatitude(), l.getLongitude());
+			
+			logger.info("Closing reader.");
+			
 			reader.close();
+			
+			logger.info("Reader closed.");
 		}
 		
 		return latlonValue;

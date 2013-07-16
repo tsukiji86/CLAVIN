@@ -3,6 +3,9 @@ package com.berico.clavin.examples;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.berico.clavin.extractor.CoordinateOccurrence;
 import com.berico.clavin.extractor.coords.RegexCoordinateParsingStrategy;
 import com.google.code.regexp.Pattern;
@@ -37,7 +40,10 @@ import com.google.code.regexp.Pattern;
 
 public class IpAddressParsingStrategy implements RegexCoordinateParsingStrategy<IpAddress> {
 
-	public static final String IPADDRESS_PATTERN = "(?<ipaddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})";
+	private static final Logger logger = LoggerFactory.getLogger(IpAddressParsingStrategy.class);
+	
+	//public static final String IPADDRESS_PATTERN = "(?<ipaddress>[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})";
+	public static final String IPADDRESS_PATTERN = "(?<ipaddress>([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5]))";
 	
 	/**
 	 * Return a compiled REGEX with the IpAddress pattern.
@@ -45,6 +51,8 @@ public class IpAddressParsingStrategy implements RegexCoordinateParsingStrategy<
 	 */
 	@Override
 	public Pattern getPattern() {
+		
+		logger.info("Getting compiled Pattern");
 		
 		return Pattern.compile(IPADDRESS_PATTERN);
 	}
@@ -63,9 +71,17 @@ public class IpAddressParsingStrategy implements RegexCoordinateParsingStrategy<
 			Map<String, String> namedGroups, 
 			int startPosition) {
 		
-		String ipaddressString = namedGroups.get("ipaddress");
+		logger.info("Parsing ip address.");
+		
+		String ipaddressString = matchedString;
+		
+		//String ipaddressString = namedGroups.get("ipaddress");
+		
+		logger.info("Parsed", ipaddressString);
 		
 		IpAddress ipaddress = new IpAddress(ipaddressString);
+		
+		logger.info("Instantiated IpAddress object {}", ipaddress);
 		
 		return new IpAddressOccurrence(startPosition, matchedString, ipaddress);
 	}
