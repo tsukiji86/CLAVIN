@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.berico.clavin.extractor.LocationExtractor;
+import com.berico.clavin.extractor.coords.DdHemiLetterPatternParsingStrategy;
 import com.berico.clavin.extractor.coords.DdPatternParsingStrategy;
 import com.berico.clavin.extractor.coords.DmsPatternParsingStrategy;
 import com.berico.clavin.extractor.coords.RegexCoordinateExtractor;
@@ -120,6 +121,7 @@ public class GeoParserFactory {
 		// Add the default coordinate parsing strategies.
 		DefaultCoordinateParsingStrategies.add(new DmsPatternParsingStrategy());
 		DefaultCoordinateParsingStrategies.add(new DdPatternParsingStrategy());
+		DefaultCoordinateParsingStrategies.add(new DdHemiLetterPatternParsingStrategy());
 		
 		// Add the default resolved coordinate weighers.
 		DefaultCoordinateWeighers.add(new SharedLocationNameWeigher());
