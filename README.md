@@ -57,7 +57,7 @@ CLAVIN from Berico's Nexus Repo:
 <dependency>
    <groupId>com.berico</groupId>
    <artifactId>clavin</artifactId>
-   <version>0.4.1</version>
+   <version>0.4.2</version>
 </dependency>
 ```
 
