@@ -184,6 +184,7 @@ public class GeoParserFactory {
 		
 		LuceneLocationNameIndex.configureLimit(options, maxHitDepth);
 		LuceneLocationNameIndex.configureUseFuzzy(options, fuzzy);
+		ContextualOptimizationStrategy.configureMaxContextWindow(options, maxContentWindow);
 		
 		return getDefault(pathToLuceneIndex, options);
 	}
