@@ -105,6 +105,24 @@ public class GeoParserFactory {
 		
 		LocationExtractor extractor = new ApacheExtractor();
 		
+		return getDefault(pathToLuceneIndex, extractor, maxHitDepth, maxContentWindow, false);
+	}
+	
+	/**
+	 * Get the default GeoParser.
+	 * @param pathToLuceneIndex Path to the local Lucene index.
+	 * @param extractor A specific implementation of LocationExtractor to be used
+	 * @param maxHitDepth Number of candidate matches to consider
+	 * @param maxContentWindow How much context to consider when resolving
+	 * @param fuzzy Should fuzzy matching be used?
+	 * @return GeoParser
+	 * @throws IOException If file isn't found or can't be read.
+	 * @throws ParseException
+	 */
+	public static GeoParser getDefault(
+			String pathToLuceneIndex, LocationExtractor extractor, int maxHitDepth, int maxContentWindow, boolean fuzzy) 
+					throws IOException, ParseException{
+				
 		LocationResolver resolver = new LuceneLocationResolver(
 				new File(pathToLuceneIndex), maxHitDepth, maxContentWindow);
 		

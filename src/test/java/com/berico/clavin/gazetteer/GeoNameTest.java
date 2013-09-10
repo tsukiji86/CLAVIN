@@ -122,5 +122,26 @@ public class GeoNameTest {
 		
 		r.close();
 	}
+	
+	/**
+	 * Parse a "bad" gazetteer record to make sure exceptions are
+	 * properly caught and handled.
+	 * 
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	@Test
+	public void testParseExceptions() throws IOException, ParseException {
+		BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(
+				new File("./src/test/resources/gazetteers/BadGeoNamesSample.txt")), "UTF-8"));
+		String line;
+		ArrayList<GeoName> geonames = new ArrayList<GeoName>();
+		while ((line = r.readLine()) != null)
+			geonames.add(GeoName.parseFromGeoNamesRecord(line));
+		
+		r.close();
+		
+		// if no exceptions are thrown, the test is assumed to have succeeded
+	}
 
 }

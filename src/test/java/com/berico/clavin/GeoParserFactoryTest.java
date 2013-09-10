@@ -1,8 +1,11 @@
 package com.berico.clavin;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.junit.Test;
 
 /*#####################################################################
  * 
@@ -28,30 +31,27 @@ import org.junit.runners.Suite.SuiteClasses;
  * 
  * ====================================================================
  * 
- * AllTestsSuite.java
+ * GeoParserFactoryTest.java
  * 
  *###################################################################*/
 
 /**
- * Convenience class for running all CLAVIN JUnit tests.
- * 
+ * Checks output of  {@link GeoParserFactory}.
+ *
  */
-@RunWith(Suite.class)
-@SuiteClasses({
-	com.berico.clavin.GeoParserFactoryTest.class,
-	com.berico.clavin.extractor.ApacheExtractorTest.class,
-	com.berico.clavin.extractor.LocationOccurrenceTest.class,
-	com.berico.clavin.gazetteer.GeoNameTest.class,
-	com.berico.clavin.index.BinarySimilarityTest.class,
-	com.berico.clavin.resolver.ResolvedLocationTest.class,
-	com.berico.clavin.resolver.lucene.LuceneLocationResolverTest.class,
-	com.berico.clavin.resolver.lucene.LuceneLocationResolverHeuristicsTest.class,
-	com.berico.clavin.util.DamerauLevenshteinTest.class,
-	com.berico.clavin.util.ListUtilsTest.class,
-	com.berico.clavin.util.TextUtilsTest.class,
-	// this one comes last as it's more of an integration test
-	com.berico.clavin.GeoParserTest.class
-})
-public class AllTestsSuite {
-	// THIS CLASS INTENTIONALLY LEFT BLANK
+public class GeoParserFactoryTest {
+
+	/**
+	 * Ensures GeoParserFactory is correctly instantiating the
+	 * {@link GeoParser} class.
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	@Test
+	public void testGetDefault() throws IOException, ParseException {
+		assertEquals("factory index", GeoParser.class, GeoParserFactory.getDefault("./IndexDirectory").getClass());
+		assertEquals("factory fuzzy", GeoParser.class, GeoParserFactory.getDefault("./IndexDirectory", true).getClass());
+		assertEquals("factory parameters", GeoParser.class, GeoParserFactory.getDefault("./IndexDirectory", 1, 1).getClass());
+	}
+
 }

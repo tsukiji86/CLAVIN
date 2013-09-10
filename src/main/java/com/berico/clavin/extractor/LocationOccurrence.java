@@ -37,10 +37,11 @@ package com.berico.clavin.extractor;
  */
 public class LocationOccurrence {
 	// text of location name
-    public final String text;
+    public final String name;
     
     // number of UTF-16 code points from the start of the document at
     // which the location name starts
+    // TODO: really? UFT16? not UTF8?
     public final int position;
 
     /**
@@ -52,7 +53,7 @@ public class LocationOccurrence {
      * @param position	where it was found
      */
     public LocationOccurrence(String text, int position) {
-        this.text = text;
+        this.name = text;
         this.position = position;
     }
 
@@ -64,14 +65,14 @@ public class LocationOccurrence {
         LocationOccurrence that = (LocationOccurrence) o;
 
         if (position != that.position) return false;
-        if (text != null ? !text.equals(that.text) : that.text != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = text != null ? text.hashCode() : 0;
+        int result = name != null ? name.hashCode() : 0;
         result = 31 * result + position;
         return result;
     }

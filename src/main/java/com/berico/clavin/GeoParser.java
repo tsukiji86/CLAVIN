@@ -61,7 +61,6 @@ public class GeoParser {
 	private final boolean fuzzy;
 	
 	public GeoParser(LocationExtractor extractor, LocationResolver resolver, boolean fuzzy){
-		
 		this.extractor = extractor;
 		this.resolver = resolver;
 		this.fuzzy = fuzzy;

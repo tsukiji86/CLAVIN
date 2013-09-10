@@ -1,6 +1,7 @@
 package com.berico.clavin.resolver.lucene;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -215,6 +216,17 @@ public class LuceneLocationResolverHeuristicsTest {
 		assertEquals("LocationResolver chose the wrong \"Hamilton\"", HAMILTON_ON, resolvedLocations.get(2).geoname.geonameID);
 		assertEquals("LocationResolver chose the wrong \"Kitchener\"", KITCHENER_ON, resolvedLocations.get(3).geoname.geonameID);
 		assertEquals("LocationResolver chose the wrong \"London\"", LONDON_ON, resolvedLocations.get(4).geoname.geonameID);
+	}
+	
+	@Test
+	public void testBorderCases() throws IOException, ParseException {
+		String[] locations = {"jhadghaoidhg"};
+		
+		resolvedLocations = resolverWithHeuristics.resolveLocations(LuceneLocationResolverTest.makeOccurrencesFromNames(locations), false);
+		assertTrue("Heuristic LocationResolver fuzzy off, no match", resolvedLocations.isEmpty());
+		
+		resolvedLocations = resolverWithHeuristics.resolveLocations(LuceneLocationResolverTest.makeOccurrencesFromNames(locations), true);
+		assertTrue("Heuristic LocationResolver fuzzy on, no match", resolvedLocations.isEmpty());
 	}
 
 }

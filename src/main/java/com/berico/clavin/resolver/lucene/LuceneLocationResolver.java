@@ -139,7 +139,7 @@ public class LuceneLocationResolver implements LocationResolver {
 			throws IOException, ParseException{
 		
 		// santize the query input
-		String sanitizedLocationName = escape(locationName.text.toLowerCase());
+		String sanitizedLocationName = escape(locationName.name.toLowerCase());
 		
 		try{
 	  		// Lucene query used to look for matches based on the
@@ -191,20 +191,20 @@ public class LuceneLocationResolver implements LocationResolver {
 	  	    		// drats, foiled again! no fuzzy matches found either!
 	  	    		// in this case, we'll return an empty list of
 	  	    		// candidate matches
-		  	    	logger.debug("No match found for: '{}'", locationName);
+		  	    	logger.debug("No match found for: '{}'", locationName.name);
 	  	    	}
 	  	    } else {
   	    		// no matches found and fuzzy matching is turned off
-	  	    	logger.debug("No match found for: '{}'", locationName);
+	  	    	logger.debug("No match found for: '{}'", locationName.name);
   	    	}
 	  	    
 	  	    return candidateMatches;
 	  	    
 		} catch (ParseException e) {
-			logger.error(String.format("Error resolving location for : '%s'", locationName), e);
+			logger.error(String.format("Error resolving location for : '%s'", locationName.name), e);
 			throw e;
 		} catch (IOException e) {
-			logger.error(String.format("Error resolving location for : '%s'", locationName), e);
+			logger.error(String.format("Error resolving location for : '%s'", locationName.name), e);
 			throw e;
 		}
   	}

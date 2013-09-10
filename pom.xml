@@ -3,11 +3,11 @@
   
   <groupId>com.berico</groupId>
   <artifactId>clavin</artifactId>
-  <version>0.3.4-RELEASE</version>
+  <version>1.0.0-rc1</version>
   <packaging>jar</packaging>
   
   <name>CLAVIN</name>
-  <description>CLAVIN (Cartographic Location And Vicinity INdexer) is an open source software package for geographic entity resolution.</description>
+  <description>CLAVIN (Cartographic Location And Vicinity INdexer) is an open source software package for geographic entity resolution from text.</description>
   <url>http://clavin.bericotechnologies.com</url>
   
   <properties>
@@ -68,6 +68,11 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.5.2</version>
       </plugin>
     </plugins>
   </build>

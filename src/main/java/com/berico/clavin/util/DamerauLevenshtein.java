@@ -158,7 +158,6 @@ public class DamerauLevenshtein {
 		if (Math.abs(str1.length() - str2.length()) > 1) return false;
 		
 		// initialize counters
-		int editDistance = 0;
 		int offset1 = 0;
 		int offset2 = 0;
 		int i = 0;
@@ -171,21 +170,16 @@ public class DamerauLevenshtein {
 				if ((chars1.get(i + offset1).equals(chars2.get(i + offset2 + 1))) &&
 						(chars1.get(i + offset1 + 1).equals(chars2.get(i + offset2))) &&
 						(chars1.remainder(i + offset1 + 2).equals(chars2.remainder(i + offset2 + 2)))) { // transposition
-					editDistance++;
 					i = i + 2; // move past the transposition
 				} else if (chars1.remainder(i + offset1).equals(chars2.remainder(i + offset2 + 1))) { // insertion
-					editDistance++;
 					offset2++; // realign
 				} else if (chars1.remainder(i + offset1 + 1).equals(chars2.remainder(i + offset2))) { // deletion
-					editDistance++;
 					offset1++; // realign
 				} else if (chars1.remainder(i + offset1 + 1).equals(chars2.remainder(i + offset2 + 1))) { // substitution
-					editDistance++;
 					i++; // 
 				} else return false; // multiple edits
 			}
 			
-			if (editDistance > 1) return false;
 			i++;
 		}
 		

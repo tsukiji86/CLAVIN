@@ -129,6 +129,8 @@ public class LuceneLocationResolverTest {
 		
 		assertNotNull("Null results list received from LocationResolver", resolvedLocations);
 		assertTrue("Non-empty results from LocationResolver on empty input", resolvedLocations.isEmpty());
+		
+		
 	}
 	
 	/**
@@ -169,5 +171,22 @@ public class LuceneLocationResolverTest {
 		assertEquals("LocationResolver failed on extra term", STRAßENHAUS_DE, resolvedLocations.get(4).geoname.geonameID);
 		assertEquals("LocationResolver failed on missing term", GUN_BARREL_CITY_TX, resolvedLocations.get(5).geoname.geonameID);
 	}
-
+	
+	
+	@Test
+	public void testBorderCases() throws IOException, ParseException {
+		String[] locations = {"jhadghaoidhg"};
+		
+		resolvedLocations = resolverNoHeuristics.resolveLocations(makeOccurrencesFromNames(locations), false);
+		assertTrue("LocationResolver fuzzy off, no match", resolvedLocations.isEmpty());
+		
+		resolvedLocations = resolverNoHeuristics.resolveLocations(makeOccurrencesFromNames(locations), true);
+		assertTrue("LocationResolver fuzzy on, no match", resolvedLocations.isEmpty());		
+	}
+	
+	@Test(expected=IOException.class)
+	public void testIOError() throws IOException, ParseException {
+		indexDirectory = new File("./IMAGINARY_FILE");
+		resolverNoHeuristics = new LuceneLocationResolver(indexDirectory, 1, 1);
+	}
 }

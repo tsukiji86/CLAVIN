@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -180,7 +179,7 @@ public class IndexDirectoryBuilder {
   	 * @param population	number of inhabitants (used for scoring)
   	 * @return
   	 */
-  	private static Document buildDoc(String name, String geonameEntry, int geonameID, Long population) {
+  	public static Document buildDoc(String name, String geonameEntry, int geonameID, Long population) {
   		
   		// in case you're wondering, yes, this is a non-standard use of
   		// the Lucene Document construct
