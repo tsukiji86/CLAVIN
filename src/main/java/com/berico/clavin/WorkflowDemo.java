@@ -1,16 +1,9 @@
-package com.berico.clavin.extractor;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+package com.berico.clavin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
-import org.junit.Test;
-
+import com.berico.clavin.resolver.ResolvedLocation;
 import com.berico.clavin.util.TextUtils;
 
 /*#####################################################################
@@ -37,36 +30,42 @@ import com.berico.clavin.util.TextUtils;
  * 
  * ====================================================================
  * 
- * ApacheExtractorTest.java
+ * WorkflowDemo.java
  * 
  *###################################################################*/
 
 /**
- * Checks output produced by named entity recognizer (NER), supplied
- * by Apache OpenNLP Name Finder.
+ * Quick example showing how to use CLAVIN's capabilities.
  * 
  */
-public class ApacheExtractorTest {
+public class WorkflowDemo {
 
 	/**
-	 * Ensures we're getting good responses from the
-	 * {@link ApacheExtractor}, and that we can properly tag multiple
-	 * documents with the same instance.
-	 * @throws IOException 
+	 * Run this after installing & configuring CLAVIN to get a sense of
+	 * how to use it.
+	 * 
+	 * @param args				not used
+	 * @throws Exception
 	 */
-	@Test
-	public void testExtractLocationNames() throws IOException {
-		ApacheExtractor extractor = new ApacheExtractor();
+	public static void main(String[] args) throws Exception {
+		
+		// Instantiate the CLAVIN GeoParser
+		GeoParser parser = GeoParserFactory.getDefault("./IndexDirectory");
+		
+		// Unstructured text file about Somalia to be geoparsed
 		File inputFile = new File("src/test/resources/sample-docs/Somalia-doc.txt");
+		
+		// Grab the contents of the text file as a String
 		String inputString = TextUtils.fileToString(inputFile);
-		List<LocationOccurrence> locationNames1 = extractor.extractLocationNames(inputString);
 		
-		assertNotNull("Null location name list received from extractor.", locationNames1);
-		assertFalse("Empty location name list received from extractor.", locationNames1.isEmpty());
-		assertTrue("Extractor choked/quit after first LOCATION.", locationNames1.size() > 1);
+		// Parse location names in the text into geographic entities
+		List<ResolvedLocation> resolvedLocations = parser.parse(inputString);
 		
-		List<LocationOccurrence> locationNames2 = extractor.extractLocationNames(inputString);
-		assertEquals("Different extractor results for subsequent identical document.", locationNames1, locationNames2);
+		// Display the ResolvedLocations found for the location names
+		for (ResolvedLocation resolvedLocation : resolvedLocations)
+			System.out.println(resolvedLocation);
+		
+		// And we're done...
+		System.out.println("\n\"That's all folks!\"");
 	}
-	
 }

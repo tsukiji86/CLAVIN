@@ -59,13 +59,13 @@ public class DamerauLevenshtein {
 	public static int damerauLevenshteinDistance(String str1, String str2) {
 		
 		// return fast if one or both strings is empty or null
-		if (str1 == null || str1.isEmpty()) {
-			if (str2 == null || str2.isEmpty()) {
+		if ((str1 == null) || str1.isEmpty()) {
+			if ((str2 == null) || str2.isEmpty()) {
 				return 0;
 			} else {
 				return str2.length();
 			}
-		} else if (str2 == null || str2.isEmpty()) {
+		} else if ((str2 == null) || str2.isEmpty()) {
 			return str1.length();
 		}
 		
@@ -144,14 +144,14 @@ public class DamerauLevenshtein {
 	 */
 	public static boolean isEditDistance1(String str1, String str2) {
 		// one or both strings is empty or null
-		if (str1 == null || str1.isEmpty()) {
-			if (str2 == null || str2.isEmpty()) {
+		if ((str1 == null) || str1.isEmpty()) {
+			if ((str2 == null) || str2.isEmpty()) {
 				return true;
 			} else {
-				return str2.length() <= 1;
+				return (str2.length() <= 1);
 			}
-		} else if (str2 == null || str2.isEmpty()) {
-			return str1.length() <= 1;
+		} else if ((str2 == null) || str2.isEmpty()) {
+			return (str1.length() <= 1);
 		}
 		
 		// difference between string lengths ensures edit distance > bound
@@ -168,9 +168,9 @@ public class DamerauLevenshtein {
 		
 		while (!chars1.get(i + offset1).equals(endMarker) || !chars2.get(i + offset2).equals(endMarker)) {
 			if (!chars1.get(i + offset1).equals(chars2.get(i + offset2))) { // character mismatch
-				if (chars1.get(i + offset1).equals(chars2.get(i + offset2 + 1)) 
-						&& chars1.get(i + offset1 + 1).equals(chars2.get(i + offset2)) 
-						&& chars1.remainder(i + offset1 + 2).equals(chars2.remainder(i + offset2 + 2))) { // transposition
+				if ((chars1.get(i + offset1).equals(chars2.get(i + offset2 + 1))) &&
+						(chars1.get(i + offset1 + 1).equals(chars2.get(i + offset2))) &&
+						(chars1.remainder(i + offset1 + 2).equals(chars2.remainder(i + offset2 + 2)))) { // transposition
 					editDistance++;
 					i = i + 2; // move past the transposition
 				} else if (chars1.remainder(i + offset1).equals(chars2.remainder(i + offset2 + 1))) { // insertion
@@ -275,8 +275,4 @@ class Null {
 			return true;
 		} else return false;
 	}
-	
-	@Override
-	public int hashCode(){ return -42; }
-	
 }
