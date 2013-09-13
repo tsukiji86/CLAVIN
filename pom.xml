@@ -3,12 +3,66 @@
   
   <groupId>com.bericotech</groupId>
   <artifactId>clavin</artifactId>
-  <version>1.0.0rc2</version>
+  <version>1.0.0rc3</version>
   <packaging>jar</packaging>
+  
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
   
   <name>CLAVIN</name>
   <description>CLAVIN (Cartographic Location And Vicinity INdexer) is an open source software package for geographic entity resolution from text.</description>
   <url>http://clavin.bericotechnologies.com</url>
+  
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+  
+  
+   <developers>
+    <developer>
+      <id>charlieg</id>
+      <name>Charlie Greenbacker</name>
+      <email>charlie@bericotechnologies.com</email>
+      <url>https://github.com/charlieg</url>
+      <organization>Berico Technologies</organization>
+      <organizationUrl>http://bericotechnologies.com</organizationUrl>
+      <roles>
+        <role>product owner</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-5</timezone>
+    </developer>
+    <developer>
+      <id>berico-tpinney</id>
+      <name>Travis Pinney</name>
+      <email>tpinney@bericotechnologies.com</email>
+      <url>https://github.com/berico-tpinney</url>
+      <organization>Berico Technologies</organization>
+      <organizationUrl>http://bericotechnologies.com</organizationUrl>
+      <roles>
+        <role>technical lead</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-5</timezone>
+    </developer>    
+  </developers>
+  
+  
+  <scm>
+    <connection>scm:git:https://github.com/Berico-Technologies/CLAVIN.git</connection>
+    <developerConnection>scm:git:ssh://github.com/Berico-Technologies/CLAVIN.git</developerConnection>
+    <tag>master</tag>
+    <url>https://github.com/Berico-Technologies/CLAVIN</url>
+  </scm>
+  
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -150,6 +204,7 @@
     </pluginRepository>
   </pluginRepositories>
   
+  <!--  
   <distributionManagement>
       <repository>
           <id>nexus.bericotechnologies.com</id>
@@ -160,4 +215,6 @@
           <url>http://nexus.bericotechnologies.com/content/repositories/snapshots/</url>
       </snapshotRepository>
   </distributionManagement>
+  -->
+  
 </project>
