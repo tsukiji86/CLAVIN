@@ -39,9 +39,8 @@ public class LocationOccurrence {
 	// text of location name
     public final String name;
     
-    // number of UTF-16 code points from the start of the document at
+    // number of UTF-16 code units from the start of the document at
     // which the location name starts
-    // TODO: really? UFT16? not UTF8?
     public final int position;
 
     /**
