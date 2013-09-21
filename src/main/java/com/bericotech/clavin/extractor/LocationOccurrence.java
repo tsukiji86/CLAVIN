@@ -56,6 +56,11 @@ public class LocationOccurrence {
         this.position = position;
     }
 
+    /**
+     * Tests equivalence based on name and position.
+     * 
+     * @param o		Object to compare this against
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -69,6 +74,9 @@ public class LocationOccurrence {
         return true;
     }
 
+    /**
+     * Required for hashing.
+     */
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
