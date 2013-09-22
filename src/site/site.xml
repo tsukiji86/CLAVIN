@@ -20,6 +20,7 @@
   </poweredBy>
   <body>
     <breadcrumbs>
+      <item name="CLAVIN Home" href="http://clavin.bericotechnologies.com"/>
       <item name="Berico Technologies" href="http://bericotech.com"/>
       <item name="Fork Me on GitHub" href="http://github.com/Berico-Technologies/CLAVIN"/>
     </breadcrumbs>
