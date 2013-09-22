@@ -9,13 +9,13 @@ How to use a CLAVIN release:
 ---------------------------
 
 1. Download the latest stable release
-        > `curl -O https://github.com/Berico-Technologies/CLAVIN/releases/download/1.0.0rc5/clavin-1.0.0rc5-bin.tar.gz`
+        > `curl -O https://github.com/Berico-Technologies/CLAVIN/releases/download/1.0.0rc6/clavin-1.0.0rc6-bin.tar.gz`
 
 2. Extract the release to a directory of your choice
-        > `tar xzvf clavin-1.0.0rc5-bin.tar.gz`
+        > `tar xzvf clavin-1.0.0rc6-bin.tar.gz`
 
 3. Configure the environment variable CLAVIN_HOME to point to where you extracted the tarball 
-        > `export CLAVIN_HOME=/Users/user/clavin-1.0.0rc5`
+        > `export CLAVIN_HOME=/Users/user/clavin-1.0.0rc6`
 
 3. Download the latest version of allCountries.zip gazetteer file from GeoNames.org:
         > `curl -O http://download.geonames.org/export/dump/allCountries.zip`
@@ -24,10 +24,10 @@ How to use a CLAVIN release:
         > `unzip allCountries.zip`
 
 5. Create the Lucene Index (this one-time process will take several minutes):
-        > `java -Xmx2048M -jar $CLAVIN_HOME/lib/clavin-1.0.0rc5-jar-with-dependencies.jar com.bericotech.clavin.index.IndexDirectoryBuilder` 
+        > `java -Xmx2048M -jar $CLAVIN_HOME/lib/clavin-1.0.0rc6-jar-with-dependencies.jar com.bericotech.clavin.index.IndexDirectoryBuilder` 
          
 6. Run example program:
-        > `java -Xmx2048M -jar $CLAVIN_HOME/lib/clavin-1.0.0rc5-jar-with-dependencies.jar com.bericotech.clavin.WorkflowDemo`
+        > `java -Xmx2048M -jar $CLAVIN_HOME/lib/clavin-1.0.0rc6-jar-with-dependencies.jar com.bericotech.clavin.WorkflowDemo`
 
 
 How to build & use CLAVIN:
@@ -69,7 +69,7 @@ Once that all runs successfully, feel free to modify the CLAVIN source code to s
 <dependency>
    <groupId>com.bericotech</groupId>
    <artifactId>clavin</artifactId>
-   <version>1.0.0rc5</version>
+   <version>1.0.0rc6</version>
 </dependency>
 ```
 
