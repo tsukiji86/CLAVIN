@@ -9,6 +9,10 @@ import java.math.BigInteger;
 import java.util.Random;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.bericotech.clavin.GeoParser;
 
 /*#####################################################################
  * 
@@ -44,6 +48,8 @@ import org.junit.Test;
  * 
  */
 public class DamerauLevenshteinTest {
+    
+    private static final Logger logger = LoggerFactory.getLogger(GeoParser.class);
 
 	/**
 	 * Simple tests to make sure we're getting the correct edit distance
@@ -92,6 +98,7 @@ public class DamerauLevenshteinTest {
 		assertEquals("editing a substring more than once", 2, damerauLevenshteinDistance(a, b));
 		
 		// generate 100k pairs of random strings & make sure we can handle them
+		logger.debug("Running DamerauLevenshtein smoke test; please be patient, this may take a bit...");
 		Random random = new Random();
 		for (int i = 0; i < 100000; i++) {
 			a = new BigInteger(130, random).toString(32);
