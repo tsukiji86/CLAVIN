@@ -1,4 +1,4 @@
-package com.bericotech.clavin.resolver.lucene;
+package com.bericotech.clavin.resolver;
 
 import static org.apache.lucene.queryparser.classic.QueryParserBase.escape;
 
@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 import com.bericotech.clavin.gazetteer.CountryCode;
 import com.bericotech.clavin.index.BinarySimilarity;
 import com.bericotech.clavin.index.WhitespaceLowerCaseAnalyzer;
-import com.bericotech.clavin.resolver.LocationResolver;
-import com.bericotech.clavin.resolver.ResolvedLocation;
 import com.bericotech.clavin.util.ListUtils;
 
 /*#####################################################################
