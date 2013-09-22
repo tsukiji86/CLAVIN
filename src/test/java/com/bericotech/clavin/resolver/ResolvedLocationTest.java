@@ -52,8 +52,8 @@ public class ResolvedLocationTest {
     @Test
     public void testEquals() {
         // two identical sample gazetteer records from GeoNames.org
-        String geonamesEntry = "4781530 Reston  Reston  Reston,Рестон   38.96872    -77.3411    P   PPL US      VA  059         58404   100 102 America/New_York    2011-05-14";
-        String geonamesEntry2 = "478153 Reston  Reston  Reston,Рестон   38.96872    -77.3411    P   PPL US      VA  059         58404   100 102 America/New_York    2011-05-14";
+        String geonamesEntry = "4781530\tReston\tReston\tReston,Рестон\t38.96872\t-77.3411\tP\tPPL\tUS\tVA\t059\t58404\t100\t102\tAmerica/New_York\t2011-05-14";
+        String geonamesEntry2 = "478153\tReston\tReston\tReston,Рестон\t38.96872\t-77.3411\tP\tPPL\tUS\tVA\t059\t58404\t100\t102\tAmerica/New_York\t2011-05-14";
         
         // create corresponding Lucene Documents for gazetteer records
         Document luceneDoc = IndexDirectoryBuilder.buildDoc("Nowhere", geonamesEntry, 999, (long)999);
