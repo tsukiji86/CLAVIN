@@ -5,33 +5,6 @@ CLAVIN
 
 CLAVIN (*Cartographic Location And Vicinity INdexer*) is an open source software package for document geotagging and geoparsing that employs context-based geographic entity resolution. It combines a variety of open source tools with natural language processing techniques to extract location names from unstructured text documents and resolve them against gazetteer records. Importantly, CLAVIN does not simply "look up" location names; rather, it uses intelligent heuristics in an attempt to identify precisely which "Springfield" (for example) was intended by the author, based on the context of the document. CLAVIN also employs fuzzy search to handle incorrectly-spelled location names, and it recognizes alternative names (e.g., "Ivory Coast" and "Côte d'Ivoire") as referring to the same geographic entity. By enriching text documents with structured geo data, CLAVIN enables hierarchical geospatial search and advanced geospatial analytics on unstructured data.
 
-How to use a CLAVIN release:
----------------------------
-
-1. Download the latest stable release
-        > `curl -L -O https://github.com/Berico-Technologies/CLAVIN/releases/download/1.0.0rc6/clavin-1.0.0rc6-bin.tar.gz`
-
-2. Extract the release to a directory of your choice
-        > `tar xzvf clavin-1.0.0rc6-bin.tar.gz`
-
-3. Configure the environment variables CLAVIN_HOME, CLAVIN_OPTS and PATH  
-        > `export CLAVIN_HOME=/type-in-your-path-to/clavin-1.0.0rc6`
-        > `export CLAVIN_OPTS=-Xmx2048M`
-        > `export PATH=$PATH:$CLAVIN_HOME/bin`  
-        > `chmod u+x $CLAVIN_HOME/bin/clavin`
-
-3. Download the latest version of allCountries.zip gazetteer file from GeoNames.org:
-        > `curl -O http://download.geonames.org/export/dump/allCountries.zip`
-
-4. Unzip the GeoNames gazetteer file:
-        > `unzip allCountries.zip`
-
-5. Create the Lucene Index (this one-time process will take several minutes):
-        > `clavin exec index.IndexDirectoryBuilder` 
-         
-6. Run example program:
-        > `clavin exec WorkflowDemo`
-
 
 How to build & use CLAVIN:
 --------------------------
