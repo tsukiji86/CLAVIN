@@ -16,5 +16,13 @@ For an Apple, this would be ~/.clavin/plugins
 Plugins will use semantic versioning. 
 
 
+Example namespace: 
+
+com.bericotech.clavin.plugin.ipaddress
+and
+com.bericotech.clavin.plugin.ipaddress.extractor
+
+
+
 
 
