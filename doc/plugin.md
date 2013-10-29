@@ -26,17 +26,16 @@ com.bericotech.clavin.plugin.ipaddress.extractor
 
 Example archetype parameters for clavin-plugin-hello
 
-Group Id: com.bericotech 
-Artifact Id: clavin-plugin-hello 
-Version: 0.1.0   # start with 0.1.0 starting out 
-Package: come.bericotech.clavin.plugin.hello
+    Group Id: com.bericotech 
+    Artifact Id: clavin-plugin-hello 
+    Version: 0.1.0   # start with 0.1.0 starting out 
+    Package: come.bericotech.clavin.plugin.hello
 
 
 
 
 
 
-Group
 
 
 
