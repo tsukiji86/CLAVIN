@@ -85,6 +85,8 @@ public class IndexDirectoryBuilder {
             System.exit(-1);
         }
         
+        
+        
         logger.info("Indexing... please wait.");
         
         // Create a new index file on disk, allowing Lucene to choose
