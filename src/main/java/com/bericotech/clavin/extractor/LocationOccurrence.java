@@ -37,11 +37,11 @@ package com.bericotech.clavin.extractor;
  */
 public class LocationOccurrence {
     // text representation of the location (i.e., its name)
-    public final String text;
+    private final String text;
     
     // number of UTF-16 code units from the start of the document at
     // which the location name starts
-    public final int position;
+    private final int position;
 
     /**
      * Sole construction for {@link LocationOccurrence} class.
@@ -54,6 +54,23 @@ public class LocationOccurrence {
     public LocationOccurrence(String text, int position) {
         this.text = text;
         this.position = position;
+    }
+
+    /**
+     * Get the text of the location name.
+     * @return the text of the location name
+     */
+    public String getText() {
+        return text;
+    }
+
+    /**
+     * Get the position in the text where the location name starts.
+     * @return the number of UTF-16 code units from the start of the
+     * document at which the location name starts
+     */
+    public int getPosition() {
+        return position;
     }
 
     /**

@@ -153,20 +153,22 @@ public class IndexDirectoryBuilder {
     private static void addToIndex(IndexWriter indexWriter, String geonameEntry) throws IOException {
         // create a GeoName object from a single gazetteer record
         GeoName geoname = GeoName.parseFromGeoNamesRecord(geonameEntry);
+        String nm = geoname.getName();
+        String asciiNm = geoname.getAsciiName();
         
         // add the primary (UTF-8) name for this location
-        if (geoname.name.length() > 0)
-            indexWriter.addDocument(buildDoc(geoname.name, geonameEntry, geoname.geonameID, geoname.population));
+        if (geoname.getName().length() > 0)
+            indexWriter.addDocument(buildDoc(geoname.getName(), geonameEntry, geoname.getGeonameID(), geoname.getPopulation()));
         
         // add the ASCII name if it's different from the primary name
-        if (geoname.asciiName.length() > 0 && !geoname.asciiName.equals(geoname.name))
-            indexWriter.addDocument(buildDoc(geoname.asciiName, geonameEntry, geoname.geonameID, geoname.population));
+        if (asciiNm.length() > 0 && !asciiNm.equals(nm))
+            indexWriter.addDocument(buildDoc(asciiNm, geonameEntry, geoname.getGeonameID(), geoname.getPopulation()));
         
         // add alternate names (if any) if they differ from the primary
         // and alternate names
-        for (String altName : geoname.alternateNames)
-            if (altName.length() > 0 && !altName.equals(geoname.name) && !altName.equals(geoname.name))
-                indexWriter.addDocument(buildDoc(altName, geonameEntry, geoname.geonameID, geoname.population));
+        for (String altName : geoname.getAlternateNames())
+            if (altName.length() > 0 && !altName.equals(asciiNm) && !altName.equals(nm))
+                indexWriter.addDocument(buildDoc(altName, geonameEntry, geoname.getGeonameID(), geoname.getPopulation()));
     }
     
     /**
