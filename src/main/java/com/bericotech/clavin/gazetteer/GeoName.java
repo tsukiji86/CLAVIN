@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -47,32 +48,32 @@ import java.util.TimeZone;
 public class GeoName {
     
     // id of record in geonames database
-    public final int geonameID;
+    private final int geonameID;
     
     // name of geographical point (utf8)
-    public final String name;
+    private final String name;
     
     // name of geographical point in plain ascii characters
-    public final String asciiName;
+    private final String asciiName;
     
     // list of alternate names for location
-    public final List<String> alternateNames;
+    private final List<String> alternateNames;
     
     // latitude in decimal degrees
-    public final double latitude;
+    private final double latitude;
     
     // longitude in decimal degrees
-    public final double longitude;
+    private final double longitude;
     
     // major feature category
     // (see http://www.geonames.org/export/codes.html)
-    public final FeatureClass featureClass;
+    private final FeatureClass featureClass;
     
     // http://www.geonames.org/export/codes.html
-    public final FeatureCode featureCode;
+    private final FeatureCode featureCode;
     
     // ISO-3166 2-letter country code
-    public final CountryCode primaryCountryCode;
+    private final CountryCode primaryCountryCode;
 
     // associated name with country code
     public String getPrimaryCountryName(){
@@ -80,7 +81,7 @@ public class GeoName {
     }
 
     // list of alternate ISO-3166 2-letter country codes
-    public final List<CountryCode> alternateCountryCodes;
+    private final List<CountryCode> alternateCountryCodes;
     
     /*  TODO: refactor the 4 fields below to link to the GeoName
      *        object that they refer to
@@ -89,34 +90,34 @@ public class GeoName {
     // Mostly FIPS codes. ISO codes are used for US, CH, BE and ME. UK
     // and Greece are using an additional level between country and
     // FIPS code.
-    public final String admin1Code;
+    private final String admin1Code;
     
     // code for the second administrative division
     // (e.g., a county in the US)
-    public final String admin2Code;
+    private final String admin2Code;
     
     // code for third level administrative division
-    public final String admin3Code;
+    private final String admin3Code;
     
     // code for fourth level administrative division
-    public final String admin4Code;
+    private final String admin4Code;
     
     // total number of inhabitants
-    public final long population;
+    private final long population;
     
     // in meters
-    public final int elevation;
+    private final int elevation;
     
     // digital elevation model, srtm3 or gtopo30, average elevation of
     // 3''x3'' (ca 90mx90m) or 30''x30'' (ca 900mx900m) area in meters,
     // integer. srtm processed by cgiar/ciat.
-    public final int digitalElevationModel;
+    private final int digitalElevationModel;
     
     // timezone for geographical point
-    public final TimeZone timezone;
+    private final TimeZone timezone;
     
     // date of last modification in GeoNames database
-    public final Date modificationDate;
+    private final Date modificationDate;
     
     // sentinel value used in place of null when numeric value in
     // GeoNames record is not provided (see: geonameID, latitude,
@@ -171,13 +172,25 @@ public class GeoName {
         this.geonameID = geonameID;
         this.name = name;
         this.asciiName = asciiName;
-        this.alternateNames = alternateNames;
+        if (alternateNames != null) {
+            // defensive copy
+            this.alternateNames = Collections.unmodifiableList(new ArrayList<String>(alternateNames));
+        } else {
+            // ensure this is never null
+            this.alternateNames = Collections.EMPTY_LIST;
+        }
         this.latitude = latitude;
         this.longitude = longitude;
         this.featureClass = featureClass;
         this.featureCode = featureCode;
         this.primaryCountryCode = primaryCountryCode;
-        this.alternateCountryCodes = alternateCountryCodes;
+        if (alternateCountryCodes != null) {
+            // defensive copy
+            this.alternateCountryCodes = Collections.unmodifiableList(new ArrayList<CountryCode>(alternateCountryCodes));
+        } else {
+            // ensure this is never null
+            this.alternateCountryCodes = Collections.EMPTY_LIST;
+        }
         this.admin1Code = admin1Code;
         this.admin2Code = admin2Code;
         this.admin3Code = admin3Code;
@@ -185,8 +198,8 @@ public class GeoName {
         this.population = population;
         this.elevation = elevation;
         this.digitalElevationModel = digitalElevationModel;
-        this.timezone = timezone;
-        this.modificationDate = modificationDate;
+        this.timezone = timezone != null ? (TimeZone) timezone.clone() : null;
+        this.modificationDate = modificationDate != null ? new Date(modificationDate.getTime()) : null;
     }
     
     /**
@@ -313,5 +326,167 @@ public class GeoName {
     @Override
     public String toString() {
         return name + " (" + getPrimaryCountryName() + ", " + admin1Code + ")" + " [pop: " + population + "] <" + geonameID + ">";
+    }
+
+    /**
+     * Get the ID of the record in geonames database.
+     * @return the ID
+     */
+    public int getGeonameID() {
+        return geonameID;
+    }
+
+    /**
+     * Get the name of the geographical point (UTF-8).
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Get the name of the geographical point in plain ascii characters.
+     * @return the plain ascii name
+     */
+    public String getAsciiName() {
+        return asciiName;
+    }
+
+    /**
+     * Get the alternate names for the location.
+     * @return the alternate names; an empty List if none
+     */
+    public List<String> getAlternateNames() {
+        return alternateNames;
+    }
+
+    /**
+     * Get the latitude in decimal degrees.
+     * @return the latitude
+     */
+    public double getLatitude() {
+        return latitude;
+    }
+
+    /**
+     * Get the longitude in decimal degrees.
+     * @return the longitude
+     */
+    public double getLongitude() {
+        return longitude;
+    }
+
+    /**
+     * Get the major feature category.
+     * See http://www.geonames.org/export/codes.html
+     * @return the major feature category
+     */
+    public FeatureClass getFeatureClass() {
+        return featureClass;
+    }
+
+    /**
+     * Get the feature code.
+     * See http://www.geonames.org/export/codes.html
+     * @return the feature code
+     */
+    public FeatureCode getFeatureCode() {
+        return featureCode;
+    }
+
+    /**
+     * Get the primary ISO-3166 2-letter country code.
+     * @return the primary country code
+     */
+    public CountryCode getPrimaryCountryCode() {
+        return primaryCountryCode;
+    }
+
+    /**
+     * Get the alternate ISO-3166 2-letter country codes.
+     * @return the alternate country codes; empty List if none
+     */
+    public List<CountryCode> getAlternateCountryCodes() {
+        return alternateCountryCodes;
+    }
+
+    /**
+     * Get the code for the first level administrative division (e.g. a
+     * state in the US). This is mostly FIPS codes. ISO codes are
+     * used for US, CH, BE and ME. UK and Greece are using an
+     * additional level between country and FIPS code.
+     * @return the code for the first administrative division
+     */
+    public String getAdmin1Code() {
+        return admin1Code;
+    }
+
+    /**
+     * Get the code for the second level administrative division (e.g. a
+     * county in the US).
+     * @return the code for the second administrative division
+     */
+    public String getAdmin2Code() {
+        return admin2Code;
+    }
+
+    /**
+     * Get the code for the third level administrative division.
+     * @return the code for the third administrative division
+     */
+    public String getAdmin3Code() {
+        return admin3Code;
+    }
+
+    /**
+     * Get the code for the fourth level administrative division.
+     * @return the code for the fourth administrative division
+     */
+    public String getAdmin4Code() {
+        return admin4Code;
+    }
+
+    /**
+     * Get the total number of inhabitants.
+     * @return the population
+     */
+    public long getPopulation() {
+        return population;
+    }
+
+    /**
+     * Get the elevation in meters.
+     * @return the elevation
+     */
+    public int getElevation() {
+        return elevation;
+    }
+
+    /**
+     * Get the digital elevation model, srtm3 or gtopo30, average
+     * elevation of 3''x3'' (ca 90mx90m) or 30''x30'' (ca 900mx900m)
+     * area in meters, integer.  srtm processed by cgiar/ciat.
+     * @return the average elevation in meters
+     */
+    public int getDigitalElevationModel() {
+        return digitalElevationModel;
+    }
+
+    /**
+     * Get the time zone for the geographical point.
+     * @return the time zone; may be <code>null</code>
+     */
+    public TimeZone getTimezone() {
+        // defensive copy
+        return timezone != null ? (TimeZone) timezone.clone() : null;
+    }
+
+    /**
+     * Get the last modification date in the GeoNames database.
+     * @return the last modification date; may be <code>null</code>
+     */
+    public Date getModificationDate() {
+        // defensive copy
+        return modificationDate != null ? new Date(modificationDate.getTime()) : null;
     }
 }

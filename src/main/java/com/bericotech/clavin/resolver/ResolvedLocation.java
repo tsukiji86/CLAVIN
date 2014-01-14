@@ -46,19 +46,19 @@ import static com.bericotech.clavin.util.DamerauLevenshtein.damerauLevenshteinDi
  */
 public class ResolvedLocation {
     // geographic entity resolved from location name
-    public GeoName geoname;
+    private final GeoName geoname;
     
     // original location name extracted from text
-    public LocationOccurrence location;
+    private final LocationOccurrence location;
     
     // name from gazetteer record that the inputName was matched against
-    public String matchedName;
+    private final String matchedName;
     
     // whether fuzzy matching was used
-    public boolean fuzzy;
+    private final boolean fuzzy;
     
     // confidence score for resolution
-    public float confidence;
+    private final float confidence;
     
     /**
      * Builds a {@link ResolvedLocation} from a document retrieved from
@@ -82,7 +82,7 @@ public class ResolvedLocation {
         // for fuzzy matches, confidence is based on the edit distance
         // between the given location name and the matched name
         if (fuzzy)
-            this.confidence = 1 / (damerauLevenshteinDistanceCaseInsensitive(location.text, matchedName) + (float)0.5);
+            this.confidence = 1 / (damerauLevenshteinDistanceCaseInsensitive(location.getText(), matchedName) + (float)0.5);
         else this.confidence = 1; // exact String match
         /// TODO: fix this confidence score... it doesn't fully make sense
     }
@@ -108,7 +108,7 @@ public class ResolvedLocation {
         // ResolvedLocations as equal since they point to the same
         // geographic entity (even if the circumstances of the entity
         // resolution process differed)
-        return (this.geoname.geonameID == other.geoname.geonameID);
+        return (this.geoname.getGeonameID() == other.geoname.getGeonameID());
     }
     
     /**
@@ -117,6 +117,48 @@ public class ResolvedLocation {
      */
     @Override
     public String toString() {
-        return "Resolved \"" + location.text + "\" as: \"" + matchedName + "\" {" + geoname + "}, position:" + location.position + ", confidence: " + confidence + ", fuzzy: " + fuzzy;
+        return String.format("Resolved \"%s\" as: \"%s\" {%s}, position: %s, confidence: %f, fuzzy: %s",
+                location.getText(), matchedName, geoname, location.getPosition(), confidence, fuzzy);
+    }
+
+    /**
+     * Get the geographic entity resolved from the location name.
+     * @return the geographic entity
+     */
+    public GeoName getGeoname() {
+        return geoname;
+    }
+
+    /**
+     * Get the original location name extracted from the text.
+     * @return the original occurrence of the location name
+     */
+    public LocationOccurrence getLocation() {
+        return location;
+    }
+
+    /**
+     * Get the name from the gazetteer record that the inputName was
+     * matched against.
+     * @return the matched name
+     */
+    public String getMatchedName() {
+        return matchedName;
+    }
+
+    /**
+     * Was fuzzy matching used?
+     * @return <code>true</code> if fuzzy matching was used
+     */
+    public boolean isFuzzy() {
+        return fuzzy;
+    }
+
+    /**
+     * Get the confidence score for resolution.
+     * @return the confidence score
+     */
+    public float getConfidence() {
+        return confidence;
     }
 }

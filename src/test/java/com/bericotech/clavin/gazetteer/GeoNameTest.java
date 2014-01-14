@@ -76,58 +76,58 @@ public class GeoNameTest {
         // check all attributed for a standard US city
         GeoName geoname;
         geoname = geonames.get(0);
-        assertEquals("incorrect geonameID", 4781530, geoname.geonameID);
-        assertEquals("incorrect name", "Reston", geoname.name);
-        assertEquals("incorrect asciiName", "Reston", geoname.asciiName);
-        assertEquals("incorrect alternateNames", Arrays.asList("Reston","Рестон"), geoname.alternateNames);
-        assertEquals("incorrect latitude", 38.96872, geoname.latitude, 0.1);
-        assertEquals("incorrect longitude", -77.3411, geoname.longitude, 0.1);
-        assertEquals("incorrect featureClass", FeatureClass.P, geoname.featureClass);
-        assertEquals("incorrect featureCode", FeatureCode.PPL, geoname.featureCode);
-        assertEquals("incorrect primaryCountryCode", CountryCode.US, geoname.primaryCountryCode);
+        assertEquals("incorrect geonameID", 4781530, geoname.getGeonameID());
+        assertEquals("incorrect name", "Reston", geoname.getName());
+        assertEquals("incorrect asciiName", "Reston", geoname.getAsciiName());
+        assertEquals("incorrect alternateNames", Arrays.asList("Reston","Рестон"), geoname.getAlternateNames());
+        assertEquals("incorrect latitude", 38.96872, geoname.getLatitude(), 0.1);
+        assertEquals("incorrect longitude", -77.3411, geoname.getLongitude(), 0.1);
+        assertEquals("incorrect featureClass", FeatureClass.P, geoname.getFeatureClass());
+        assertEquals("incorrect featureCode", FeatureCode.PPL, geoname.getFeatureCode());
+        assertEquals("incorrect primaryCountryCode", CountryCode.US, geoname.getPrimaryCountryCode());
         assertEquals("incorrect primaryCountryName", CountryCode.US.name, geoname.getPrimaryCountryName());
-        assertEquals("incorrect alternateCountryCodes", new ArrayList<CountryCode>(), geoname.alternateCountryCodes);
-        assertEquals("incorrect adminCode1", "VA", geoname.admin1Code);
-        assertEquals("incorrect adminCode2", "059", geoname.admin2Code);
-        assertEquals("incorrect adminCode3", "", geoname.admin3Code);
-        assertEquals("incorrect adminCode4", "", geoname.admin4Code);
-        assertEquals("incorrect population", 58404, geoname.population);
-        assertEquals("incorrect elevation", 100, geoname.elevation);
-        assertEquals("incorrect digitalElevationModel", 102, geoname.digitalElevationModel);
-        assertEquals("incorrect timezone", TimeZone.getTimeZone("America/New_York"), geoname.timezone);
-        assertEquals("incorrect modificationDate", new SimpleDateFormat("yyyy-MM-dd").parse("2011-05-14"), geoname.modificationDate);
+        assertEquals("incorrect alternateCountryCodes", new ArrayList<CountryCode>(), geoname.getAlternateCountryCodes());
+        assertEquals("incorrect adminCode1", "VA", geoname.getAdmin1Code());
+        assertEquals("incorrect adminCode2", "059", geoname.getAdmin2Code());
+        assertEquals("incorrect adminCode3", "", geoname.getAdmin3Code());
+        assertEquals("incorrect adminCode4", "", geoname.getAdmin4Code());
+        assertEquals("incorrect population", 58404, geoname.getPopulation());
+        assertEquals("incorrect elevation", 100, geoname.getElevation());
+        assertEquals("incorrect digitalElevationModel", 102, geoname.getDigitalElevationModel());
+        assertEquals("incorrect timezone", TimeZone.getTimeZone("America/New_York"), geoname.getTimezone());
+        assertEquals("incorrect modificationDate", new SimpleDateFormat("yyyy-MM-dd").parse("2011-05-14"), geoname.getModificationDate());
         
         // lots of UTF chars & missing columns
         geoname = geonames.get(1);
-        assertEquals("incorrect geonameID", 1139905, geoname.geonameID);
-        assertEquals("incorrect name", "Ḩowẕ-e Ḩājī Bēg", geoname.name);
-        assertEquals("incorrect asciiName", "Howz-e Haji Beg", geoname.asciiName);
-        assertEquals("incorrect alternateNames", Arrays.asList("Hawdze Hajibeg","Howz-e Haji Beg","Howz-e Hajjibeyg","H̱awdze Ḩājibeg","حوض حاجی بېگ","Ḩowẕ-e Ḩājjībeyg","Ḩowẕ-e Ḩājī Bēg"), geoname.alternateNames);
-        assertEquals("incorrect latitude", 34.90489, geoname.latitude, 0.1);
-        assertEquals("incorrect longitude", 64.10312, geoname.longitude, 0.1);
+        assertEquals("incorrect geonameID", 1139905, geoname.getGeonameID());
+        assertEquals("incorrect name", "Ḩowẕ-e Ḩājī Bēg", geoname.getName());
+        assertEquals("incorrect asciiName", "Howz-e Haji Beg", geoname.getAsciiName());
+        assertEquals("incorrect alternateNames", Arrays.asList("Hawdze Hajibeg","Howz-e Haji Beg","Howz-e Hajjibeyg","H̱awdze Ḩājibeg","حوض حاجی بېگ","Ḩowẕ-e Ḩājjībeyg","Ḩowẕ-e Ḩājī Bēg"), geoname.getAlternateNames());
+        assertEquals("incorrect latitude", 34.90489, geoname.getLatitude(), 0.1);
+        assertEquals("incorrect longitude", 64.10312, geoname.getLongitude(), 0.1);
         
         // seldom-used fields
         geoname = geonames.get(2);
-        assertEquals("incorrect geonameID", 2826158, geoname.geonameID);
-        assertEquals("incorrect alternateNames", new ArrayList<String>(), geoname.alternateNames);
-        assertEquals("incorrect adminCode3", "07138", geoname.admin3Code);
-        assertEquals("incorrect adminCode4", "07138071", geoname.admin4Code);
+        assertEquals("incorrect geonameID", 2826158, geoname.getGeonameID());
+        assertEquals("incorrect alternateNames", new ArrayList<String>(), geoname.getAlternateNames());
+        assertEquals("incorrect adminCode3", "07138", geoname.getAdmin3Code());
+        assertEquals("incorrect adminCode4", "07138071", geoname.getAdmin4Code());
         
         // no primaryCountryCode
         geoname = geonames.get(3);
-        assertEquals("incorrect primaryCountryCode", CountryCode.NULL, geoname.primaryCountryCode);
+        assertEquals("incorrect primaryCountryCode", CountryCode.NULL, geoname.getPrimaryCountryCode());
         
         // non-empty alternateCountryCodes
         geoname = geonames.get(4);
-        assertEquals("incorrect alternateCountryCodes", Arrays.asList(CountryCode.US, CountryCode.MX), geoname.alternateCountryCodes);
+        assertEquals("incorrect alternateCountryCodes", Arrays.asList(CountryCode.US, CountryCode.MX), geoname.getAlternateCountryCodes());
         
         // malformed alternateCountryCodes
         geoname = geonames.get(5);
-        assertEquals("incorrect alternateCountryCodes", Arrays.asList(CountryCode.PS), geoname.alternateCountryCodes);
+        assertEquals("incorrect alternateCountryCodes", Arrays.asList(CountryCode.PS), geoname.getAlternateCountryCodes());
         
         // no featureCode
         geoname = geonames.get(6);
-        assertEquals("incorrect featureClass", FeatureCode.NULL, geoname.featureCode);
+        assertEquals("incorrect featureClass", FeatureCode.NULL, geoname.getFeatureCode());
     }
     
     /**

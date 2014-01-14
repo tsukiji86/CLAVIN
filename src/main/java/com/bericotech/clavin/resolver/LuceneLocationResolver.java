@@ -135,7 +135,7 @@ public class LuceneLocationResolver implements LocationResolver {
     private List<ResolvedLocation> getCandidateMatches(LocationOccurrence locationName, boolean fuzzy)
             throws IOException, ParseException{
         // santize the query input
-        String sanitizedLocationName = escape(locationName.text.toLowerCase());
+        String sanitizedLocationName = escape(locationName.getText().toLowerCase());
         
         try{
             // Lucene query used to look for matches based on the
@@ -187,20 +187,20 @@ public class LuceneLocationResolver implements LocationResolver {
                     // drats, foiled again! no fuzzy matches found either!
                     // in this case, we'll return an empty list of
                     // candidate matches
-                    logger.debug("No match found for: '{}'", locationName.text);
+                    logger.debug("No match found for: '{}'", locationName.getText());
                 }
             } else {
                 // no matches found and fuzzy matching is turned off
-                logger.debug("No match found for: '{}'", locationName.text);
+                logger.debug("No match found for: '{}'", locationName.getText());
             }
             
             return candidateMatches;
             
         } catch (ParseException e) {
-            logger.error(String.format("Error resolving location for : '%s'", locationName.text), e);
+            logger.error(String.format("Error resolving location for : '%s'", locationName.getText()), e);
             throw e;
         } catch (IOException e) {
-            logger.error(String.format("Error resolving location for : '%s'", locationName.text), e);
+            logger.error(String.format("Error resolving location for : '%s'", locationName.getText()), e);
             throw e;
         }
     }
@@ -258,8 +258,8 @@ public class LuceneLocationResolver implements LocationResolver {
                 countries = new ArrayList<CountryCode>();
                 states = new ArrayList<String>();
                 for (ResolvedLocation location: combo) {
-                    countries.add(location.geoname.primaryCountryCode);
-                    states.add(location.geoname.admin1Code);
+                    countries.add(location.getGeoname().getPrimaryCountryCode());
+                    states.add(location.getGeoname().getAdmin1Code());
                 }
                 
                 // unique-ify the lists to look for common country codes & admin1 codes
