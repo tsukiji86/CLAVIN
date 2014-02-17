@@ -6,10 +6,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.zip.ZipFile;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -66,8 +68,9 @@ public class IndexDirectoryBuilder {
     
     public final static Logger logger = LoggerFactory.getLogger(IndexDirectoryBuilder.class);
     
-    // the GeoNames gazetteer file to be loaded
-    static String pathToGazetteer = "./allCountries.txt";
+    // the GeoNames gazetteer file without the extension
+    
+    static String pathToGazetteer = "./allCountries";
 
     /**
      * Turns a GeoNames gazetteer file into a Lucene index, and adds
@@ -78,6 +81,7 @@ public class IndexDirectoryBuilder {
      */
     public static void main(String[] args) throws IOException {
         
+    	 
         // exit gracefully if the directory exists 
         File idir = new File("./IndexDirectory");
         if (idir.exists() ) {
@@ -97,16 +101,43 @@ public class IndexDirectoryBuilder {
         Analyzer indexAnalyzer = new WhitespaceLowerCaseAnalyzer();
         
         // create the object that will actually build the Lucene index
-        IndexWriter indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_40, indexAnalyzer));
+        IndexWriter indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_46, indexAnalyzer));
+     
+       
+        // open the gazetteer files to be loaded    
         
-        // open the gazetteer files to be loaded
-        BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(new File(pathToGazetteer)), "UTF-8"));
+        BufferedReader r = null;
+        
+        // was the gazetteer unzipped?
+        if (new File(pathToGazetteer + ".txt").exists()) {	
+        	// read in text file   
+        	logger.info("Reading in text file: " + pathToGazetteer + ".txt");
+        	r = new BufferedReader(new InputStreamReader(new FileInputStream(new File(pathToGazetteer)), "UTF-8"));
+
+        // the gazetteer is a zip file 
+        } else if (new File(pathToGazetteer + ".zip").exists()) {
+        	logger.info("Reading in zip file: " + pathToGazetteer + ".zip");
+        	ZipFile zf = new ZipFile(pathToGazetteer + ".zip");
+        	// assumes that there is only one file in the geonames gazetteer zip file
+        	InputStream is = zf.getInputStream(zf.entries().nextElement());        	
+        	r = new BufferedReader(new InputStreamReader(is, "UTF-8"));        	
+        	
+        // missing gazetteer
+        } else {
+            logger.info("Missing " + pathToGazetteer + ".zip or " + pathToGazetteer + ".txt");
+            System.exit(-1);
+        }
+    	
+        
+        //BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(new File(pathToGazetteer)), "UTF-8"));
         BufferedReader r2 = new BufferedReader(new InputStreamReader(new FileInputStream(new File("./src/main/resources/SupplementaryGazetteer.txt")), "UTF-8"));
         
         String line;
         
         // let's see how long this takes...
         Date start = new Date();
+        
+        
         
         // load GeoNames gazetteer into Lucene index
         int count = 0;

@@ -1,0 +1,5 @@
+#!/bin/sh 
+
+java -Xmx2048m -jar target/clavin-1.0.0-jar-with-dependencies.jar $@
+
+ 
