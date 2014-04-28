@@ -4,6 +4,8 @@ IndexDirectory/
 .settings/
 .classpath
 .project
+.idea
+clavin.iml
 allCountries.zip
 allCountries.txt
 !.gitignore

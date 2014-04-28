@@ -95,7 +95,7 @@ public class IndexDirectoryBuilder {
         Analyzer indexAnalyzer = new WhitespaceLowerCaseAnalyzer();
         
         // create the object that will actually build the Lucene index
-        IndexWriter indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_40, indexAnalyzer));
+        IndexWriter indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_47, indexAnalyzer));
         
         // open the gazetteer files to be loaded
         BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(new File(pathToGazetteer)), "UTF-8"));

@@ -118,7 +118,7 @@ public class LuceneLocationResolver implements LocationResolver {
         // run an initial throw-away query just to "prime the pump" for
         // the cache, so we can accurately measure performance speed
         // per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
-        indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_40,
+        indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_47,
                 "indexName", indexAnalyzer).parse("Reston"), null, maxHitDepth, populationSort);
     }
     
@@ -140,7 +140,7 @@ public class LuceneLocationResolver implements LocationResolver {
         try{
             // Lucene query used to look for matches based on the
             // "indexName" field
-            Query q = new AnalyzingQueryParser(Version.LUCENE_40,
+            Query q = new AnalyzingQueryParser(Version.LUCENE_47,
                     "indexName", indexAnalyzer).parse("\"" + sanitizedLocationName + "\"");
             
             // collect all the hits up to maxHits, and sort them based
@@ -167,7 +167,7 @@ public class LuceneLocationResolver implements LocationResolver {
                 // with TopTermsBoostOnlyBooleanQueryRewrite, I like the output better this way.
                 // With the other method, we failed to match things like "Stra��enhaus Airport"
                 // as <Stra��enhaus>, and the match scores didn't make as much sense.
-                q = new AnalyzingQueryParser(Version.LUCENE_40, "indexName", indexAnalyzer).parse(sanitizedLocationName + "~");
+                q = new AnalyzingQueryParser(Version.LUCENE_47, "indexName", indexAnalyzer).parse(sanitizedLocationName + "~");
                 
                 // collect all the fuzzy matches up to maxHits, and sort
                 // them based on Lucene match score and population for the
