@@ -1,5 +1,12 @@
-/*
- * Copyright 2014 Berico Technologies.
+/*#####################################################################
+ *
+ * CLAVIN (Cartographic Location And Vicinity INdexer)
+ * ---------------------------------------------------
+ *
+ * Copyright (C) 2012-2013 Berico Technologies
+ * http://clavin.bericotechnologies.com
+ *
+ * ====================================================================
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9,20 +16,24 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * ====================================================================
+ *
+ * LuceneGazetteer.java
+ *
+ *###################################################################*/
 package com.bericotech.clavin.gazetteer;
 
 import static com.bericotech.clavin.index.IndexField.*;
 import static org.apache.lucene.queryparser.classic.QueryParserBase.escape;
 
+import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.index.BinarySimilarity;
 import com.bericotech.clavin.index.WhitespaceLowerCaseAnalyzer;
-import com.bericotech.clavin.resolver.LuceneLocationResolver;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
 import java.io.IOException;
@@ -83,10 +94,10 @@ public class LuceneGazetteer implements Gazetteer {
      * resolving location names to GeoName objects.
      *
      * @param indexDir              Lucene index directory to be loaded
-     * @throws IOException          if an error occurs opening the index
-     * @throws ParseException       if an error occurs opening the index
+     * @throws ClavinException      if an error occurs opening the index
      */
-    public LuceneGazetteer(final File indexDir) throws IOException, ParseException {
+    public LuceneGazetteer(final File indexDir) throws ClavinException {
+        try {
         // load the Lucene index directory from disk
         index = FSDirectory.open(indexDir);
 
@@ -100,6 +111,11 @@ public class LuceneGazetteer implements Gazetteer {
         // per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
         indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(),
                 INDEX_ANALYZER).parse("Reston"), null, DEFAULT_MAX_RESULTS, POPULATION_SORT);
+        } catch (ParseException pe) {
+            throw new ClavinException("Error executing priming query.", pe);
+        } catch (IOException ioe) {
+            throw new ClavinException("Error opening gazetteer index.", ioe);
+        }
     }
 
     /**
@@ -109,13 +125,12 @@ public class LuceneGazetteer implements Gazetteer {
      * @param maxResults        the maximum number of results to return
      * @param fuzzy             switch for turning on/off fuzzy matching
      * @return                  list of ResolvedLocations as potential matches
-     * @throws IOException      if an error occurs searching the index
-     * @throws ParseException   if an error occurs searching the index
+     * @throws ClavinException  if an error occurs searching the index
      */
     @Override
     @SuppressWarnings("unchecked")
     public List<ResolvedLocation> getClosestLocations(final LocationOccurrence locationName, final int maxResults,
-            final boolean fuzzy) throws IOException, ParseException {
+            final boolean fuzzy) throws ClavinException {
         // short-circuit if no location name was provided
         String name = locationName != null && locationName.getText() != null ? locationName.getText().trim().toLowerCase() : "";
         if ("".equals(name)) {
@@ -184,22 +199,24 @@ public class LuceneGazetteer implements Gazetteer {
             return candidateMatches;
 
         } catch (ParseException e) {
-            LOG.error(String.format("Error resolving location for : '%s'", locationName.getText()), e);
-            throw e;
+            String msg = String.format("Error resolving location for : '%s'", locationName.getText());
+            LOG.error(msg, e);
+            throw new ClavinException(msg, e);
         } catch (IOException e) {
-            LOG.error(String.format("Error resolving location for : '%s'", locationName.getText()), e);
-            throw e;
+            String msg = String.format("Error resolving location for : '%s'", locationName.getText());
+            LOG.error(msg, e);
+            throw new ClavinException(msg, e);
         }
     }
 
     /**
      * Retrieves the GeoName with the provided ID.
-     * @param geonameId      the ID of the requested GeoName
-     * @return               the requested GeoName or <code>null</code> if not found
-     * @throws IOException   if an error occurs
+     * @param geonameId          the ID of the requested GeoName
+     * @return                   the requested GeoName or <code>null</code> if not found
+     * @throws ClavinException   if an error occurs
      */
     @Override
-    public GeoName getGeoName(final int geonameId) throws IOException {
+    public GeoName getGeoName(final int geonameId) throws ClavinException {
         try {
             GeoName geoName = null;
             // Lucene query used to look for exact match on the "geonameID" field
@@ -213,8 +230,9 @@ public class LuceneGazetteer implements Gazetteer {
             }
             return geoName;
         } catch (IOException e) {
-            LOG.error(String.format("Error retrieving geoname with ID : %d", geonameId), e);
-            throw e;
+            String msg = String.format("Error retrieving geoname with ID : %d", geonameId);
+            LOG.error(msg, e);
+            throw new ClavinException(msg, e);
         }
     }
 }

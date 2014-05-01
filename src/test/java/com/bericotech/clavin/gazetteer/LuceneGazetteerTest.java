@@ -18,14 +18,13 @@ package com.bericotech.clavin.gazetteer;
 
 import static org.junit.Assert.*;
 
+import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,18 +55,15 @@ public class LuceneGazetteerTest {
     }
 
     @Before
-    public void setUp() throws IOException, ParseException {
+    public void setUp() throws ClavinException {
         instance = new LuceneGazetteer(INDEX_DIRECTORY);
     }
     /**
      * Ensure {@link LuceneGazetteer#getClosestLocations(List, boolean)} isn't
      * choking on input.
-     *
-     * @throws IOException
-     * @throws ParseException
      */
     @Test
-    public void testResolveLocations() throws IOException, ParseException {
+    public void testResolveLocations() throws ClavinException {
         Object[][] testCases = new Object[][] {
             new Object[] { "Reston", RESTON_VA, "Gazetteer failed exact String match" },
             new Object[] { "reston", RESTON_VA, "Gazetteer failed on all lowercase" },
@@ -86,12 +82,9 @@ public class LuceneGazetteerTest {
 
     /**
      * Test fuzzy matching.
-     *
-     * @throws IOException
-     * @throws ParseException
      */
     @Test
-    public void testResolveLocations_Fuzzy() throws IOException, ParseException {
+    public void testResolveLocations_Fuzzy() throws ClavinException {
         Object[][] testCases = new Object[][] {
             new Object[] { "Bostonn", BOSTON_MA, "Gazetteer failed on extra char" },
             new Object[] { "Reston12", RESTON_VA, "Gazetteer failed on extra chars" },
@@ -110,25 +103,26 @@ public class LuceneGazetteerTest {
     }
 
     @Test
-    public void testResolveLocations_EmptyInput() throws Exception {
+    public void testResolveLocations_EmptyInput() throws ClavinException {
         List<ResolvedLocation> locs = instance.getClosestLocations(new LocationOccurrence("", 0), 1, true);
         assertEquals("Expected empty results list for empty input.", Collections.EMPTY_LIST, locs);
     }
 
     @Test
-    public void testResolveLocations_WhitespaceInput() throws Exception {
+    public void testResolveLocations_WhitespaceInput() throws ClavinException {
         List<ResolvedLocation> locs = instance.getClosestLocations(new LocationOccurrence("\n \t\t \n", 0), 1, true);
         assertEquals("Expected empty results list for whitespace input.", Collections.EMPTY_LIST, locs);
     }
 
     @Test
-    public void testResolveLocations_NullInput() throws Exception {
+    public void testResolveLocations_NullInput() throws ClavinException {
         List<ResolvedLocation> locs = instance.getClosestLocations(new LocationOccurrence(null, 0), 1, true);
         assertEquals("Expected empty results list for null location name.", Collections.EMPTY_LIST, locs);
 
         locs = instance.getClosestLocations(null, 1, true);
         assertEquals("Expected empty results list for null occurrence.", Collections.EMPTY_LIST, locs);
     }
+
     /**
      * Ensures Lucene isn't choking on reserved words or unescaped
      * characters.
@@ -141,7 +135,7 @@ public class LuceneGazetteerTest {
         for (String loc : locations) {
             try {
                 instance.getClosestLocations(new LocationOccurrence(loc, 0), 1, true);
-            } catch (Exception e) {
+            } catch (ClavinException e) {
                 fail(String.format("Input sanitization failed for string '%s': %s", loc, e.getMessage()));
             }
         }
@@ -149,12 +143,9 @@ public class LuceneGazetteerTest {
 
     /**
      * Tests some border cases involving the resolver.
-     *
-     * @throws IOException
-     * @throws ParseException
      */
     @Test
-    public void testBorderCases() throws IOException, ParseException {
+    public void testBorderCases() throws ClavinException {
         // ensure we get no matches for this crazy String
         LocationOccurrence loc = new LocationOccurrence("jhadghaoidhg", 0);
         assertTrue("Gazetteer fuzzy off, no match", instance.getClosestLocations(loc, 1, false).isEmpty());
@@ -163,21 +154,17 @@ public class LuceneGazetteerTest {
 
     /**
      * Ensure exception is thrown when trying to read non-existent index.
-     *
-     * @throws IOException
-     * @throws ParseException
      */
-    @Test(expected=IOException.class)
-    public void testNonExistentIndex() throws IOException, ParseException {
+    @Test(expected=ClavinException.class)
+    public void testNonExistentIndex() throws ClavinException {
         new LuceneGazetteer(new File("./IMAGINARY_FILE"));
     }
 
     /**
      * Ensure correct GeoName is returned when searched for by ID.
-     * @throws IOException
      */
     @Test
-    public void testGetGeoName() throws IOException {
+    public void testGetGeoName() throws ClavinException {
         Object[][] testCases = new Object[][] {
             new Object[] { RESTON_VA, "Reston, VA" },
             new Object[] { BOSTON_MA, "Boston, MA" },
@@ -193,10 +180,9 @@ public class LuceneGazetteerTest {
 
     /**
      * Ensure null GeoName is returned when ID is not found.
-     * @throws IOException
      */
     @Test
-    public void testGetNullGeoName() throws IOException {
+    public void testGetNullGeoName() throws ClavinException {
         assertNull("Expected null GeoName for unknown ID [-1]", instance.getGeoName(-1));
     }
 }

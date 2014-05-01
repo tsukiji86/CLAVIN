@@ -1,5 +1,12 @@
-/*
- * Copyright 2014 Berico Technologies.
+/*#####################################################################
+ *
+ * CLAVIN (Cartographic Location And Vicinity INdexer)
+ * ---------------------------------------------------
+ *
+ * Copyright (C) 2012-2013 Berico Technologies
+ * http://clavin.bericotechnologies.com
+ *
+ * ====================================================================
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -9,13 +16,18 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ * ====================================================================
+ *
+ * Gazetteer.java
+ *
+ *###################################################################*/
 package com.bericotech.clavin.gazetteer;
 
+import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.util.List;
@@ -32,16 +44,16 @@ public interface Gazetteer {
      * @param maxResults        the maximum number of results to return
      * @param fuzzy             switch for turning on/off fuzzy matching
      * @return                  list of ResolvedLocations as potential matches
-     * @throws Exception        if an error occurs
+     * @throws ClavinException  if an error occurs
      */
     List<ResolvedLocation> getClosestLocations(final LocationOccurrence locationName, final int maxResults,
-            final boolean fuzzy) throws Exception;
+            final boolean fuzzy) throws ClavinException;
 
     /**
      * Retrieves the GeoName with the provided ID.
-     * @param geonameId      the ID of the requested GeoName
-     * @return               the requested GeoName or <code>null</code> if not found
-     * @throws Exception     if an error occurs
+     * @param geonameId           the ID of the requested GeoName
+     * @return                    the requested GeoName or <code>null</code> if not found
+     * @throws ClavinException    if an error occurs
      */
-    GeoName getGeoName(final int geonameId) throws Exception;
+    GeoName getGeoName(final int geonameId) throws ClavinException;
 }
