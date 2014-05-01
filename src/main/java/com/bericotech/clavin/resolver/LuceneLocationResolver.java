@@ -2,13 +2,16 @@ package com.bericotech.clavin.resolver;
 
 import static org.apache.lucene.queryparser.classic.QueryParserBase.escape;
 
+import com.bericotech.clavin.extractor.LocationOccurrence;
+import com.bericotech.clavin.gazetteer.CountryCode;
+import com.bericotech.clavin.index.BinarySimilarity;
+import com.bericotech.clavin.index.WhitespaceLowerCaseAnalyzer;
+import com.bericotech.clavin.util.ListUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
-import com.bericotech.clavin.extractor.LocationOccurrence;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
@@ -23,78 +26,73 @@ import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bericotech.clavin.gazetteer.CountryCode;
-import com.bericotech.clavin.index.BinarySimilarity;
-import com.bericotech.clavin.index.WhitespaceLowerCaseAnalyzer;
-import com.bericotech.clavin.util.ListUtils;
-
 /*#####################################################################
- * 
+ *
  * CLAVIN (Cartographic Location And Vicinity INdexer)
  * ---------------------------------------------------
- * 
+ *
  * Copyright (C) 2012-2013 Berico Technologies
  * http://clavin.bericotechnologies.com
- * 
+ *
  * ====================================================================
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
- * 
+ *
  * ====================================================================
- * 
+ *
  * LuceneLocationResolver.java
- * 
+ *
  *###################################################################*/
 
 /**
  * Resolves location names into GeoName objects.
- * 
+ *
  * Takes location names extracted from unstructured text documents by
  * {@link com.bericotech.clavin.extractor.LocationExtractor} and resolves them into the appropriate
  * geographic entities (as intended by the document's author based on
  * context) by finding the best match in a gazetteer.
- * 
+ *
  */
 public class LuceneLocationResolver implements LocationResolver {
-    
+
     public final static Logger logger = LoggerFactory.getLogger(LuceneLocationResolver.class);
-    
+
     // Lucene index built from GeoNames gazetteer
     private FSDirectory index;
     private IndexSearcher indexSearcher;
     private static Analyzer indexAnalyzer;
-    
+
     // maximum number of matches to be fetched from Lucene index
     // (i.e., search depth) -- use a value of 1 to simply retrieve the
     // matching geo entity having the highest population
     private int maxHitDepth;
-    
+
     // maximum number of adjacent location name to consider during
     // heuristic matching (i.e., search breadth) -- use a value of 1 to
     // turn off context-based heuristics
     private int maxContextWindow;
-    
+
     // custom Lucene sorting based on Lucene match score and the
     // population of the GeoNames gazetteer entry represented by the
     // matched index document
     private static final Sort populationSort = new Sort(new SortField[]
             {SortField.FIELD_SCORE, new SortField("population", SortField.Type.LONG, true)});
-    
+
     /**
      * Builds a {@link LuceneLocationResolver} by loading a pre-built Lucene
      * index from disk and setting configuration parameters for
      * resolving location names to GeoName objects.
-     * 
+     *
      * @param indexDir              Lucene index directory to be loaded
      * @param maxHitDepth           number of candidate matches to consider
      * @param maxContextWindow      how much context to consider when resolving
@@ -104,53 +102,54 @@ public class LuceneLocationResolver implements LocationResolver {
     public LuceneLocationResolver(File indexDir, int maxHitDepth, int maxContextWindow) throws IOException, ParseException {
         // load the Lucene index directory from disk
         index = FSDirectory.open(indexDir);
-        
+
         // index employs simple lower-casing & tokenizing on whitespace
         indexAnalyzer = new WhitespaceLowerCaseAnalyzer();
         indexSearcher = new IndexSearcher(DirectoryReader.open(index));
-        
+
         // override default TF/IDF score to ignore multiple appearances
         indexSearcher.setSimilarity(new BinarySimilarity());
-        
+
         this.maxHitDepth = maxHitDepth;
         this.maxContextWindow = maxContextWindow;
-        
+
         // run an initial throw-away query just to "prime the pump" for
         // the cache, so we can accurately measure performance speed
         // per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
         indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_47,
                 "indexName", indexAnalyzer).parse("Reston"), null, maxHitDepth, populationSort);
     }
-    
+
     /**
-     * Finds all matches (capped at {@link LuceneLocationResolver#maxHitDepth})
-     * in the Lucene index for a given location name.
-     * 
+     * Finds all matches (capped at maxResults) in the Lucene index for a given location name.
+     *
      * @param locationName      name of the geographic location to be resolved
+     * @param maxResults        the maximum number of results to return
      * @param fuzzy             switch for turning on/off fuzzy matching
      * @return                  list of ResolvedLocation objects as potential matches
      * @throws IOException
      * @throws ParseException
      */
-    private List<ResolvedLocation> getCandidateMatches(LocationOccurrence locationName, boolean fuzzy)
+    @Override
+    public List<ResolvedLocation> getClosestLocations(LocationOccurrence locationName, int maxResults, boolean fuzzy)
             throws IOException, ParseException{
         // santize the query input
         String sanitizedLocationName = escape(locationName.getText().toLowerCase());
-        
+
         try{
             // Lucene query used to look for matches based on the
             // "indexName" field
             Query q = new AnalyzingQueryParser(Version.LUCENE_47,
                     "indexName", indexAnalyzer).parse("\"" + sanitizedLocationName + "\"");
-            
+
             // collect all the hits up to maxHits, and sort them based
             // on Lucene match score and population for the associated
             // GeoNames record
-            TopDocs results = indexSearcher.search(q, null, maxHitDepth, populationSort);
-            
+            TopDocs results = indexSearcher.search(q, null, maxResults, populationSort);
+
             // initialize the return object
             List<ResolvedLocation> candidateMatches = new ArrayList<ResolvedLocation>();
-            
+
             // see if anything was found
             if (results.scoreDocs.length > 0) {
                 // one or more exact String matches found for this location name
@@ -162,18 +161,18 @@ public class LuceneLocationResolver implements LocationResolver {
                 }
             } else if (fuzzy) { // only if fuzzy matching is turned on
                 // no exact String matches found -- fallback to fuzzy search
-                
+
                 // Using the tilde "~" makes this a fuzzy search. I compared this to FuzzyQuery
                 // with TopTermsBoostOnlyBooleanQueryRewrite, I like the output better this way.
                 // With the other method, we failed to match things like "Stra��enhaus Airport"
                 // as <Stra��enhaus>, and the match scores didn't make as much sense.
                 q = new AnalyzingQueryParser(Version.LUCENE_47, "indexName", indexAnalyzer).parse(sanitizedLocationName + "~");
-                
+
                 // collect all the fuzzy matches up to maxHits, and sort
                 // them based on Lucene match score and population for the
                 // associated GeoNames record
-                results = indexSearcher.search(q, null, maxHitDepth, populationSort);
-                
+                results = indexSearcher.search(q, null, maxResults, populationSort);
+
                 // see if anything was found with fuzzy matching
                 if (results.scoreDocs.length > 0) {
                     // one or more fuzzy matches found for this location name
@@ -193,9 +192,9 @@ public class LuceneLocationResolver implements LocationResolver {
                 // no matches found and fuzzy matching is turned off
                 logger.debug("No match found for: '{}'", locationName.getText());
             }
-            
+
             return candidateMatches;
-            
+
         } catch (ParseException e) {
             logger.error(String.format("Error resolving location for : '%s'", locationName.getText()), e);
             throw e;
@@ -204,53 +203,53 @@ public class LuceneLocationResolver implements LocationResolver {
             throw e;
         }
     }
-    
+
     /**
      * Uses heuristics to select the best match for each location name
      * extracted from a document, choosing from among a list of lists
      * of candidate matches.
-     * 
+     *
      * Although not guaranteeing an optimal solution (enumerating &
      * evaluating each possible combination is too costly), it does a
      * decent job of cracking the "Springfield Problem" by selecting
      * candidates that would make sense to appear together based on
      * common country and admin1 codes (i.e., states or provinces).
-     * 
-     * For example, if we also see "Boston" mentioned in a document 
+     *
+     * For example, if we also see "Boston" mentioned in a document
      * that contains "Springfield," we'd use this as a clue that we
      * ought to choose Springfield, MA over Springfield, IL or
      * Springfield, MO.
-     * 
+     *
      * TODO: consider lat/lon distance in addition to shared
      *       CountryCodes and Admin1Codes.
-     * 
+     *
      * @param allCandidates list of lists of candidate matches for locations names
      * @return              list of best matches for each location name
      */
     private List<ResolvedLocation> pickBestCandidates(List<List<ResolvedLocation>> allCandidates) {
         // initialize return object
         List<ResolvedLocation> bestCandidates = new ArrayList<ResolvedLocation>();
-        
+
         // variables used in heuristic matching
         List<CountryCode> countries;
         List<String> states;
         float score;
-        
+
         // initial values for variables controlling recursion
         float newMaxScore = 0;
         float oldMaxScore = 0;
-        
+
         // controls window of Lucene hits for each location considered
         // context-based heuristic matching, initialized as a "magic
         // number" of *3* based on tests of the "Springfield Problem"
         int candidateDepth = 3;
-        
+
         // keep searching deeper & deeper for better combinations of
         // candidate matches, as long as the scores are improving
         do {
             // reset the threshold for recursion
             oldMaxScore = newMaxScore;
-            
+
             // loop through all combinations up to the specified depth.
             // first recursive call for each depth starts at index 0
             for (List<ResolvedLocation> combo : generateAllCombos(allCandidates, 0, candidateDepth)) {
@@ -261,56 +260,56 @@ public class LuceneLocationResolver implements LocationResolver {
                     countries.add(location.getGeoname().getPrimaryCountryCode());
                     states.add(location.getGeoname().getAdmin1Code());
                 }
-                
+
                 // unique-ify the lists to look for common country codes & admin1 codes
                 countries = new ArrayList<CountryCode>(new HashSet<CountryCode>(countries));
                 states = new ArrayList<String>(new HashSet<String>(states));
-                
+
                 // calculate a score for this particular combination based on commonality
                 // of country codes & admin1 codes, and the cost of searching this deep
                 // TODO: tune this score calculation!
                 score = ((float)allCandidates.size() / (countries.size() + states.size())) / candidateDepth;
-                
-                /* *********************************************************** 
+
+                /* ***********************************************************
                  * "So, at last we meet for the first time for the last time."
-                 * 
+                 *
                  * The fact that you're interested enough in CLAVIN to be
                  * reading this means we're interested in talking with you.
-                 * 
+                 *
                  * Are you looking for a job, or are you in need of a
                  * customized solution built around CLAVIN?
-                 * 
+                 *
                  * Drop us a line at clavin@bericotechnologies.com
-                 * 
+                 *
                  * "What's the matter, Colonel Sandurz? CHICKEN?"
                  * **********************************************************/
-                
+
                 // if this is the best we've seen during this loop, update the return value
                 if (score > newMaxScore) {
                     newMaxScore = score;
                     bestCandidates = combo;
                 }
             }
-            
+
             // search one level deeper in the next loop
             candidateDepth++;
-            
+
         } while (newMaxScore > oldMaxScore);
         // keep searching while the scores are monotonically increasing
-        
+
         return bestCandidates;
     }
-    
+
     /**
      * Recursive helper function for
      * {@link #pickBestCandidates}.
-     * 
+     *
      * Generates all combinations of candidate matches from each
      * location, down to the specified depth through the lists.
-     * 
+     *
      * Adapted from:
      * http://www.daniweb.com/software-development/java/threads/177956/generating-all-possible-combinations-from-list-of-sublists#post882553
-     * 
+     *
      * @param allCandidates list of lists of candidate matches for all location names
      * @param index         keeps track of which location we're working on for recursive calls
      * @param depth         max depth into list we're searching during this recursion
@@ -324,13 +323,13 @@ public class LuceneLocationResolver implements LocationResolver {
             result.add(new ArrayList<ResolvedLocation>());
             return result;
         }
-        
+
         // initialize return object
         List<List<ResolvedLocation>> result = new ArrayList<List<ResolvedLocation>>();
-        
+
         // recursive call
         List<List<ResolvedLocation>> recursive = generateAllCombos(allCandidates, index+1, depth);
-        
+
         // for each element of the first list of input, up to depth or list size
         for(int j = 0; j < Math.min(allCandidates.get(index).size(), depth); j++) {
             // add the element to all combinations obtained for the rest of the lists
@@ -345,49 +344,49 @@ public class LuceneLocationResolver implements LocationResolver {
                 result.add(newList);
             }
         }
-        
+
         return result;
     }
-    
+
     /**
      * Resolves the supplied list of location names into
      * {@link ResolvedLocation}s containing {@link com.bericotech.clavin.gazetteer.GeoName} objects.
-     * 
-     * Calls {@link LuceneLocationResolver#getCandidateMatches} on
+     *
+     * Calls {@link LuceneLocationResolver#getClosestLocations} on
      * each location name to find all possible matches, then uses
      * heuristics to select the best match for each by calling
      * {@link LuceneLocationResolver#pickBestCandidates}.
-     * 
+     *
      * @param locations         list of location names to be resolved
      * @param fuzzy             switch for turning on/off fuzzy matching
      * @return                  list of {@link ResolvedLocation} objects
-     * @throws ParseException 
-     * @throws IOException 
+     * @throws ParseException
+     * @throws IOException
      **/
     @Override
     public List<ResolvedLocation> resolveLocations(List<LocationOccurrence> locations, boolean fuzzy) throws IOException, ParseException {
         // are you forgetting something?
         if (locations == null)
             return new ArrayList<ResolvedLocation>();
-        
+
         if (maxHitDepth > 1) { // perform context-based heuristic matching
-            
+
             // stores all possible matches for each location name
             List<List<ResolvedLocation>> allCandidates = new ArrayList<List<ResolvedLocation>>();
-            
+
             // loop through all the location names
             for (LocationOccurrence location : locations) {
                 // get all possible matches
-                List<ResolvedLocation> candidates = getCandidateMatches(location, fuzzy);
-                
+                List<ResolvedLocation> candidates = getClosestLocations(location, maxHitDepth, fuzzy);
+
                 // if we found some possible matches, save them
                 if (candidates.size() > 0)
                     allCandidates.add(candidates);
             }
-            
+
             // initialize return object
             List<ResolvedLocation> bestCandidates = new ArrayList<ResolvedLocation>();
-            
+
             // split-up allCandidates into reasonably-sized chunks to
             // limit computational load when heuristically selecting
             // the best matches
@@ -396,28 +395,28 @@ public class LuceneLocationResolver implements LocationResolver {
                 // based on heuristics
                 bestCandidates.addAll(pickBestCandidates(theseCandidates));
             }
-            
+
             return bestCandidates;
-            
+
         } else { // use no heuristics, simply choose matching location with greatest population
-            
+
             // initialize return object
             List<ResolvedLocation> resolvedLocations = new ArrayList<ResolvedLocation>();
-            
+
             // stores possible matches for each location name
             List<ResolvedLocation> candidateLocations;
-            
+
             // loop through all the location names
             for (LocationOccurrence location : locations) {
                 // choose the top-sorted candidate for each individual
                 // location name
-                candidateLocations = getCandidateMatches(location, fuzzy);
-                
+                candidateLocations = getClosestLocations(location, maxHitDepth, fuzzy);
+
                 // if a match was found, add it to the return list
                 if (candidateLocations.size() > 0)
                     resolvedLocations.add(candidateLocations.get(0));
             }
-            
+
             return resolvedLocations;
         }
     }
