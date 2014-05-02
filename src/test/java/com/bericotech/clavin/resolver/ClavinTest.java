@@ -43,11 +43,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Ensures non-heuristic matching and fuzzy matching features are
- * working properly in {@link ClavinLocationResolver}.
+ * working properly in {@link Clavin}.
  *
  */
-public class ClavinLocationResolverTest {
-    public final static Logger logger = LoggerFactory.getLogger(ClavinLocationResolverTest.class);
+public class ClavinTest {
+    public final static Logger logger = LoggerFactory.getLogger(ClavinTest.class);
 
     private static final int NO_HEURISTICS_MAX_HIT_DEPTH = 1;
     private static final int NO_HEURISTICS_MAX_CONTEXT_WINDOW = 1;
@@ -59,7 +59,7 @@ public class ClavinLocationResolverTest {
     private static final int GUN_BARREL_CITY_TX = 4695535;
 
     // objects required for running tests
-    private ClavinLocationResolver resolver;
+    private Clavin resolver;
     private List<ResolvedLocation> resolvedLocations;
 
     //this convenience method turns an array of location name strings into a list of occurrences with fake positions.
@@ -73,12 +73,12 @@ public class ClavinLocationResolverTest {
     }
 
     /**
-     * Instantiate a {@link ClavinLocationResolver} without context-based
+     * Instantiate a {@link Clavin} without context-based
      * heuristic matching and with fuzzy matching turned on.
      */
     @Before
     public void setUp() throws ClavinException {
-        resolver = new ClavinLocationResolver(new LuceneGazetteer(new File("./IndexDirectory")));
+        resolver = new Clavin(new LuceneGazetteer(new File("./IndexDirectory")));
     }
 
     private List<ResolvedLocation> resolveNoHeuristics(final List<LocationOccurrence> locs, final boolean fuzzy)

@@ -47,8 +47,8 @@ import org.slf4j.LoggerFactory;
  * {@link ResolvedLocation} objects as performed by
  * {@link LocationResolver#resolveLocations(List, boolean)}.
  */
-public class ClavinLocationResolverHeuristicsTest {
-    public final static Logger logger = LoggerFactory.getLogger(ClavinLocationResolverHeuristicsTest.class);
+public class ClavinHeuristicsTest {
+    public final static Logger logger = LoggerFactory.getLogger(ClavinHeuristicsTest.class);
 
     // expected geonameID numbers for given location names
     private static final int BOSTON_MA = 4930956;
@@ -82,7 +82,7 @@ public class ClavinLocationResolverHeuristicsTest {
     private static final int HEURISTICS_MAX_HIT_DEPTH = 5;
     private static final int HEURISTICS_MAX_CONTEXT_WINDOW = 5;
 
-    private ClavinLocationResolver resolver;
+    private Clavin resolver;
     private List<ResolvedLocation> resolvedLocations;
 
     /**
@@ -91,7 +91,7 @@ public class ClavinLocationResolverHeuristicsTest {
      */
     @Before
     public void setUp() throws ClavinException {
-        resolver = new ClavinLocationResolver(new LuceneGazetteer(new File("./IndexDirectory")));
+        resolver = new Clavin(new LuceneGazetteer(new File("./IndexDirectory")));
     }
 
     private List<ResolvedLocation> resolveNoHeuristics(final List<LocationOccurrence> locs, final boolean fuzzy)
@@ -116,7 +116,7 @@ public class ClavinLocationResolverHeuristicsTest {
     public void testNoHeuristics() throws ClavinException {
         String[] locations = {"Haverhill", "Worcester", "Springfield", "Kansas City"};
 
-        resolvedLocations = resolveNoHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), false);
+        resolvedLocations = resolveNoHeuristics(ClavinTest.makeOccurrencesFromNames(locations), false);
 
         assertEquals("LocationResolver chose the wrong \"Haverhill\"", HAVERHILL_MA, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Worcester\"", WORCESTER_UK, resolvedLocations.get(1).getGeoname().getGeonameID());
@@ -132,7 +132,7 @@ public class ClavinLocationResolverHeuristicsTest {
     public void testHeuristicsMassachusetts() throws ClavinException {
         String[] locations = {"Boston", "Haverhill", "Worcester", "Springfield", "Leominister"};
 
-        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+        resolvedLocations = resolveWithHeuristics(ClavinTest.makeOccurrencesFromNames(locations), true);
 
         assertEquals("LocationResolver chose the wrong \"Boston\"", BOSTON_MA, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Haverhill\"", HAVERHILL_MA, resolvedLocations.get(1).getGeoname().getGeonameID());
@@ -148,7 +148,7 @@ public class ClavinLocationResolverHeuristicsTest {
     public void testHeuristicsIllinois() throws ClavinException {
         String[] locations = {"Chicago", "Rockford", "Springfield", "Decatur"};
 
-        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+        resolvedLocations = resolveWithHeuristics(ClavinTest.makeOccurrencesFromNames(locations), true);
 
         assertEquals("LocationResolver chose the wrong \"Chicago\"", CHICAGO_IL, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Rockford\"", ROCKFORD_IL, resolvedLocations.get(1).getGeoname().getGeonameID());
@@ -164,7 +164,7 @@ public class ClavinLocationResolverHeuristicsTest {
     public void testHeuristicsMissouri() throws ClavinException {
         String[] locations = {"Kansas City", "Springfield", "St. Louis", "Independence"};
 
-        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+        resolvedLocations = resolveWithHeuristics(ClavinTest.makeOccurrencesFromNames(locations), true);
 
         assertEquals("LocationResolver chose the wrong \"Kansas City\"", KANSAS_CITY_MO, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Springfield\"", SPRINGFIELD_MO, resolvedLocations.get(1).getGeoname().getGeonameID());
@@ -180,7 +180,7 @@ public class ClavinLocationResolverHeuristicsTest {
     public void testHeuristicsEngland() throws ClavinException {
         String[] locations = {"London", "Manchester", "Haverhill"};
 
-        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+        resolvedLocations = resolveWithHeuristics(ClavinTest.makeOccurrencesFromNames(locations), true);
 
         assertEquals("LocationResolver chose the wrong \"London\"", LONDON_UK, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Manchester\"", MANCHESTER_UK, resolvedLocations.get(1).getGeoname().getGeonameID());
@@ -195,7 +195,7 @@ public class ClavinLocationResolverHeuristicsTest {
     public void testHeuristicsOntario() throws ClavinException {
         String[] locations = {"Toronto", "Ottawa", "Hamilton", "Kitchener", "London"};
 
-        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+        resolvedLocations = resolveWithHeuristics(ClavinTest.makeOccurrencesFromNames(locations), true);
 
         assertEquals("LocationResolver chose the wrong \"Toronto\"", TORONTO_ON, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Ottawa\"", OTTAWA_ON, resolvedLocations.get(1).getGeoname().getGeonameID());
@@ -212,10 +212,10 @@ public class ClavinLocationResolverHeuristicsTest {
         // ensure we get no matches for this crazy String
         String[] locations = {"jhadghaoidhg"};
 
-        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), false);
+        resolvedLocations = resolveWithHeuristics(ClavinTest.makeOccurrencesFromNames(locations), false);
         assertTrue("Heuristic LocationResolver fuzzy off, no match", resolvedLocations.isEmpty());
 
-        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+        resolvedLocations = resolveWithHeuristics(ClavinTest.makeOccurrencesFromNames(locations), true);
         assertTrue("Heuristic LocationResolver fuzzy on, no match", resolvedLocations.isEmpty());
     }
 }
