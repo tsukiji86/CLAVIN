@@ -72,7 +72,6 @@ public class GeoName {
             FeatureCode.PCLI,
             FeatureCode.PCLIX,
             FeatureCode.PCLS,
-            FeatureCode.PRSH,
             FeatureCode.TERR
     );
 
@@ -90,7 +89,6 @@ public class GeoName {
             FeatureCode.PCLI,
             FeatureCode.PCLIX,
             FeatureCode.PCLS,
-            FeatureCode.PRSH,
             FeatureCode.TERR
     );
 
@@ -370,10 +368,18 @@ public class GeoName {
     }
 
     private static int getAdminLevel(final FeatureClass fClass, final FeatureCode fCode) {
+        return getAdminLevel(fClass, fCode, null, null, null);
+    }
+
+    private static int getAdminLevel(final FeatureClass fClass, final FeatureCode fCode, final String geoname, final List<String> altNames, final String countryName) {
         int admLevel = Integer.MAX_VALUE;
         if (fClass == FeatureClass.A) {
             if (fCode == null) {
                 admLevel = -1;
+            } else if (fCode == FeatureCode.TERR) {
+                admLevel = (geoname != null && geoname.equals(countryName)) || (altNames != null && altNames.contains(countryName)) ? 0 : 1;
+            } else if (fCode == FeatureCode.PRSH) {
+                admLevel = 1;
             } else if (TOP_LEVEL_FEATURES.contains(fCode)) {
                 admLevel = 0;
             } else {
@@ -456,12 +462,66 @@ public class GeoName {
      *
      * Its ancestry key is "US.VA.059".
      *
+     * If no code is configured for the level of this administrative division, it will not be
+     * considered to have an ancestry key and will not be able to be referenced as the parent
+     * of other locations.  (e.g. If this is an ADM4 and there is no admin4Code, getAncestryKey()
+     * will return <code>null</code>)
+     *
      * @return the ancestry key for this administrative division or <code>null</code> if this
-     *         GeoName is not an administrative division.
+     *         GeoName is not an administrative division or its ancestry key cannot be derived.
      */
     public String getAncestryKey() {
-        return featureClass == FeatureClass.A && VALID_ADMIN_ANCESTORS.contains(featureCode) ?
-                buildAncestryKey(FeatureCode.ADM4, true) : null;
+        boolean hasKey = featureClass == FeatureClass.A && VALID_ADMIN_ANCESTORS.contains(featureCode);
+        if (hasKey) {
+            String myCode;
+            switch (featureCode) {
+                case ADM1:
+                    myCode = admin1Code;
+                    break;
+                case ADM2:
+                    myCode = admin2Code;
+                    break;
+                case ADM3:
+                    myCode = admin3Code;
+                    break;
+                case ADM4:
+                    myCode = admin4Code;
+                    break;
+                case PCL:
+                case PCLD:
+                case PCLF:
+                case PCLI:
+                case PCLIX:
+                case PCLS:
+                    myCode = primaryCountryCode != null ? primaryCountryCode.name() : null;
+                    break;
+                case TERR:
+                    myCode = isTopLevelTerritory() ? primaryCountryCode.name() : null;
+                    break;
+                default:
+                    myCode = null;
+                    break;
+            }
+            hasKey = myCode != null && !myCode.trim().isEmpty();
+        }
+        String key = (hasKey ? buildAncestryKey(FeatureCode.ADM4, true) : "").trim();
+        return !key.isEmpty() ? key : null;
+    }
+
+    /**
+     * Is this GeoName a top-level territory? A GeoName is considered to be a
+     * top-level territory if it is an A:TERR record and the name assigned to
+     * its primary country code is either the name of the GeoName or one of its
+     * configured alternate names.
+     * @return <code>true</code> if the GeoName is a top level territory
+     */
+    public boolean isTopLevelTerritory() {
+        boolean topLevel = false;
+        if (featureClass == FeatureClass.A && featureCode == FeatureCode.TERR) {
+            String pccName = primaryCountryCode != null ? primaryCountryCode.name : "";
+            topLevel = (name != null && !name.isEmpty() && name.equals(pccName)) || alternateNames.contains(pccName);
+        }
+        return topLevel;
     }
 
     /**
@@ -497,7 +557,11 @@ public class GeoName {
                 nextLevel = FeatureCode.ADM1;
                 break;
             case ADM1:
-                keyPart = admin1Code;
+                // territories will be considered level 1 if they have the same country code as their
+                // parent but cannot contain descendants so there should be no keypart for this level;
+                // all parishes are considered to be direct descendants of their containing country with
+                // no descendants; they should not have a key part at this level
+                keyPart = featureCode != FeatureCode.TERR && featureCode != FeatureCode.PRSH ? admin1Code : "";
                 nextLevel = FeatureCode.PCL;
                 break;
             case PCL:
@@ -512,7 +576,7 @@ public class GeoName {
             keyPart = String.format(".%s", keyPart);
         }
         int keyLevel = getAdminLevel(FeatureClass.A, level);
-        int nameLevel = getAdminLevel(featureClass, featureCode);
+        int nameLevel = getAdminLevel(featureClass, featureCode, name, alternateNames, primaryCountryCode.name);
 
         // if the requested key part is a larger administrative division than the level of the
         // geoname or, if we are including the geoname's key part and it is the requested part,
@@ -555,6 +619,8 @@ public class GeoName {
             } else if (myParentKey != null && parentKey != null && !myParentKey.equals(parentKey)) {
                 LOG.error(String.format("Parent ancestry key [%s] does not match the expected key [%s] for GeoName [%s]; Parent [%s]",
                         parentKey, myParentKey, this, prnt));
+            } else if (this.equals(prnt)) {
+                LOG.warn("Attempted to set parent to self: {}", prnt);
             } else {
                 this.parent = prnt;
                 parentSet = true;
@@ -570,8 +636,8 @@ public class GeoName {
     public boolean isAncestryResolved() {
         // this GeoName is considered resolved if it is a top level administrative division,
         // it is unresolvable, or all parents up to a top-level element have been configured
-        return getAdminLevel(featureClass, featureCode) <= 0 || getParentAncestryKey() == null ||
-                (parent != null && parent.isAncestryResolved());
+        return getAdminLevel(featureClass, featureCode, name, alternateNames, primaryCountryCode.name) <= 0 ||
+                getParentAncestryKey() == null || (parent != null && parent.isAncestryResolved());
     }
 
     /**

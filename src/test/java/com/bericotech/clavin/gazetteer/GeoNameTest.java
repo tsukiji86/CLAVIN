@@ -61,6 +61,11 @@ public class GeoNameTest {
     private GeoName unitedStates;
     private GeoName fairfaxCounty;
     private GeoName virginia;
+    private GeoName antarctica;
+    private GeoName coralSeaIslands;
+    private GeoName campoParish;
+    private GeoName americanSamoa;
+    private GeoName australia;
 
     @Before
     public void setUp() throws IOException {
@@ -86,6 +91,11 @@ public class GeoNameTest {
         unitedStates = geonames.get(9);
         fairfaxCounty = geonames.get(10);
         virginia = geonames.get(11);
+        antarctica = geonames.get(12);
+        coralSeaIslands = geonames.get(13);
+        campoParish = geonames.get(14);
+        americanSamoa = geonames.get(15);
+        australia = geonames.get(16);
     }
 
     /**
@@ -190,6 +200,41 @@ public class GeoNameTest {
     }
 
     /**
+     * Test isToplevelTerritory.
+     */
+    @Test
+    public void testIsTopLevelTerritory() {
+        assertFalse("Non-territory [Gun Barrel City] should not be a top level territory", gunBarrelCity.isTopLevelTerritory());
+        assertTrue("[Antarctica] should be a top level territory", antarctica.isTopLevelTerritory());
+        assertTrue("[American Samoa] should be a top level territory", americanSamoa.isTopLevelTerritory());
+        assertFalse("[Coral Sea Islands] should not be a top level territory", coralSeaIslands.isTopLevelTerritory());
+    }
+
+    /**
+     * Test correct ancestry keys for territories.
+     */
+    @Test
+    public void testTerritoryAncestryKeys() {
+        assertEquals("incorrect ancestry key for top-level territory", "AQ", antarctica.getAncestryKey());
+        assertNull("parent ancestry key of top-level territory should be null", antarctica.getParentAncestryKey());
+
+        assertEquals("incorrect ancestry key for top-level territory", "AS", americanSamoa.getAncestryKey());
+        assertNull("parent ancestry key of top-level territory should be null", americanSamoa.getParentAncestryKey());
+
+        assertNull("ancestry key for non-top-level territory should be null", coralSeaIslands.getAncestryKey());
+        assertEquals("incorrect parent ancestry key for non-top-level territory", "AU", coralSeaIslands.getParentAncestryKey());
+    }
+
+    /**
+     * Test correct ancestry keys for parishes.
+     */
+    @Test
+    public void testParishAncestryKeys() {
+        assertNull("ancestry key for parish should be null", campoParish.getAncestryKey());
+        assertEquals("incorrect parent ancestry key for parish", "ES", campoParish.getParentAncestryKey());
+    }
+
+    /**
      * Test ancestry resolution check when no parents are resolved.
      */
     @Test
@@ -199,6 +244,8 @@ public class GeoNameTest {
         assertFalse("no parent set [fairfax county], should not be resolved", fairfaxCounty.isAncestryResolved());
         assertFalse("no parent set [virginia], should not be resolved", virginia.isAncestryResolved());
         assertTrue("no parent set [united states] but top level, should be resolved", unitedStates.isAncestryResolved());
+        assertTrue("no parent set [american samoa] but top level, should be resolved", americanSamoa.isAncestryResolved());
+        assertFalse("no parent set [coral sea islands], should not be resolved", coralSeaIslands.isAncestryResolved());
     }
 
     /**
@@ -225,6 +272,9 @@ public class GeoNameTest {
         assertTrue("[fairfax county] should be fully resolved", fairfaxCounty.isAncestryResolved());
         assertTrue("[virginia] should be fully resolved", virginia.isAncestryResolved());
         assertTrue("[united states] should be fully resolved", unitedStates.isAncestryResolved());
+
+        coralSeaIslands.setParent(australia);
+        assertTrue("[coral sea islands] should be fully resolved", coralSeaIslands.isAncestryResolved());
     }
 
     /**

@@ -1,6 +1,6 @@
 target/**
-indexDirectory/**
-IndexDirectory/
+indexDirectory*/**
+IndexDirectory*/
 .settings/
 .classpath
 .project
