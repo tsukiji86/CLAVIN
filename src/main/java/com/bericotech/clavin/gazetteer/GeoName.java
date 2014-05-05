@@ -616,7 +616,7 @@ public class GeoName {
             if (prnt.getFeatureClass() != FeatureClass.A || !VALID_ADMIN_ANCESTORS.contains(prnt.getFeatureCode())) {
                 LOG.error(String.format("Invalid administrative parent type [%s:%s] specified for GeoName [%s]; Parent [%s]",
                         prnt.getFeatureClass(), prnt.getFeatureCode(), this, prnt));
-            } else if (myParentKey != null && parentKey != null && !myParentKey.equals(parentKey)) {
+            } else if (myParentKey != null && parentKey != null && !myParentKey.startsWith(parentKey)) {
                 LOG.error(String.format("Parent ancestry key [%s] does not match the expected key [%s] for GeoName [%s]; Parent [%s]",
                         parentKey, myParentKey, this, prnt));
             } else if (this.equals(prnt)) {

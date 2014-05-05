@@ -285,8 +285,10 @@ public class GeoNameTest {
         assertNull("[reston] should have no parent", reston.getParent());
         assertFalse("non-administrative parent should not be allowed", reston.setParent(boston));
         assertNull("[reston] should have no parent", reston.getParent());
-        assertFalse("non-direct parent should not be allowed", reston.setParent(virginia));
-        assertNull("[reston] should have no parent", reston.getParent());
+        assertTrue("non-direct parent should be allowed", reston.setParent(virginia));
+        assertEquals("[reston] should have parent [virginia]", virginia, reston.getParent());
+        assertFalse("unrelated parent should not be allowed", reston.setParent(australia));
+        assertEquals("[reston] should have parent [virginia]", virginia, reston.getParent());
         assertTrue("direct parent should be allowed", reston.setParent(fairfaxCounty));
         assertEquals("[reston] should have parent [fairfax county]", fairfaxCounty, reston.getParent());
         assertFalse("null parent should result in a no-op", reston.setParent(null));
