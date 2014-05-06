@@ -11,6 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.TimeZone;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,23 +50,33 @@ import org.junit.Test;
  *
  */
 public class GeoNameTest {
-    private GeoName reston;
-    private GeoName howzEHaji;
-    private GeoName strabenhaus;
-    private GeoName noMansLand;
-    private GeoName chihuahuaDesert;
-    private GeoName rasSalim;
-    private GeoName murrayCanyon;
-    private GeoName boston;
-    private GeoName gunBarrelCity;
-    private GeoName unitedStates;
-    private GeoName fairfaxCounty;
-    private GeoName virginia;
-    private GeoName antarctica;
-    private GeoName coralSeaIslands;
-    private GeoName campoParish;
-    private GeoName americanSamoa;
-    private GeoName australia;
+    private static class GeoRecord {
+        public final String gazetteerRecord;
+        public final GeoName geoName;
+
+        public GeoRecord(final String gaz, final GeoName geo) {
+            this.gazetteerRecord = gaz;
+            this.geoName = geo;
+        }
+    }
+
+    private GeoRecord reston;
+    private GeoRecord howzEHaji;
+    private GeoRecord strabenhaus;
+    private GeoRecord noMansLand;
+    private GeoRecord chihuahuaDesert;
+    private GeoRecord rasSalim;
+    private GeoRecord murrayCanyon;
+    private GeoRecord boston;
+    private GeoRecord gunBarrelCity;
+    private GeoRecord unitedStates;
+    private GeoRecord fairfaxCounty;
+    private GeoRecord virginia;
+    private GeoRecord antarctica;
+    private GeoRecord coralSeaIslands;
+    private GeoRecord campoParish;
+    private GeoRecord americanSamoa;
+    private GeoRecord australia;
 
     @Before
     public void setUp() throws IOException {
@@ -73,29 +84,29 @@ public class GeoNameTest {
         BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(
                 new File("./src/test/resources/gazetteers/GeoNamesSampleSet.txt")), "UTF-8"));
         String line;
-        ArrayList<GeoName> geonames = new ArrayList<GeoName>();
+        List<GeoRecord> geoRecords = new ArrayList<GeoRecord>();
         while ((line = r.readLine()) != null) {
-            geonames.add(GeoName.parseFromGeoNamesRecord(line));
+            geoRecords.add(new GeoRecord(line, GeoName.parseFromGeoNamesRecord(line)));
         }
         r.close();
 
-        reston = geonames.get(0);
-        howzEHaji = geonames.get(1);
-        strabenhaus = geonames.get(2);
-        noMansLand = geonames.get(3);
-        chihuahuaDesert = geonames.get(4);
-        rasSalim = geonames.get(5);
-        murrayCanyon = geonames.get(6);
-        boston = geonames.get(7);
-        gunBarrelCity = geonames.get(8);
-        unitedStates = geonames.get(9);
-        fairfaxCounty = geonames.get(10);
-        virginia = geonames.get(11);
-        antarctica = geonames.get(12);
-        coralSeaIslands = geonames.get(13);
-        campoParish = geonames.get(14);
-        americanSamoa = geonames.get(15);
-        australia = geonames.get(16);
+        reston = geoRecords.get(0);
+        howzEHaji = geoRecords.get(1);
+        strabenhaus = geoRecords.get(2);
+        noMansLand = geoRecords.get(3);
+        chihuahuaDesert = geoRecords.get(4);
+        rasSalim = geoRecords.get(5);
+        murrayCanyon = geoRecords.get(6);
+        boston = geoRecords.get(7);
+        gunBarrelCity = geoRecords.get(8);
+        unitedStates = geoRecords.get(9);
+        fairfaxCounty = geoRecords.get(10);
+        virginia = geoRecords.get(11);
+        antarctica = geoRecords.get(12);
+        coralSeaIslands = geoRecords.get(13);
+        campoParish = geoRecords.get(14);
+        americanSamoa = geoRecords.get(15);
+        australia = geoRecords.get(16);
     }
 
     /**
@@ -104,28 +115,30 @@ public class GeoNameTest {
      */
     @Test
     public void testAllAttributes() throws ParseException {
-        assertEquals("incorrect geonameID", 4781530, reston.getGeonameID());
-        assertEquals("incorrect name", "Reston", reston.getName());
-        assertEquals("incorrect asciiName", "Reston", reston.getAsciiName());
-        assertEquals("incorrect alternateNames", Arrays.asList("Reston","Рестон"), reston.getAlternateNames());
-        assertEquals("incorrect latitude", 38.96872, reston.getLatitude(), 0.1);
-        assertEquals("incorrect longitude", -77.3411, reston.getLongitude(), 0.1);
-        assertEquals("incorrect featureClass", FeatureClass.P, reston.getFeatureClass());
-        assertEquals("incorrect featureCode", FeatureCode.PPL, reston.getFeatureCode());
-        assertEquals("incorrect primaryCountryCode", CountryCode.US, reston.getPrimaryCountryCode());
-        assertEquals("incorrect primaryCountryName", CountryCode.US.name, reston.getPrimaryCountryName());
-        assertEquals("incorrect alternateCountryCodes", new ArrayList<CountryCode>(), reston.getAlternateCountryCodes());
-        assertEquals("incorrect adminCode1", "VA", reston.getAdmin1Code());
-        assertEquals("incorrect adminCode2", "059", reston.getAdmin2Code());
-        assertEquals("incorrect adminCode3", "", reston.getAdmin3Code());
-        assertEquals("incorrect adminCode4", "", reston.getAdmin4Code());
-        assertEquals("incorrect population", 58404, reston.getPopulation());
-        assertEquals("incorrect elevation", 100, reston.getElevation());
-        assertEquals("incorrect digitalElevationModel", 102, reston.getDigitalElevationModel());
-        assertEquals("incorrect timezone", TimeZone.getTimeZone("America/New_York"), reston.getTimezone());
-        assertEquals("incorrect modificationDate", new SimpleDateFormat("yyyy-MM-dd").parse("2011-05-14"), reston.getModificationDate());
-        assertEquals("incorrect parent ancestry key", "US.VA.059", reston.getParentAncestryKey());
-        assertNull("ancestry key should be null", reston.getAncestryKey());
+        GeoName restonGeo = reston.geoName;
+        assertEquals("incorrect geonameID", 4781530, restonGeo.getGeonameID());
+        assertEquals("incorrect name", "Reston", restonGeo.getName());
+        assertEquals("incorrect asciiName", "Reston", restonGeo.getAsciiName());
+        assertEquals("incorrect alternateNames", Arrays.asList("Reston","Рестон"), restonGeo.getAlternateNames());
+        assertEquals("incorrect latitude", 38.96872, restonGeo.getLatitude(), 0.1);
+        assertEquals("incorrect longitude", -77.3411, restonGeo.getLongitude(), 0.1);
+        assertEquals("incorrect featureClass", FeatureClass.P, restonGeo.getFeatureClass());
+        assertEquals("incorrect featureCode", FeatureCode.PPL, restonGeo.getFeatureCode());
+        assertEquals("incorrect primaryCountryCode", CountryCode.US, restonGeo.getPrimaryCountryCode());
+        assertEquals("incorrect primaryCountryName", CountryCode.US.name, restonGeo.getPrimaryCountryName());
+        assertEquals("incorrect alternateCountryCodes", new ArrayList<CountryCode>(), restonGeo.getAlternateCountryCodes());
+        assertEquals("incorrect adminCode1", "VA", restonGeo.getAdmin1Code());
+        assertEquals("incorrect adminCode2", "059", restonGeo.getAdmin2Code());
+        assertEquals("incorrect adminCode3", "", restonGeo.getAdmin3Code());
+        assertEquals("incorrect adminCode4", "", restonGeo.getAdmin4Code());
+        assertEquals("incorrect population", 58404, restonGeo.getPopulation());
+        assertEquals("incorrect elevation", 100, restonGeo.getElevation());
+        assertEquals("incorrect digitalElevationModel", 102, restonGeo.getDigitalElevationModel());
+        assertEquals("incorrect timezone", TimeZone.getTimeZone("America/New_York"), restonGeo.getTimezone());
+        assertEquals("incorrect modificationDate", new SimpleDateFormat("yyyy-MM-dd").parse("2011-05-14"), restonGeo.getModificationDate());
+        assertEquals("incorrect gazetteer record", reston.gazetteerRecord, restonGeo.getGazetteerRecord());
+        assertEquals("incorrect parent ancestry key", "US.VA.059", restonGeo.getParentAncestryKey());
+        assertNull("ancestry key should be null", restonGeo.getAncestryKey());
     }
 
     /**
@@ -133,12 +146,13 @@ public class GeoNameTest {
      */
     @Test
     public void testUTFAndMissingColumns() {
-        assertEquals("incorrect geonameID", 1139905, howzEHaji.getGeonameID());
-        assertEquals("incorrect name", "Ḩowẕ-e Ḩājī Bēg", howzEHaji.getName());
-        assertEquals("incorrect asciiName", "Howz-e Haji Beg", howzEHaji.getAsciiName());
-        assertEquals("incorrect alternateNames", Arrays.asList("Hawdze Hajibeg","Howz-e Haji Beg","Howz-e Hajjibeyg","H̱awdze Ḩājibeg","حوض حاجی بېگ","Ḩowẕ-e Ḩājjībeyg","Ḩowẕ-e Ḩājī Bēg"), howzEHaji.getAlternateNames());
-        assertEquals("incorrect latitude", 34.90489, howzEHaji.getLatitude(), 0.1);
-        assertEquals("incorrect longitude", 64.10312, howzEHaji.getLongitude(), 0.1);
+        GeoName howzEHajiGeo = howzEHaji.geoName;
+        assertEquals("incorrect geonameID", 1139905, howzEHajiGeo.getGeonameID());
+        assertEquals("incorrect name", "Ḩowẕ-e Ḩājī Bēg", howzEHajiGeo.getName());
+        assertEquals("incorrect asciiName", "Howz-e Haji Beg", howzEHajiGeo.getAsciiName());
+        assertEquals("incorrect alternateNames", Arrays.asList("Hawdze Hajibeg","Howz-e Haji Beg","Howz-e Hajjibeyg","H̱awdze Ḩājibeg","حوض حاجی بېگ","Ḩowẕ-e Ḩājjībeyg","Ḩowẕ-e Ḩājī Bēg"), howzEHajiGeo.getAlternateNames());
+        assertEquals("incorrect latitude", 34.90489, howzEHajiGeo.getLatitude(), 0.1);
+        assertEquals("incorrect longitude", 64.10312, howzEHajiGeo.getLongitude(), 0.1);
     }
 
     /**
@@ -146,12 +160,13 @@ public class GeoNameTest {
      */
     @Test
     public void testSeldomUsedFields() {
-        assertEquals("incorrect geonameID", 2826158, strabenhaus.getGeonameID());
-        assertEquals("incorrect alternateNames", new ArrayList<String>(), strabenhaus.getAlternateNames());
-        assertEquals("incorrect adminCode3", "07138", strabenhaus.getAdmin3Code());
-        assertEquals("incorrect adminCode4", "07138071", strabenhaus.getAdmin4Code());
-        assertEquals("incorrect ancestry key", "DE.08.00.07138.07138071", strabenhaus.getAncestryKey());
-        assertEquals("incorrect parent ancestry key", "DE.08.00.07138", strabenhaus.getParentAncestryKey());
+        GeoName strabenhausGeo = strabenhaus.geoName;
+        assertEquals("incorrect geonameID", 2826158, strabenhausGeo.getGeonameID());
+        assertEquals("incorrect alternateNames", new ArrayList<String>(), strabenhausGeo.getAlternateNames());
+        assertEquals("incorrect adminCode3", "07138", strabenhausGeo.getAdmin3Code());
+        assertEquals("incorrect adminCode4", "07138071", strabenhausGeo.getAdmin4Code());
+        assertEquals("incorrect ancestry key", "DE.08.00.07138.07138071", strabenhausGeo.getAncestryKey());
+        assertEquals("incorrect parent ancestry key", "DE.08.00.07138", strabenhausGeo.getParentAncestryKey());
     }
 
     /**
@@ -159,9 +174,10 @@ public class GeoNameTest {
      */
     @Test
     public void testNoPrimaryCountryCode() {
-        assertEquals("incorrect primaryCountryCode", CountryCode.NULL, noMansLand.getPrimaryCountryCode());
-        assertNull("if no country code, ancestry path should be null", noMansLand.getParentAncestryKey());
-        assertTrue("ancestry should be resolved", noMansLand.isAncestryResolved());
+        GeoName noMansLandGeo = noMansLand.geoName;
+        assertEquals("incorrect primaryCountryCode", CountryCode.NULL, noMansLandGeo.getPrimaryCountryCode());
+        assertNull("if no country code, ancestry path should be null", noMansLandGeo.getParentAncestryKey());
+        assertTrue("ancestry should be resolved", noMansLandGeo.isAncestryResolved());
     }
 
     /**
@@ -170,7 +186,7 @@ public class GeoNameTest {
     @Test
     public void testNonEmptyAlternateCountryCodes() {
         assertEquals("incorrect alternateCountryCodes", Arrays.asList(CountryCode.US, CountryCode.MX),
-                chihuahuaDesert.getAlternateCountryCodes());
+                chihuahuaDesert.geoName.getAlternateCountryCodes());
     }
 
     /**
@@ -178,7 +194,8 @@ public class GeoNameTest {
      */
     @Test
     public void testMalformedAlternateCountryCodes() {
-        assertEquals("incorrect alternateCountryCodes", Arrays.asList(CountryCode.PS), rasSalim.getAlternateCountryCodes());
+        assertEquals("incorrect alternateCountryCodes", Arrays.asList(CountryCode.PS),
+                rasSalim.geoName.getAlternateCountryCodes());
     }
 
     /**
@@ -186,8 +203,8 @@ public class GeoNameTest {
      */
     @Test
     public void testNoFeatureCode() {
-        assertEquals("incorrect featureCode", FeatureCode.NULL, murrayCanyon.getFeatureCode());
-        assertNotNull("parent ancestry key should not be null", murrayCanyon.getParentAncestryKey());
+        assertEquals("incorrect featureCode", FeatureCode.NULL, murrayCanyon.geoName.getFeatureCode());
+        assertNotNull("parent ancestry key should not be null", murrayCanyon.geoName.getParentAncestryKey());
     }
 
     /**
@@ -195,8 +212,22 @@ public class GeoNameTest {
      */
     @Test
     public void testTopLevelAncestryKeys() {
-        assertEquals("incorrect ancestry key", "US", unitedStates.getAncestryKey());
-        assertNull("parent ancestry key should be null", unitedStates.getParentAncestryKey());
+        assertEquals("incorrect ancestry key", "US", unitedStates.geoName.getAncestryKey());
+        assertNull("parent ancestry key should be null", unitedStates.geoName.getParentAncestryKey());
+    }
+
+    /**
+     * Test isTopLevelAdminDivision.
+     */
+    @Test
+    public void testIsTopLevelAdminDivision() {
+        assertFalse("[Gun Barrel City] is not a top level admin division", gunBarrelCity.geoName.isTopLevelAdminDivision());
+        assertTrue("[Antarctica] is a top level admin division", antarctica.geoName.isTopLevelAdminDivision());
+        assertTrue("[American Samoa] is a top level admin division", americanSamoa.geoName.isTopLevelAdminDivision());
+        assertFalse("[Coral Sea Islands] is not a top level admin division", coralSeaIslands.geoName.isTopLevelAdminDivision());
+        assertTrue("[United States] is a top level admin division", unitedStates.geoName.isTopLevelAdminDivision());
+        assertFalse("[Virginia] is not a top level admin division", virginia.geoName.isTopLevelAdminDivision());
+        assertFalse("[Campo] is not a top level admin division", campoParish.geoName.isTopLevelAdminDivision());
     }
 
     /**
@@ -204,10 +235,10 @@ public class GeoNameTest {
      */
     @Test
     public void testIsTopLevelTerritory() {
-        assertFalse("Non-territory [Gun Barrel City] should not be a top level territory", gunBarrelCity.isTopLevelTerritory());
-        assertTrue("[Antarctica] should be a top level territory", antarctica.isTopLevelTerritory());
-        assertTrue("[American Samoa] should be a top level territory", americanSamoa.isTopLevelTerritory());
-        assertFalse("[Coral Sea Islands] should not be a top level territory", coralSeaIslands.isTopLevelTerritory());
+        assertFalse("Non-territory [Gun Barrel City] should not be a top level territory", gunBarrelCity.geoName.isTopLevelTerritory());
+        assertTrue("[Antarctica] should be a top level territory", antarctica.geoName.isTopLevelTerritory());
+        assertTrue("[American Samoa] should be a top level territory", americanSamoa.geoName.isTopLevelTerritory());
+        assertFalse("[Coral Sea Islands] should not be a top level territory", coralSeaIslands.geoName.isTopLevelTerritory());
     }
 
     /**
@@ -215,14 +246,14 @@ public class GeoNameTest {
      */
     @Test
     public void testTerritoryAncestryKeys() {
-        assertEquals("incorrect ancestry key for top-level territory", "AQ", antarctica.getAncestryKey());
-        assertNull("parent ancestry key of top-level territory should be null", antarctica.getParentAncestryKey());
+        assertEquals("incorrect ancestry key for top-level territory", "AQ", antarctica.geoName.getAncestryKey());
+        assertNull("parent ancestry key of top-level territory should be null", antarctica.geoName.getParentAncestryKey());
 
-        assertEquals("incorrect ancestry key for top-level territory", "AS", americanSamoa.getAncestryKey());
-        assertNull("parent ancestry key of top-level territory should be null", americanSamoa.getParentAncestryKey());
+        assertEquals("incorrect ancestry key for top-level territory", "AS", americanSamoa.geoName.getAncestryKey());
+        assertNull("parent ancestry key of top-level territory should be null", americanSamoa.geoName.getParentAncestryKey());
 
-        assertNull("ancestry key for non-top-level territory should be null", coralSeaIslands.getAncestryKey());
-        assertEquals("incorrect parent ancestry key for non-top-level territory", "AU", coralSeaIslands.getParentAncestryKey());
+        assertNull("ancestry key for non-top-level territory should be null", coralSeaIslands.geoName.getAncestryKey());
+        assertEquals("incorrect parent ancestry key for non-top-level territory", "AU", coralSeaIslands.geoName.getParentAncestryKey());
     }
 
     /**
@@ -230,8 +261,8 @@ public class GeoNameTest {
      */
     @Test
     public void testParishAncestryKeys() {
-        assertNull("ancestry key for parish should be null", campoParish.getAncestryKey());
-        assertEquals("incorrect parent ancestry key for parish", "ES", campoParish.getParentAncestryKey());
+        assertNull("ancestry key for parish should be null", campoParish.geoName.getAncestryKey());
+        assertEquals("incorrect parent ancestry key for parish", "ES", campoParish.geoName.getParentAncestryKey());
     }
 
     /**
@@ -240,12 +271,12 @@ public class GeoNameTest {
     @Test
     public void testIsAncestryResolved_NoParents() {
         // verify correct resolution response when no parents are set
-        assertFalse("no parent set [reston], should not be resolved", reston.isAncestryResolved());
-        assertFalse("no parent set [fairfax county], should not be resolved", fairfaxCounty.isAncestryResolved());
-        assertFalse("no parent set [virginia], should not be resolved", virginia.isAncestryResolved());
-        assertTrue("no parent set [united states] but top level, should be resolved", unitedStates.isAncestryResolved());
-        assertTrue("no parent set [american samoa] but top level, should be resolved", americanSamoa.isAncestryResolved());
-        assertFalse("no parent set [coral sea islands], should not be resolved", coralSeaIslands.isAncestryResolved());
+        assertFalse("no parent set [reston], should not be resolved", reston.geoName.isAncestryResolved());
+        assertFalse("no parent set [fairfax county], should not be resolved", fairfaxCounty.geoName.isAncestryResolved());
+        assertFalse("no parent set [virginia], should not be resolved", virginia.geoName.isAncestryResolved());
+        assertTrue("no parent set [united states] but top level, should be resolved", unitedStates.geoName.isAncestryResolved());
+        assertTrue("no parent set [american samoa] but top level, should be resolved", americanSamoa.geoName.isAncestryResolved());
+        assertFalse("no parent set [coral sea islands], should not be resolved", coralSeaIslands.geoName.isAncestryResolved());
     }
 
     /**
@@ -253,11 +284,14 @@ public class GeoNameTest {
      */
     @Test
     public void testIsAncestryResolved_PartialResolution() {
-        reston.setParent(fairfaxCounty);
-        assertFalse("only one parent set [reston], should not be resolved", reston.isAncestryResolved());
-        fairfaxCounty.setParent(virginia);
-        assertFalse("only two parents set [reston], should not be resolved", reston.isAncestryResolved());
-        assertFalse("only one parent set [fairfax county], should not be resolved", fairfaxCounty.isAncestryResolved());
+        GeoName restonGeo = reston.geoName;
+        GeoName fairfaxCountyGeo = fairfaxCounty.geoName;
+        GeoName virginiaGeo = virginia.geoName;
+        restonGeo.setParent(fairfaxCountyGeo);
+        assertFalse("only one parent set [reston], should not be resolved", restonGeo.isAncestryResolved());
+        fairfaxCountyGeo.setParent(virginiaGeo);
+        assertFalse("only two parents set [reston], should not be resolved", restonGeo.isAncestryResolved());
+        assertFalse("only one parent set [fairfax county], should not be resolved", fairfaxCountyGeo.isAncestryResolved());
     }
 
     /**
@@ -265,16 +299,25 @@ public class GeoNameTest {
      */
     @Test
     public void testIsAncestryResolved_FullResolution() {
-        virginia.setParent(unitedStates);
-        fairfaxCounty.setParent(virginia);
-        reston.setParent(fairfaxCounty);
-        assertTrue("[reston] should be fully resolved", reston.isAncestryResolved());
-        assertTrue("[fairfax county] should be fully resolved", fairfaxCounty.isAncestryResolved());
-        assertTrue("[virginia] should be fully resolved", virginia.isAncestryResolved());
-        assertTrue("[united states] should be fully resolved", unitedStates.isAncestryResolved());
+        GeoName restonGeo = reston.geoName;
+        GeoName fairfaxCountyGeo = fairfaxCounty.geoName;
+        GeoName virginiaGeo = virginia.geoName;
+        GeoName unitedStatesGeo = unitedStates.geoName;
+        GeoName coralSeaIslandsGeo = coralSeaIslands.geoName;
 
-        coralSeaIslands.setParent(australia);
-        assertTrue("[coral sea islands] should be fully resolved", coralSeaIslands.isAncestryResolved());
+        virginiaGeo.setParent(unitedStatesGeo);
+        fairfaxCountyGeo.setParent(virginiaGeo);
+        restonGeo.setParent(fairfaxCountyGeo);
+        assertTrue("[reston] should be fully resolved", restonGeo.isAncestryResolved());
+        assertTrue("[fairfax county] should be fully resolved", fairfaxCountyGeo.isAncestryResolved());
+        assertTrue("[virginia] should be fully resolved", virginiaGeo.isAncestryResolved());
+        assertTrue("[united states] should be fully resolved", unitedStatesGeo.isAncestryResolved());
+        assertEquals("incorrect gazetteer records with ancestry", String.format("%s\n%s\n%s\n%s", reston.gazetteerRecord,
+                fairfaxCounty.gazetteerRecord, virginia.gazetteerRecord, unitedStates.gazetteerRecord),
+                restonGeo.getGazetteerRecordWithAncestry());
+
+        coralSeaIslandsGeo.setParent(australia.geoName);
+        assertTrue("[coral sea islands] should be fully resolved", coralSeaIslandsGeo.isAncestryResolved());
     }
 
     /**
@@ -282,17 +325,21 @@ public class GeoNameTest {
      */
     @Test
     public void testSetParent_InvalidParent() {
-        assertNull("[reston] should have no parent", reston.getParent());
-        assertFalse("non-administrative parent should not be allowed", reston.setParent(boston));
-        assertNull("[reston] should have no parent", reston.getParent());
-        assertTrue("non-direct parent should be allowed", reston.setParent(virginia));
-        assertEquals("[reston] should have parent [virginia]", virginia, reston.getParent());
-        assertFalse("unrelated parent should not be allowed", reston.setParent(australia));
-        assertEquals("[reston] should have parent [virginia]", virginia, reston.getParent());
-        assertTrue("direct parent should be allowed", reston.setParent(fairfaxCounty));
-        assertEquals("[reston] should have parent [fairfax county]", fairfaxCounty, reston.getParent());
-        assertFalse("null parent should result in a no-op", reston.setParent(null));
-        assertEquals("[reston] should have parent [fairfax county]", fairfaxCounty, reston.getParent());
+        GeoName restonGeo = reston.geoName;
+
+        assertNull("[reston] should have no parent", restonGeo.getParent());
+        assertFalse("non-administrative parent should not be allowed", restonGeo.setParent(boston.geoName));
+        assertNull("[reston] should have no parent", restonGeo.getParent());
+        assertTrue("non-direct parent should be allowed", restonGeo.setParent(virginia.geoName));
+        assertEquals("[reston] should have parent [virginia]", virginia.geoName, restonGeo.getParent());
+        assertFalse("unrelated parent should not be allowed", restonGeo.setParent(australia.geoName));
+        assertEquals("[reston] should have parent [virginia]", virginia.geoName, restonGeo.getParent());
+        assertTrue("direct parent should be allowed", restonGeo.setParent(fairfaxCounty.geoName));
+        assertEquals("[reston] should have parent [fairfax county]", fairfaxCounty.geoName, restonGeo.getParent());
+        assertFalse("null parent should result in a no-op", restonGeo.setParent(null));
+        assertEquals("[reston] should have parent [fairfax county]", fairfaxCounty.geoName, restonGeo.getParent());
+        assertFalse("cannot set parent to self", restonGeo.setParent(restonGeo));
+        assertEquals("[reston] should have parent [fairfax county]", fairfaxCounty.geoName, restonGeo.getParent());
     }
 
     /**

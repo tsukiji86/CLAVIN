@@ -167,6 +167,9 @@ public class GeoName {
     // the parent of this GeoName
     private GeoName parent;
 
+    // the gazetteer record this GeoName was parsed from
+    private String gazetteerRecord;
+
     // sentinel value used in place of null when numeric value in
     // GeoNames record is not provided (see: geonameID, latitude,
     // longitude, population, elevation, digitalElevationModel)
@@ -196,6 +199,7 @@ public class GeoName {
      * @param digitalElevationModel     another way to measure elevation
      * @param timezone                  timezone for this location
      * @param modificationDate          date of last modification for the GeoNames record
+     * @param gazetteerRecord           the gazetteer record
      */
     public GeoName(
             int geonameID,
@@ -216,7 +220,8 @@ public class GeoName {
             Integer elevation,
             Integer digitalElevationModel,
             TimeZone timezone,
-            Date modificationDate) {
+            Date modificationDate,
+            String gazetteerRecord) {
         this.geonameID = geonameID;
         this.name = name;
         this.asciiName = asciiName;
@@ -248,6 +253,7 @@ public class GeoName {
         this.digitalElevationModel = digitalElevationModel;
         this.timezone = timezone != null ? (TimeZone) timezone.clone() : null;
         this.modificationDate = modificationDate != null ? new Date(modificationDate.getTime()) : null;
+        this.gazetteerRecord = gazetteerRecord;
     }
 
     /**
@@ -258,7 +264,24 @@ public class GeoName {
      * @return              new GeoName object
      */
     public static GeoName parseFromGeoNamesRecord(String inputLine) {
+        String[] ancestry = inputLine.split("\n");
+        GeoName geoName = parseGeoName(ancestry[0]);
+        // if more records exist, assume they are the ancestory of the target GeoName
+        if (ancestry.length > 1) {
+            GeoName current = geoName;
+            for (int idx = 1; idx < ancestry.length; idx++) {
+                GeoName parent = parseGeoName(ancestry[idx]);
+                if (!current.setParent(parent)) {
+                    LOG.error("Invalid ancestry path for GeoName [{}]: {}", geoName, inputLine.replaceAll("\n", " |@| "));
+                    break;
+                }
+                current = parent;
+            }
+        }
+        return geoName;
+    }
 
+    private static GeoName parseGeoName(final String inputLine) {
         // GeoNames gazetteer entries are tab-delimited
         String[] tokens = inputLine.split("\t");
 
@@ -364,7 +387,7 @@ public class GeoName {
                 primaryCountryCode, alternateCountryCodes, admin1Code,
                 admin2Code, admin3Code, admin4Code, population,
                 elevation, digitalElevationModel, timezone,
-                modificationDate);
+                modificationDate, inputLine);
     }
 
     private static int getAdminLevel(final FeatureClass fClass, final FeatureCode fCode) {
@@ -506,6 +529,16 @@ public class GeoName {
         }
         String key = (hasKey ? buildAncestryKey(FeatureCode.ADM4, true) : "").trim();
         return !key.isEmpty() ? key : null;
+    }
+
+    /**
+     * Is this GeoName a top-level administrative division (e.g. country, territory or similar)?
+     * @return <code>true</code> if this is a top-level administrative division
+     */
+    public boolean isTopLevelAdminDivision() {
+        boolean isAdmin = featureClass == FeatureClass.A;
+        boolean isTerr = isAdmin && featureCode == FeatureCode.TERR;
+        return (isTerr && isTopLevelTerritory()) || (isAdmin && !isTerr && TOP_LEVEL_FEATURES.contains(featureCode));
     }
 
     /**
@@ -800,5 +833,22 @@ public class GeoName {
     public Date getModificationDate() {
         // defensive copy
         return modificationDate != null ? new Date(modificationDate.getTime()) : null;
+    }
+
+    /**
+     * Get the gazetteer record for this GeoName.
+     * @return the gazetteer record this GeoName was parsed from
+     */
+    public String getGazetteerRecord() {
+        return gazetteerRecord;
+    }
+
+    /**
+     * Get the gazetteer records for this GeoName and its ancestors, separated
+     * by newline characters.
+     * @return the newline-separated gazetteer records for this GeoName and its ancestors.
+     */
+    public String getGazetteerRecordWithAncestry() {
+        return parent != null ? String.format("%s\n%s", gazetteerRecord, parent.getGazetteerRecordWithAncestry()) : gazetteerRecord;
     }
 }
