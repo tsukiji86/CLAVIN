@@ -43,6 +43,7 @@ public class LuceneGazetteerTest {
     int RESTON_VA = 4781530;
     int STRAßENHAUS_DE = 2826158;
     int GUN_BARREL_CITY_TX = 4695535;
+    int USSR = 8354411;
 
     //this convenience method turns an array of location name strings into a list of occurrences with fake positions.
     //(useful for tests that don't care about position in the document)
@@ -184,5 +185,24 @@ public class LuceneGazetteerTest {
     @Test
     public void testGetNullGeoName() throws ClavinException {
         assertNull("Expected null GeoName for unknown ID [-1]", instance.getGeoName(-1));
+    }
+
+    /**
+     * Ensure historical records are not matched by getClosestActiveLocations.
+     */
+    @Test
+    public void testFindHistoricalLocations() throws ClavinException {
+        LocationOccurrence sovietUnion = new LocationOccurrence("Soviet Union", 0);
+        List<ResolvedLocation> withHistorical = instance.getClosestLocations(sovietUnion, 10, true);
+        List<ResolvedLocation> activeOnly = instance.getClosestActiveLocations(sovietUnion, 10, true);
+
+        // verify that historical Soviet Union is found when searching all locations
+        assertEquals("expected only one result for Soviet Union with historical", 1, withHistorical.size());
+        assertEquals("unexpected ID for Soviet Union", USSR, withHistorical.get(0).getGeoname().getGeonameID());
+
+        // verify that historical Soviet Union is not included in active only results
+        for (ResolvedLocation loc : activeOnly) {
+            assertNotEquals("Soviet Union should not be in active only results", USSR, loc.getGeoname().getGeonameID());
+        }
     }
 }

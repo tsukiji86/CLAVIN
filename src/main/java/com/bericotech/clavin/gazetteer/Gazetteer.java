@@ -38,7 +38,8 @@ import java.util.List;
  */
 public interface Gazetteer {
     /**
-     * Finds the top <code>maxResults</code> matches for the provided location name.
+     * Finds the top <code>maxResults</code> matches for the provided location name,
+     * searching both current and historical locations.
      *
      * @param locationName      name of the geographic location to be resolved
      * @param maxResults        the maximum number of results to return
@@ -47,6 +48,19 @@ public interface Gazetteer {
      * @throws ClavinException  if an error occurs
      */
     List<ResolvedLocation> getClosestLocations(final LocationOccurrence locationName, final int maxResults,
+            final boolean fuzzy) throws ClavinException;
+
+    /**
+     * Finds the top <code>maxResults</code> matches for the provided location name,
+     * restricting matches to only non-historical locations.
+     *
+     * @param locationName          name of the geographic location to be resolved
+     * @param maxResults            the maximum number of results to return
+     * @param fuzzy                 switch for turning on/off fuzzy matching
+     * @return                      list of ResolvedLocations as potential matches
+     * @throws ClavinException      if an error occurs
+     */
+    List<ResolvedLocation> getClosestActiveLocations(final LocationOccurrence locationName, final int maxResults,
             final boolean fuzzy) throws ClavinException;
 
     /**

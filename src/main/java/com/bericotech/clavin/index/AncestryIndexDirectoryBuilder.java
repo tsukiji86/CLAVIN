@@ -345,7 +345,7 @@ public class AncestryIndexDirectoryBuilder {
         int geoNameID = geoName.getGeonameID();
         long population = geoName.getPopulation();
         FeatureCode code = geoName.getFeatureCode();
-        int historical = code.isHistorical() ? 1 : 0;
+        int historical = IndexField.getBooleanIndexValue(code.isHistorical());
 
         // create a unique Document for each name of this GeoName
         for (String name : names) {

@@ -36,4 +36,14 @@ public enum IndexField {
     public String key() {
         return key;
     }
+
+    /**
+     * Gets the integer value representing the provided boolean value in
+     * the Lucene index.
+     * @param inBool the boolean value
+     * @return the numeric value representing the boolean in the index
+     */
+    public static int getBooleanIndexValue(final boolean inBool) {
+        return inBool ? 1 : 0;
+    }
 }

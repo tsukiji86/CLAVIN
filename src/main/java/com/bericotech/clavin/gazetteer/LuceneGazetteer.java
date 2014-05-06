@@ -33,7 +33,9 @@ import static org.apache.lucene.queryparser.classic.QueryParserBase.escape;
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.index.BinarySimilarity;
+import com.bericotech.clavin.index.IndexField;
 import com.bericotech.clavin.index.WhitespaceLowerCaseAnalyzer;
+import com.bericotech.clavin.resolver.LuceneLocationResolver;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +46,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
@@ -119,7 +123,8 @@ public class LuceneGazetteer implements Gazetteer {
     }
 
     /**
-     * Finds all matches (capped at maxResults) in the Lucene index for a given location name.
+     * Finds all matches (capped at maxResults) in the Lucene index for a given location name,
+     * searching both current and active locations.
      *
      * @param locationName      name of the geographic location to be resolved
      * @param maxResults        the maximum number of results to return
@@ -128,9 +133,40 @@ public class LuceneGazetteer implements Gazetteer {
      * @throws ClavinException  if an error occurs searching the index
      */
     @Override
-    @SuppressWarnings("unchecked")
     public List<ResolvedLocation> getClosestLocations(final LocationOccurrence locationName, final int maxResults,
             final boolean fuzzy) throws ClavinException {
+        return internalGetClosestLocations(locationName, maxResults, fuzzy, true);
+    }
+
+    /**
+     * Finds all matches (capped at maxResults) in the Lucene index for a given location name,
+     * restricting the search to only active locations.
+     *
+     * @param locationName      name of the geographic location to be resolved
+     * @param maxResults        the maximum number of results to return
+     * @param fuzzy             switch for turning on/off fuzzy matching
+     * @return                  list of ResolvedLocations as potential matches
+     * @throws ClavinException  if an error occurs searching the index
+     */
+    @Override
+    public List<ResolvedLocation> getClosestActiveLocations(final LocationOccurrence locationName, final int maxResults,
+            final boolean fuzzy) throws ClavinException {
+        return internalGetClosestLocations(locationName, maxResults, fuzzy, false);
+    }
+
+    /**
+     * Finds all matches (capped at maxResults) in the Lucene index for a given location name.
+     *
+     * @param locationName      name of the geographic location to be resolved
+     * @param maxResults        the maximum number of results to return
+     * @param fuzzy             switch for turning on/off fuzzy matching
+     * @param includeHistorical <code>true</code> to include historical locations in the search
+     * @return                  list of ResolvedLocations as potential matches
+     * @throws ClavinException  if an error occurs searching the index
+     */
+    @SuppressWarnings("unchecked")
+    private List<ResolvedLocation> internalGetClosestLocations(final LocationOccurrence locationName, final int maxResults,
+            final boolean fuzzy, final boolean includeHistorical) throws ClavinException {
         // short-circuit if no location name was provided
         String name = locationName != null && locationName.getText() != null ? locationName.getText().trim().toLowerCase() : "";
         if ("".equals(name)) {
@@ -142,8 +178,8 @@ public class LuceneGazetteer implements Gazetteer {
         try {
             // Lucene query used to look for matches based on the
             // "indexName" field
-            Query q = new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(),
-                    INDEX_ANALYZER).parse("\"" + sanitizedLocationName + "\"");
+            Query q = buildHistoricalQuery(new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(),
+                    INDEX_ANALYZER).parse("\"" + sanitizedLocationName + "\""), includeHistorical);
 
             // collect all the hits up to maxResults, and sort them based
             // on Lucene match score and population for the associated
@@ -169,7 +205,8 @@ public class LuceneGazetteer implements Gazetteer {
                 // with TopTermsBoostOnlyBooleanQueryRewrite, I like the output better this way.
                 // With the other method, we failed to match things like "Stra��enhaus Airport"
                 // as <Stra��enhaus>, and the match scores didn't make as much sense.
-                q = new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER).parse(sanitizedLocationName + "~");
+                q = buildHistoricalQuery(new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER).
+                        parse(sanitizedLocationName + "~"), includeHistorical);
 
                 // collect all the fuzzy matches up to maxHits, and sort
                 // them based on Lucene match score and population for the
@@ -207,6 +244,20 @@ public class LuceneGazetteer implements Gazetteer {
             LOG.error(msg, e);
             throw new ClavinException(msg, e);
         }
+    }
+
+    private Query buildHistoricalQuery(final Query query, final boolean includeHistorical) {
+        Query historicalQuery = query;
+        // if historical data is included, we don't need to restrict the query at all
+        if (!includeHistorical) {
+            BooleanQuery bq = new BooleanQuery();
+            int notHistorical = IndexField.getBooleanIndexValue(false);
+            bq.add(NumericRangeQuery.newIntRange(HISTORICAL.key(), notHistorical, notHistorical, true, true),
+                    BooleanClause.Occur.MUST);
+            bq.add(query, BooleanClause.Occur.MUST);
+            historicalQuery = bq;
+        }
+        return historicalQuery;
     }
 
     /**
