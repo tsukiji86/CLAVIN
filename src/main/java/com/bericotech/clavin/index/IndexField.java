@@ -23,7 +23,9 @@ public enum IndexField {
     INDEX_NAME("indexName"),
     GEONAME("geoname"),
     GEONAME_ID("geonameID"),
-    POPULATION("population");
+    POPULATION("population"),
+    HISTORICAL("historical"),
+    FEATURE_CODE("featureCode");
 
     private final String key;
 

@@ -64,7 +64,7 @@ public class ClavinHeuristicsTest {
     private static final int SPRINGFIELD_MO = 4409896;
     private static final int ST_LOUIS_MO = 6955119;
     private static final int INDEPENDENCE_MO = 4391812;
-    private static final int LONDON_UK = 2643741;
+    private static final int LONDON_UK = 2643743;
     private static final int MANCHESTER_UK = 2643123;
     private static final int HAVERHILL_UK = 2647310;
     private static final int WORCESTER_UK = 2633560;

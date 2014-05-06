@@ -27,6 +27,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -71,8 +72,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class AncestryIndexDirectoryBuilder {
-
-    public final static Logger logger = LoggerFactory.getLogger(AncestryIndexDirectoryBuilder.class);
+    private final static Logger LOG = LoggerFactory.getLogger(AncestryIndexDirectoryBuilder.class);
 
     // the GeoNames gazetteer file to be loaded
     static String pathToGazetteer = "./allCountries.txt";
@@ -81,6 +81,7 @@ public class AncestryIndexDirectoryBuilder {
     private final Map<String, Set<GeoName>> unresolvedMap;
 
     private IndexWriter indexWriter;
+    private int indexCount;
 
     private AncestryIndexDirectoryBuilder() {
         adminMap = new TreeMap<String, GeoName>();
@@ -88,7 +89,10 @@ public class AncestryIndexDirectoryBuilder {
     }
 
     public void buildIndex(File idir) throws IOException {
-        logger.info("Indexing... please wait.");
+        LOG.info("Indexing... please wait.");
+
+        indexCount = 0;
+
         // Create a new index file on disk, allowing Lucene to choose
         // the best FSDirectory implementation given the environment.
         FSDirectory index = FSDirectory.open(idir);
@@ -101,7 +105,7 @@ public class AncestryIndexDirectoryBuilder {
 
         // open the gazetteer files to be loaded
         BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(new File(pathToGazetteer)), "UTF-8"));
-        BufferedReader r2 = new BufferedReader(new InputStreamReader(new FileInputStream(new File("./src/main/resources/SupplementaryGazetteer.txt")), "UTF-8"));
+//        BufferedReader r2 = new BufferedReader(new InputStreamReader(new FileInputStream(new File("./src/main/resources/SupplementaryGazetteer.txt")), "UTF-8"));
 
         String line;
 
@@ -110,15 +114,21 @@ public class AncestryIndexDirectoryBuilder {
 
         // load GeoNames gazetteer into Lucene index
         int count = 0;
-        while ((line = r.readLine()) != null)
+        while ((line = r.readLine()) != null) {
             try {
                 count += 1;
                 // print progress update to console
-                if (count % 100000 == 0 ) logger.info("rowcount: " + count);
-                addToIndex(line);
-            } catch (Exception e) {
-                 logger.info("Skipping... Error on line:" + line);
+                if (count % 100000 == 0 ) {
+                    LOG.info("rowcount: " + count);
+                }
+                GeoName geoName = GeoName.parseFromGeoNamesRecord(line);
+                resolveAncestry(geoName);
+            } catch (IOException e) {
+                LOG.info("Skipping... Error on line: {}", line);
+            } catch (RuntimeException re) {
+                LOG.info("Skipping... Error on line: {}", line);
             }
+        }
 
         // add supplementary gazetteer records to index
 //        while ((line = r2.readLine()) != null) {
@@ -128,87 +138,118 @@ public class AncestryIndexDirectoryBuilder {
         // that wasn't so long, was it?
         Date stop = new Date();
 
-        logger.info("[DONE]");
-        logger.info(indexWriter.maxDoc() + " geonames added to index.");
-        logger.info("Merging indices... please wait.");
+        LOG.info("[DONE]");
+        LOG.info(indexWriter.maxDoc() + " geonames added to index.");
+        LOG.info("Merging indices... please wait.");
 
-        indexWriter.close();
-        index.close();
-        r.close();
-        r2.close();
-
-        logger.info("[DONE]");
-
-        DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        long elapsed_MILLIS = stop.getTime() - start.getTime();
-        logger.info("Process started: " + df.format(start) + ", ended: " + df.format(stop)
-                + "; elapsed time: " + MILLISECONDS.toSeconds(elapsed_MILLIS) + " seconds.");
-
-        logger.info("\n\nUnresolved (Pre-resolution)");
+        LOG.info("Unresolved GeoNames (Pre-resolution)");
         logUnresolved();
 
         resolveUnresolved();
 
-        logger.info("\n\nUnresoled (Post-resolution)");
+        LOG.info("Unresolved GeoNames (Post-resolution)");
         logUnresolved();
+
+        LOG.info("Indexing unresolved GeoNames.");
+        for (Set<GeoName> geos : unresolvedMap.values()) {
+            for (GeoName nm : geos) {
+                indexGeoName(nm);
+            }
+        }
+
+        indexWriter.close();
+        index.close();
+        r.close();
+//        r2.close();
+
+        LOG.info("[DONE]");
+
+        DateFormat df = new SimpleDateFormat("HH:mm:ss");
+        long elapsed_MILLIS = stop.getTime() - start.getTime();
+        LOG.info("Process started: " + df.format(start) + ", ended: " + df.format(stop)
+                + "; elapsed time: " + MILLISECONDS.toSeconds(elapsed_MILLIS) + " seconds.");
+    }
+    /**
+     * Turns a GeoNames gazetteer file into a Lucene index, and adds
+     * some supplementary gazetteer records at the end.
+     *
+     * @param args              not used
+     * @throws IOException
+     */
+    public static void main(String[] args) throws IOException {
+        // exit gracefully if the directory exists
+        File idir = new File("./IndexDirectory");
+        if (idir.exists() ) {
+            LOG.info("IndexDirectory exists. Remove the directory and try again.");
+            System.exit(-1);
+        }
+        new AncestryIndexDirectoryBuilder().buildIndex(idir);
     }
 
-    private void logUnresolved() {
-        int unresolvedGeoCount = 0;
-        Map<String, Integer> unresolvedCodeMap = new TreeMap<String, Integer>();
-        Map<String, Integer> missingCodeMap = new TreeMap<String, Integer>();
-        for (Map.Entry<String, Set<GeoName>> entry : unresolvedMap.entrySet()) {
-            logger.trace("{}: {} unresolved GeoNames", entry.getKey(), entry.getValue().size());
-            unresolvedGeoCount += entry.getValue().size();
-            FeatureCode code;
-            switch (entry.getKey().split("\\.").length) {
-                case 1:
-                    code = FeatureCode.PCL;
-                    break;
-                case 2:
-                    code = FeatureCode.ADM1;
-                    break;
-                case 3:
-                    code = FeatureCode.ADM2;
-                    break;
-                case 4:
-                    code = FeatureCode.ADM3;
-                    break;
-                case 5:
-                    code = FeatureCode.ADM4;
-                    break;
-                default:
-                    logger.error("Unexpected ancestry key: {}", entry.getKey());
-                    code = FeatureCode.NULL;
-                    break;
+    private void resolveAncestry(final GeoName geoname) throws IOException {
+        // set this GeoName's parent if it is known
+        String parentKey = geoname.getParentAncestryKey();
+        if (parentKey != null) {
+            // if we cannot successfully set the parent, add to the unresolved map,
+            // waiting for a parent to be set
+            if (!geoname.setParent(adminMap.get(parentKey)) || !geoname.isAncestryResolved()) {
+                Set<GeoName> unresolved = unresolvedMap.get(parentKey);
+                if (unresolved == null) {
+                    unresolved = new HashSet<GeoName>();
+                    unresolvedMap.put(parentKey, unresolved);
+                }
+                unresolved.add(geoname);
             }
-            if (missingCodeMap.containsKey(code.name())) {
-                missingCodeMap.put(code.name(), missingCodeMap.get(code.name())+1);
-            } else {
-                missingCodeMap.put(code.name(), 1);
-            }
+        }
+        // if this geoname is fully resolved, add it to the index
+        if (geoname.isAncestryResolved()) {
+            indexGeoName(geoname);
+        }
 
-            for (GeoName geo : entry.getValue()) {
-                String featKey = String.format("%s:%s", geo.getFeatureClass(), geo.getFeatureCode());
-                if (unresolvedCodeMap.containsKey(featKey)) {
-                    unresolvedCodeMap.put(featKey, unresolvedCodeMap.get(featKey)+1);
-                } else {
-                    unresolvedCodeMap.put(featKey, 1);
+        // if this is an administrative division, configure the parent of any waiting
+        // GeoNames and notify all 2nd level and further descendants their tree has been
+        // updated
+        String myKey = geoname.getAncestryKey();
+        if (myKey != null) {
+            GeoName conflict = adminMap.get(myKey);
+            if (conflict != null) {
+                LOG.error(String.format("Resolved duplicate admin key [%s] for GeoNames (%d %s:%s %s) and (%d %s:%s %s)",
+                        myKey, conflict.getGeonameID(), conflict.getFeatureClass(), conflict.getFeatureCode(), conflict.getName(),
+                        geoname.getGeonameID(), geoname.getFeatureClass(), geoname.getFeatureCode(), geoname.getName()));
+            }
+            adminMap.put(myKey, geoname);
+            checkDescendantsResolved(geoname, true);
+        }
+    }
+
+    private void checkDescendantsResolved(final GeoName geoname, final boolean setParent) throws IOException {
+        String key = geoname.getAncestryKey();
+        if (key != null) {
+            Set<GeoName> descendants = unresolvedMap.get(key);
+            if (descendants != null) {
+                // use an iterator so we can remove elements
+                Iterator<GeoName> iter = descendants.iterator();
+                while (iter.hasNext()) {
+                    GeoName desc = iter.next();
+                    if (setParent) {
+                        if (!desc.setParent(geoname)) {
+                            LOG.error("Error setting parent [{}] of GeoName [{}].", geoname, desc);
+                        }
+                    }
+                    if (desc.isAncestryResolved()) {
+                        checkDescendantsResolved(desc, false);
+                        indexGeoName(desc);
+                        iter.remove();
+                    }
+                }
+                if (descendants.isEmpty()) {
+                    unresolvedMap.remove(key);
                 }
             }
         }
-        logger.info("Found {} administrative divisions.", adminMap.size());
-        logger.info("Found {} missing administrative keys.", unresolvedMap.size());
-        for (String code : missingCodeMap.keySet()) {
-            logger.info("{}: {}", code, missingCodeMap.get(code));
-        }
-        logger.info("{} total unresolved GeoNames", unresolvedGeoCount);
-        for (String key : unresolvedCodeMap.keySet()) {
-            logger.info("{}: {}", key, unresolvedCodeMap.get(key));
-        }
     }
 
-    private void resolveUnresolved() {
+    private void resolveUnresolved() throws IOException {
         // sort keys in ascending order by level of specificity and name
         Set<String> keys = new TreeSet<String>(new Comparator<String>() {
             @Override
@@ -243,184 +284,134 @@ public class AncestryIndexDirectoryBuilder {
                     GeoName geoName = iter.next();
                     // first check to see if a previous loop resolved all parents
                     if (geoName.isAncestryResolved()) {
+                        indexGeoName(geoName);
                         iter.remove();
                     } else if (geoName.setParent(parent)) {
                         if (geoName.isAncestryResolved()) {
                             // ancestry has been resolved, remove from the unresolved collection
+                            indexGeoName(geoName);
                             iter.remove();
                         } else {
-                            logger.error("GeoName [{}] should be fully resolved. (parent: {})", geoName, parent);
+                            LOG.error("GeoName [{}] should be fully resolved. (parent: {})", geoName, parent);
                         }
                     } else {
-                        logger.error("Unable to set parent of {} to {}", geoName, parent);
+                        LOG.error("Unable to set parent of {} to {}", geoName, parent);
                     }
                 }
                 if (unresolved.isEmpty()) {
                     unresolvedMap.remove(key);
                 }
             } else {
-                logger.error("Unable to resolve parent for GeoName key: {}", key);
+                LOG.error("Unable to resolve parent for GeoName key: {}", key);
             }
         }
     }
 
     /**
-     * Turns a GeoNames gazetteer file into a Lucene index, and adds
-     * some supplementary gazetteer records at the end.
+     * Builds a set of Lucene documents for the provided GeoName, indexing
+     * each using all available names and storing the entire ancestry path
+     * for each GeoName in the index.  See {@link IndexField} for descriptions
+     * of the fields indexed for each document.
      *
-     * @param args              not used
-     * @throws IOException
+     * @param geoName the GeoName to index
+     * @return the documents to be added to the index
+     * @throws IOException if an error occurs while indexing
      */
-    public static void main(String[] args) throws IOException {
-        // exit gracefully if the directory exists
-        File idir = new File("./IndexDirectory");
-        if (idir.exists() ) {
-            logger.info("IndexDirectory exists. Remove the directory and try again.");
-            System.exit(-1);
-        }
-        new AncestryIndexDirectoryBuilder().buildIndex(idir);
-    }
-
-    /**
-     * Adds entries to the Lucene index for each unique name associated
-     * with a {@link GeoName} object.
-     *
-     * @param geonameEntry  single record from GeoNames gazetteer
-     * @throws IOException
-     */
-    private void addToIndex(String geonameEntry) throws IOException {
-        // create a GeoName object from a single gazetteer record
-        GeoName geoname = GeoName.parseFromGeoNamesRecord(geonameEntry);
-        resolveAncestry(geoname);
-        String nm = geoname.getName();
-        String asciiNm = geoname.getAsciiName();
-
+    private void indexGeoName(final GeoName geoName) throws IOException {
+        indexCount++;
+        // find all unique names for this GeoName
+        String nm = geoName.getName();
+        String asciiNm = geoName.getAsciiName();
         Set<String> names = new HashSet<String>();
         names.add(nm);
         names.add(asciiNm);
-        names.addAll(geoname.getAlternateNames());
+        names.addAll(geoName.getAlternateNames());
         // if this is a top-level administrative division, add its primary and alternate country codes
         // if they are not already found in the name or alternate names
-        if (geoname.isTopLevelAdminDivision()) {
-            if (geoname.getPrimaryCountryCode() != null) {
-                names.add(geoname.getPrimaryCountryCode().name());
+        if (geoName.isTopLevelAdminDivision()) {
+            if (geoName.getPrimaryCountryCode() != null) {
+                names.add(geoName.getPrimaryCountryCode().name());
             }
-            for (CountryCode cc : geoname.getAlternateCountryCodes()) {
+            for (CountryCode cc : geoName.getAlternateCountryCodes()) {
                 names.add(cc.name());
             }
         }
         names.remove(null);
         names.remove("");
+
+        // cache index fields that are the same for each document so we don't
+        // need to make N method calls
+        String gazetteerRecord = geoName.getGazetteerRecordWithAncestry();
+        int geoNameID = geoName.getGeonameID();
+        long population = geoName.getPopulation();
+        FeatureCode code = geoName.getFeatureCode();
+        int historical = code.isHistorical() ? 1 : 0;
+
+        // create a unique Document for each name of this GeoName
         for (String name : names) {
-            indexWriter.addDocument(buildDoc(name, geonameEntry, geoname.getGeonameID(), geoname.getPopulation()));
+            Document doc = new Document();
+            doc.add(new TextField(INDEX_NAME.key(), name, Field.Store.YES));
+            doc.add(new StoredField(GEONAME.key(), gazetteerRecord));
+            doc.add(new IntField(GEONAME_ID.key(), geoNameID, Field.Store.YES));
+            doc.add(new LongField(POPULATION.key(), population, Field.Store.YES));
+            doc.add(new IntField(HISTORICAL.key(), historical, Field.Store.NO));
+            doc.add(new StringField(FEATURE_CODE.key(), code.name(), Field.Store.NO));
+            indexWriter.addDocument(doc);
         }
     }
 
-    private void resolveAncestry(final GeoName geoname) {
-        // set this GeoName's parent if it is known
-        String parentKey = geoname.getParentAncestryKey();
-        if (parentKey != null) {
-            // if we cannot successfully set the parent, add to the unresolved map,
-            // waiting for a parent to be set
-            if (!geoname.setParent(adminMap.get(parentKey))) {
-                Set<GeoName> unresolved = unresolvedMap.get(parentKey);
-                if (unresolved == null) {
-                    unresolved = new HashSet<GeoName>();
-                    unresolvedMap.put(parentKey, unresolved);
-                }
-                unresolved.add(geoname);
+    private void logUnresolved() {
+        int unresolvedGeoCount = 0;
+        Map<String, Integer> unresolvedCodeMap = new TreeMap<String, Integer>();
+        Map<String, Integer> missingCodeMap = new TreeMap<String, Integer>();
+        for (Map.Entry<String, Set<GeoName>> entry : unresolvedMap.entrySet()) {
+            LOG.trace("{}: {} unresolved GeoNames", entry.getKey(), entry.getValue().size());
+            unresolvedGeoCount += entry.getValue().size();
+            FeatureCode code;
+            switch (entry.getKey().split("\\.").length) {
+                case 1:
+                    code = FeatureCode.PCL;
+                    break;
+                case 2:
+                    code = FeatureCode.ADM1;
+                    break;
+                case 3:
+                    code = FeatureCode.ADM2;
+                    break;
+                case 4:
+                    code = FeatureCode.ADM3;
+                    break;
+                case 5:
+                    code = FeatureCode.ADM4;
+                    break;
+                default:
+                    LOG.error("Unexpected ancestry key: {}", entry.getKey());
+                    code = FeatureCode.NULL;
+                    break;
             }
-        }
+            if (missingCodeMap.containsKey(code.name())) {
+                missingCodeMap.put(code.name(), missingCodeMap.get(code.name())+1);
+            } else {
+                missingCodeMap.put(code.name(), 1);
+            }
 
-        // if this is an administrative division, configure the parent of any waiting
-        // GeoNames and notify all 2nd level and further descendants their tree has been
-        // updated
-        String myKey = geoname.getAncestryKey();
-        if (myKey != null) {
-            GeoName conflict = adminMap.get(myKey);
-            if (conflict != null) {
-                logger.error(String.format("Resolved duplicate admin key [%s] for GeoNames (%d %s:%s %s) and (%d %s:%s %s)",
-                        myKey, conflict.getGeonameID(), conflict.getFeatureClass(), conflict.getFeatureCode(), conflict.getName(),
-                        geoname.getGeonameID(), geoname.getFeatureClass(), geoname.getFeatureCode(), geoname.getName()));
-            }
-            adminMap.put(myKey, geoname);
-            Set<GeoName> descendants = unresolvedMap.get(myKey);
-            if (descendants != null) {
-                // use an iterator so we can remove elements
-                Iterator<GeoName> iter = descendants.iterator();
-                while (iter.hasNext()) {
-                    GeoName desc = iter.next();
-                    if (desc.setParent(geoname)) {
-                        if (desc.isAncestryResolved()) {
-                            checkDescendantsResolved(desc);
-                            iter.remove();
-                        }
-                    } else {
-                        logger.error("Error setting parent [{}] of GeoName [{}].", geoname, desc);
-                    }
-                }
-                if (descendants.isEmpty()) {
-                    unresolvedMap.remove(myKey);
+            for (GeoName geo : entry.getValue()) {
+                String featKey = String.format("%s:%s", geo.getFeatureClass(), geo.getFeatureCode());
+                if (unresolvedCodeMap.containsKey(featKey)) {
+                    unresolvedCodeMap.put(featKey, unresolvedCodeMap.get(featKey)+1);
+                } else {
+                    unresolvedCodeMap.put(featKey, 1);
                 }
             }
         }
-    }
-
-    private void checkDescendantsResolved(final GeoName geoname) {
-        String key = geoname.getAncestryKey();
-        if (key != null) {
-            Set<GeoName> descendants = unresolvedMap.get(key);
-            if (descendants != null) {
-                // use an iterator so we can remove elements
-                Iterator<GeoName> iter = descendants.iterator();
-                while (iter.hasNext()) {
-                    GeoName desc = iter.next();
-                    if (desc.isAncestryResolved()) {
-                        checkDescendantsResolved(desc);
-                        iter.remove();
-                    }
-                }
-                if (descendants.isEmpty()) {
-                    unresolvedMap.remove(key);
-                }
-            }
+        LOG.info("Found {} administrative divisions.", adminMap.size());
+        LOG.info("Found {} missing administrative keys.", unresolvedMap.size());
+        for (String code : missingCodeMap.keySet()) {
+            LOG.info("{}: {}", code, missingCodeMap.get(code));
+        }
+        LOG.info("{} total unresolved GeoNames", unresolvedGeoCount);
+        for (String key : unresolvedCodeMap.keySet()) {
+            LOG.trace("{}: {}", key, unresolvedCodeMap.get(key));
         }
     }
-
-    /**
-     * Builds a Lucene document to be added to the index based on a
-     * specified name for the location and the corresponding
-     * {@link GeoName} object.
-     *
-     * @param name          name to serve as index key
-     * @param geonameEntry  string from GeoNames gazetteer
-     * @param geonameID     unique identifier (for quick look-up)
-     * @param population    number of inhabitants (used for scoring)
-     * @return              document to be added to the index
-     */
-    public static Document buildDoc(String name, String geonameEntry, int geonameID, Long population) {
-        // in case you're wondering, yes, this is a non-standard use of
-        // the Lucene Document construct :)
-        Document doc = new Document();
-
-        // this is essentially the key we'll try to match location
-        // names against
-        doc.add(new TextField(INDEX_NAME.key(), name, Field.Store.YES));
-
-        // this is the payload we'll return when matching location
-        // names to gazetteer records
-        doc.add(new StoredField(GEONAME.key(), geonameEntry));
-
-        // TODO: use geonameID to link administrative subdivisions to
-        //       each other
-        doc.add(new IntField(GEONAME_ID.key(), geonameID, Field.Store.YES));
-
-        // we'll initially sort match results based on population
-        doc.add(new LongField(POPULATION.key(), population, Field.Store.YES));
-
-        logger.debug("Adding to index: " + name);
-
-        return doc;
-    }
-
 }
