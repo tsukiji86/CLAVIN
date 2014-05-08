@@ -201,7 +201,9 @@ public class LuceneGazetteer implements Gazetteer {
                 for (ScoreDoc scoreDoc : results.scoreDocs) {
                     // add each matching location to the list of candidates
                     Document doc = indexSearcher.doc(scoreDoc.doc);
-                    ResolvedLocation location = new ResolvedLocation(doc, locationName, false);
+                    GeoName geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc));
+                    String matchedName = INDEX_NAME.getValue(doc);
+                    ResolvedLocation location = new ResolvedLocation(locationName, geoname, matchedName, false);
                     if (!location.getGeoname().isAncestryResolved()) {
                         IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
                         Integer parentId = parentIdField != null && parentIdField.numericValue() != null ?
@@ -239,7 +241,9 @@ public class LuceneGazetteer implements Gazetteer {
                     for (ScoreDoc scoreDoc : results.scoreDocs) {
                         // add each matching location to the list of candidates
                         Document doc = indexSearcher.doc(scoreDoc.doc);
-                        ResolvedLocation location = new ResolvedLocation(doc, locationName, false);
+                        GeoName geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc));
+                        String matchedName = INDEX_NAME.getValue(doc);
+                        ResolvedLocation location = new ResolvedLocation(locationName, geoname, matchedName, true);
                         if (!location.getGeoname().isAncestryResolved()) {
                             IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
                             Integer parentId = parentIdField != null && parentIdField.numericValue() != null ?
