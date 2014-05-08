@@ -61,7 +61,7 @@ public class ResolvedLocationTest {
 
         // two ResolvedLocation objects created from same Lucene Doc, etc.
         ResolvedLocation resolvedLocation = new ResolvedLocation(locationA, geoname, "Nowhere", false);
-        ResolvedLocation resolvedLocationDupe = new ResolvedLocation(locationA, geoname2, "Nowhere", false);
+        ResolvedLocation resolvedLocationDupe = new ResolvedLocation(locationA, geoname, "Nowhere", false);
 
         // an identical ResolvedLocation object created from the second Lucene doc
         ResolvedLocation resolvedLocation2 = new ResolvedLocation(locationA, geoname2, "Nowhere", false);
