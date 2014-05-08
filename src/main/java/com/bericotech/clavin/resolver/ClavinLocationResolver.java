@@ -22,7 +22,7 @@
  *
  * ====================================================================
  *
- * Clavin.java
+ * ClavinLocationResolver.java
  *
  *###################################################################*/
 
@@ -48,7 +48,7 @@ import java.util.Set;
  * geographic entities (as intended by the document's author based on
  * context) by finding the best match in a gazetteer.
  */
-public class Clavin {
+public class ClavinLocationResolver {
     /**
      * The default number of candidate matches to consider.
      */
@@ -68,7 +68,7 @@ public class Clavin {
      * Create a new ClavinLocationResolver.
      * @param gazetteer the Gazetteer to query
      */
-    public Clavin(final Gazetteer gazetteer) {
+    public ClavinLocationResolver(final Gazetteer gazetteer) {
         this.gazetteer = gazetteer;
     }
 

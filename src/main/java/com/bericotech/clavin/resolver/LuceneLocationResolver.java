@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
 public class LuceneLocationResolver implements LocationResolver {
     public final static Logger logger = LoggerFactory.getLogger(LuceneLocationResolver.class);
 
-    private final Clavin delegate;
+    private final ClavinLocationResolver delegate;
 
     // maximum number of matches to be fetched from Lucene index
     // (i.e., search depth) -- use a value of 1 to simply retrieve the
@@ -80,7 +80,7 @@ public class LuceneLocationResolver implements LocationResolver {
     public LuceneLocationResolver(File indexDir, int maxHitDepth, int maxContextWindow) throws IOException, ParseException {
         logger.warn("LuceneLocationResolver is deprecated.  Use ClavinLocationResolver.");
         try {
-            delegate = new Clavin(new LuceneGazetteer(indexDir));
+            delegate = new ClavinLocationResolver(new LuceneGazetteer(indexDir));
         } catch (ClavinException ce) {
             Throwable t = ce.getCause();
             if (t instanceof ParseException) {

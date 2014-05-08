@@ -3,7 +3,7 @@ package com.bericotech.clavin;
 import com.bericotech.clavin.extractor.LocationExtractor;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.gazetteer.Gazetteer;
-import com.bericotech.clavin.resolver.Clavin;
+import com.bericotech.clavin.resolver.ClavinLocationResolver;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.util.List;
 import org.slf4j.Logger;
@@ -54,7 +54,7 @@ public class GeoParser {
     private LocationExtractor extractor;
 
     // resolver to match location names against gazetteer records
-    private Clavin resolver;
+    private ClavinLocationResolver resolver;
 
     // the maximum hit depth for CLAVIN searches
     private int maxHitDepth;
@@ -76,7 +76,7 @@ public class GeoParser {
      */
     public GeoParser(LocationExtractor extractor, Gazetteer gazetteer, int maxHitDepth, int maxContextWindow, boolean fuzzy) {
         this.extractor = extractor;
-        this.resolver = new Clavin(gazetteer);
+        this.resolver = new ClavinLocationResolver(gazetteer);
         this.maxHitDepth = maxHitDepth;
         this.maxContextWindow = maxContextWindow;
         this.fuzzy = fuzzy;

@@ -13,14 +13,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -73,29 +84,42 @@ import org.slf4j.LoggerFactory;
  */
 public class AncestryIndexDirectoryBuilder {
     private final static Logger LOG = LoggerFactory.getLogger(AncestryIndexDirectoryBuilder.class);
+    private static final String HELP_OPTION = "help";
+    private static final String FULL_ANCESTRY_OPTION = "with-full-ancestry";
+    private static final String GAZETTEER_FILES_OPTION = "gazetteer-files";
+    private static final String INDEX_PATH_OPTION = "index-path";
+    private static final String REPLACE_INDEX_OPTION = "replace-index";
+
+    private static final String[] DEFAULT_GAZETTEER_FILES = new String[] {
+        "./allCountries.txt",
+        "./src/main/resources/SupplementaryGazetteer.txt"
+    };
+    private static final String DEFAULT_INDEX_DIRECTORY = "./IndexDirectory";
 
     // the GeoNames gazetteer file to be loaded
     static String pathToGazetteer = "./allCountries.txt";
 
     private final Map<String, GeoName> adminMap;
     private final Map<String, Set<GeoName>> unresolvedMap;
+    private final boolean fullAncestry;
 
     private IndexWriter indexWriter;
     private int indexCount;
 
-    private AncestryIndexDirectoryBuilder() {
+    private AncestryIndexDirectoryBuilder(final boolean fullAncestryIn) {
         adminMap = new TreeMap<String, GeoName>();
         unresolvedMap = new TreeMap<String, Set<GeoName>>();
+        this.fullAncestry = fullAncestryIn;
     }
 
-    public void buildIndex(File idir) throws IOException {
+    public void buildIndex(final File indexDir, final List<File> gazetteerFiles) throws IOException {
         LOG.info("Indexing... please wait.");
 
         indexCount = 0;
 
         // Create a new index file on disk, allowing Lucene to choose
         // the best FSDirectory implementation given the environment.
-        FSDirectory index = FSDirectory.open(idir);
+        FSDirectory index = FSDirectory.open(indexDir);
 
         // indexing by lower-casing & tokenizing on whitespace
         Analyzer indexAnalyzer = new WhitespaceLowerCaseAnalyzer();
@@ -103,44 +127,35 @@ public class AncestryIndexDirectoryBuilder {
         // create the object that will actually build the Lucene index
         indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_47, indexAnalyzer));
 
-        // open the gazetteer files to be loaded
-        BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(new File(pathToGazetteer)), "UTF-8"));
-//        BufferedReader r2 = new BufferedReader(new InputStreamReader(new FileInputStream(new File("./src/main/resources/SupplementaryGazetteer.txt")), "UTF-8"));
-
-        String line;
-
         // let's see how long this takes...
         Date start = new Date();
 
         // load GeoNames gazetteer into Lucene index
+        String line;
         int count = 0;
-        while ((line = r.readLine()) != null) {
-            try {
-                count += 1;
-                // print progress update to console
-                if (count % 100000 == 0 ) {
-                    LOG.info("rowcount: " + count);
+        for (File gazetteer : gazetteerFiles) {
+            LOG.info("Processing Gazetteer: {}", gazetteer.getAbsolutePath());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(gazetteer), "UTF-8"));
+            while ((line = reader.readLine()) != null) {
+                try {
+                    count += 1;
+                    // print progress update to console
+                    if (count % 100000 == 0 ) {
+                        LOG.info("rowcount: " + count);
+                    }
+                    GeoName geoName = GeoName.parseFromGeoNamesRecord(line);
+                    resolveAncestry(geoName);
+                } catch (IOException e) {
+                    LOG.info("Skipping... Error on line: {}", line);
+                } catch (RuntimeException re) {
+                    LOG.info("Skipping... Error on line: {}", line);
                 }
-                GeoName geoName = GeoName.parseFromGeoNamesRecord(line);
-                resolveAncestry(geoName);
-            } catch (IOException e) {
-                LOG.info("Skipping... Error on line: {}", line);
-            } catch (RuntimeException re) {
-                LOG.info("Skipping... Error on line: {}", line);
             }
+            reader.close();
         }
-
-        // add supplementary gazetteer records to index
-//        while ((line = r2.readLine()) != null) {
-//            addToIndex(line);
-//        }
 
         // that wasn't so long, was it?
         Date stop = new Date();
-
-        LOG.info("[DONE]");
-        LOG.info(indexWriter.maxDoc() + " geonames added to index.");
-        LOG.info("Merging indices... please wait.");
 
         LOG.info("Unresolved GeoNames (Pre-resolution)");
         logUnresolved();
@@ -157,10 +172,12 @@ public class AncestryIndexDirectoryBuilder {
             }
         }
 
+        LOG.info("[DONE]");
+        LOG.info("{} geonames added to index. ({} records)", indexWriter.maxDoc(), indexCount);
+        LOG.info("Merging indices... please wait.");
+
         indexWriter.close();
         index.close();
-        r.close();
-//        r2.close();
 
         LOG.info("[DONE]");
 
@@ -168,22 +185,6 @@ public class AncestryIndexDirectoryBuilder {
         long elapsed_MILLIS = stop.getTime() - start.getTime();
         LOG.info("Process started: " + df.format(start) + ", ended: " + df.format(stop)
                 + "; elapsed time: " + MILLISECONDS.toSeconds(elapsed_MILLIS) + " seconds.");
-    }
-    /**
-     * Turns a GeoNames gazetteer file into a Lucene index, and adds
-     * some supplementary gazetteer records at the end.
-     *
-     * @param args              not used
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException {
-        // exit gracefully if the directory exists
-        File idir = new File("./IndexDirectory");
-        if (idir.exists() ) {
-            LOG.info("IndexDirectory exists. Remove the directory and try again.");
-            System.exit(-1);
-        }
-        new AncestryIndexDirectoryBuilder().buildIndex(idir);
     }
 
     private void resolveAncestry(final GeoName geoname) throws IOException {
@@ -339,23 +340,22 @@ public class AncestryIndexDirectoryBuilder {
         names.remove(null);
         names.remove("");
 
-        // cache index fields that are the same for each document so we don't
-        // need to make N method calls
-        String gazetteerRecord = geoName.getGazetteerRecordWithAncestry();
-        int geoNameID = geoName.getGeonameID();
-        long population = geoName.getPopulation();
-        FeatureCode code = geoName.getFeatureCode();
-        int historical = IndexField.getBooleanIndexValue(code.isHistorical());
+        // reuse a single Document and field instances
+        Document doc = new Document();
+        doc.add(new StoredField(GEONAME.key(), fullAncestry ? geoName.getGazetteerRecordWithAncestry() : geoName.getGazetteerRecord()));
+        doc.add(new IntField(GEONAME_ID.key(), geoName.getGeonameID(), Field.Store.YES));
+        if (geoName.getParent() != null) {
+            doc.add(new IntField(PARENT_ID.key(), geoName.getParent().getGeonameID(), Field.Store.YES));
+        }
+        doc.add(new LongField(POPULATION.key(), geoName.getPopulation(), Field.Store.YES));
+        doc.add(new IntField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical()), Field.Store.NO));
+        doc.add(new StringField(FEATURE_CODE.key(), geoName.getFeatureCode().name(), Field.Store.NO));
 
         // create a unique Document for each name of this GeoName
+        TextField nameField = new TextField(INDEX_NAME.key(), "", Field.Store.YES);
+        doc.add(nameField);
         for (String name : names) {
-            Document doc = new Document();
-            doc.add(new TextField(INDEX_NAME.key(), name, Field.Store.YES));
-            doc.add(new StoredField(GEONAME.key(), gazetteerRecord));
-            doc.add(new IntField(GEONAME_ID.key(), geoNameID, Field.Store.YES));
-            doc.add(new LongField(POPULATION.key(), population, Field.Store.YES));
-            doc.add(new IntField(HISTORICAL.key(), historical, Field.Store.NO));
-            doc.add(new StringField(FEATURE_CODE.key(), code.name(), Field.Store.NO));
+            nameField.setStringValue(name);
             indexWriter.addDocument(doc);
         }
     }
@@ -413,5 +413,108 @@ public class AncestryIndexDirectoryBuilder {
         for (String key : unresolvedCodeMap.keySet()) {
             LOG.trace("{}: {}", key, unresolvedCodeMap.get(key));
         }
+    }
+    
+    /**
+     * Turns a GeoNames gazetteer file into a Lucene index, and adds
+     * some supplementary gazetteer records at the end.
+     *
+     * @param args              not used
+     * @throws IOException
+     */
+    public static void main(String[] args) throws IOException {
+        Options options = getOptions();
+        CommandLine cmd = null;
+        CommandLineParser parser = new GnuParser();
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException pe) {
+            LOG.error(pe.getMessage());
+            printHelp(options);
+            System.exit(-1);
+        }
+
+        if (cmd.hasOption(HELP_OPTION)) {
+            printHelp(options);
+            System.exit(0);
+        }
+
+        String indexPath = cmd.getOptionValue(INDEX_PATH_OPTION, DEFAULT_INDEX_DIRECTORY);
+        String[] gazetteerPaths = cmd.getOptionValues(GAZETTEER_FILES_OPTION);
+        if (gazetteerPaths == null || gazetteerPaths.length == 0) {
+            gazetteerPaths = DEFAULT_GAZETTEER_FILES;
+        }
+        boolean replaceIndex = cmd.hasOption(REPLACE_INDEX_OPTION);
+        boolean fullAncestry = cmd.hasOption(FULL_ANCESTRY_OPTION);
+
+        File idir = new File(indexPath);
+        // if the index directory exists, delete it if we are replacing, otherwise
+        // exit gracefully
+        if (idir.exists() ) {
+            if (replaceIndex) {
+                LOG.info("Replacing index: {}", idir.getAbsolutePath());
+                FileUtils.deleteDirectory(idir);
+            } else {
+                LOG.info("{} exists. Remove the directory and try again.", idir.getAbsolutePath());
+                System.exit(-1);
+            }
+        }
+
+        List<File> gazetteerFiles = new ArrayList<File>();
+        for (String gp : gazetteerPaths) {
+            File gf = new File(gp);
+            if (gf.isFile() && gf.canRead()) {
+                gazetteerFiles.add(gf);
+            } else {
+                LOG.info("Unable to read Gazetteer file: {}", gf.getAbsolutePath());
+            }
+        }
+        if (gazetteerFiles.isEmpty()) {
+            LOG.error("No Gazetteer files found.");
+            System.exit(-1);
+        }
+        new AncestryIndexDirectoryBuilder(fullAncestry).buildIndex(idir, gazetteerFiles);
+    }
+
+    private static Options getOptions() {
+        Options options = new Options();
+
+        options.addOption(OptionBuilder
+                .withLongOpt(HELP_OPTION)
+                .withDescription("Print help")
+                .create('?'));
+
+        options.addOption(OptionBuilder
+                .withLongOpt(FULL_ANCESTRY_OPTION)
+                .withDescription("Store the gazetteer records for the full ancestry tree of each element."
+                        + " This will increase performance at the expense of a larger index.")
+                .create());
+
+        options.addOption(OptionBuilder
+                .withLongOpt(GAZETTEER_FILES_OPTION)
+                .withDescription(String.format("The ':'-separated list of input Gazetteer files to parse.  Default: %s",
+                        StringUtils.join(DEFAULT_GAZETTEER_FILES, ':')))
+                .hasArgs()
+                .withValueSeparator(':')
+                .create('i'));
+
+        options.addOption(OptionBuilder
+                .withLongOpt(INDEX_PATH_OPTION)
+                .withDescription(String.format("The path to the output index directory. Default: %s", DEFAULT_INDEX_DIRECTORY))
+                .hasArg()
+                .create('o'));
+
+        options.addOption(OptionBuilder
+                .withLongOpt(REPLACE_INDEX_OPTION)
+                .withDescription("Replace an existing index if it exists. If this option is not specified,"
+                        + "index processing will fail if an index already exists at the specified location.")
+                .create('r'));
+
+        return options;
+    }
+
+    private static void printHelp(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("run", options, true);
     }
 }

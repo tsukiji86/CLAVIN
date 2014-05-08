@@ -23,6 +23,7 @@ import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
@@ -41,6 +42,9 @@ public class LuceneGazetteerTest {
     // expected geonameID numbers for given location names
     int BOSTON_MA = 4930956;
     int RESTON_VA = 4781530;
+    int FAIRFAX_COUNTY_VA = 4758041;
+    int VIRGINIA = 6254928;
+    int UNITED_STATES = 6252001;
     int STRAßENHAUS_DE = 2826158;
     int GUN_BARREL_CITY_TX = 4695535;
     int USSR = 8354411;
@@ -101,6 +105,24 @@ public class LuceneGazetteerTest {
             assertEquals("Expected single result from Gazetteer", 1, locs.size());
             assertEquals((String)test[2], test[1], locs.get(0).getGeoname().getGeonameID());
         }
+    }
+
+    /**
+     * Verify that ancestry is loaded properly for all location resolution.
+     */
+    @Test
+    public void testResolveAncestry() throws ClavinException {
+        List<ResolvedLocation> locs = instance.getClosestLocations(new LocationOccurrence("Reston", 0), 1, false);
+        assertNotNull("Null results list received from Gazetteer", locs);
+        assertEquals("Expected single result from Gazetteer", 1, locs.size());
+        GeoName geo = locs.get(0).getGeoname();
+        List<Integer> ancestryPath = new ArrayList<Integer>();
+        while (geo != null) {
+            ancestryPath.add(geo.getGeonameID());
+            geo = geo.getParent();
+        }
+        List<Integer> expectedAncestryPath = Arrays.asList(RESTON_VA, FAIRFAX_COUNTY_VA, VIRGINIA, UNITED_STATES);
+        assertEquals("Expected ancestry path of Reston, Fairfax County, Virginia, United States", expectedAncestryPath, ancestryPath);
     }
 
     @Test

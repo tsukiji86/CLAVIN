@@ -851,4 +851,26 @@ public class GeoName {
     public String getGazetteerRecordWithAncestry() {
         return parent != null ? String.format("%s\n%s", gazetteerRecord, parent.getGazetteerRecordWithAncestry()) : gazetteerRecord;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 83 * hash + this.geonameID;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final GeoName other = (GeoName) obj;
+        if (this.geonameID != other.geonameID) {
+            return false;
+        }
+        return true;
+    }
 }
