@@ -368,7 +368,16 @@ public class LuceneGazetteer implements Gazetteer {
             // retrieve only one matching document
             TopDocs results = indexSearcher.search(q, 1);
             if (results.scoreDocs.length > 0) {
-                geoName = GeoName.parseFromGeoNamesRecord(indexSearcher.doc(results.scoreDocs[0].doc).get(GEONAME.key()));
+                Document doc = indexSearcher.doc(results.scoreDocs[0].doc);
+                geoName = GeoName.parseFromGeoNamesRecord(doc.get(GEONAME.key()));
+                if (!geoName.isAncestryResolved()) {
+                    Integer parentId = PARENT_ID.getValue(doc);
+                    if (parentId != null) {
+                        Map<Integer, Set<GeoName>> childMap = new HashMap<Integer, Set<GeoName>>();
+                        childMap.put(parentId, Collections.singleton(geoName));
+                        resolveParents(childMap);
+                    }
+                }
             } else {
                 LOG.debug("No geoname found for ID: {}", geonameId);
             }
