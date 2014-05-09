@@ -626,6 +626,31 @@ public class GeoName {
     }
 
     /**
+     * Is this GeoName a descendant of the provided GeoName?
+     * @param geoname the GeoName to test
+     * @return <code>true</code> if the provided GeoName is hierarchically an ancestor of this GeoName
+     */
+    public boolean isDescendantOf(final GeoName geoname) {
+        boolean descended = false;
+        if (geoname != null) {
+            GeoName test;
+            // empty for loop exits when parent is found or top level is reached
+            for (test = this; test != null && !test.equals(geoname); test = test.getParent());
+            descended = test != null;
+        }
+        return descended;
+    }
+
+    /**
+     * Is this GeoName an ancestor of the provided GeoName?
+     * @param geoname the GeoName to test
+     * @return <code>true</code> if this GeoName is hierarchically an ancestor of the provided GeoName
+     */
+    public boolean isAncestorOf(final GeoName geoname) {
+        return geoname != null && geoname.isDescendantOf(this);
+    }
+
+    /**
      * Get the parent of this GeoName.
      * @return the configured parent of this GeoName
      */

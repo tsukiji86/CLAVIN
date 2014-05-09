@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,6 +50,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -59,6 +61,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
@@ -92,6 +95,21 @@ public class LuceneGazetteer implements Gazetteer {
      * The default number of results to return.
      */
     private static final int DEFAULT_MAX_RESULTS = 5;
+
+    /**
+     * The set of all FeatureCodes.
+     */
+    private static final Set<FeatureCode> ALL_CODES = Collections.unmodifiableSet(EnumSet.allOf(FeatureCode.class));
+
+    /**
+     * The format string for exact match queries.
+     */
+    private static final String EXACT_MATCH_FMT = "\"%s\"";
+
+    /**
+     * The format string for fuzzy queries.
+     */
+    private static final String FUZZY_FMT = "%s~";
 
     // Lucene index built from GeoNames gazetteer
     private final FSDirectory index;
@@ -128,165 +146,195 @@ public class LuceneGazetteer implements Gazetteer {
     }
 
     /**
-     * Finds all matches (capped at maxResults) in the Lucene index for a given location name,
-     * searching both current and active locations.
+     * Execute a query against the Lucene gazetteer index using the provided configuration,
+     * returning the top matches as {@link ResolvedLocation}s.
      *
-     * @param locationName      name of the geographic location to be resolved
-     * @param maxResults        the maximum number of results to return
-     * @param fuzzy             switch for turning on/off fuzzy matching
-     * @return                  list of ResolvedLocations as potential matches
-     * @throws ClavinException  if an error occurs searching the index
+     * @param query              the configuration parameters for the query
+     * @return                   the list of ResolvedLocations as potential matches
+     * @throws ClavinException   if an error occurs
      */
     @Override
-    public List<ResolvedLocation> getClosestLocations(final LocationOccurrence locationName, final int maxResults,
-            final boolean fuzzy) throws ClavinException {
-        return internalGetClosestLocations(locationName, maxResults, fuzzy, true);
-    }
-
-    /**
-     * Finds all matches (capped at maxResults) in the Lucene index for a given location name,
-     * restricting the search to only active locations.
-     *
-     * @param locationName      name of the geographic location to be resolved
-     * @param maxResults        the maximum number of results to return
-     * @param fuzzy             switch for turning on/off fuzzy matching
-     * @return                  list of ResolvedLocations as potential matches
-     * @throws ClavinException  if an error occurs searching the index
-     */
-    @Override
-    public List<ResolvedLocation> getClosestActiveLocations(final LocationOccurrence locationName, final int maxResults,
-            final boolean fuzzy) throws ClavinException {
-        return internalGetClosestLocations(locationName, maxResults, fuzzy, false);
-    }
-
-    /**
-     * Finds all matches (capped at maxResults) in the Lucene index for a given location name.
-     *
-     * @param locationName      name of the geographic location to be resolved
-     * @param maxResults        the maximum number of results to return
-     * @param fuzzy             switch for turning on/off fuzzy matching
-     * @param includeHistorical <code>true</code> to include historical locations in the search
-     * @return                  list of ResolvedLocations as potential matches
-     * @throws ClavinException  if an error occurs searching the index
-     */
     @SuppressWarnings("unchecked")
-    private List<ResolvedLocation> internalGetClosestLocations(final LocationOccurrence locationName, final int maxResults,
-            final boolean fuzzy, final boolean includeHistorical) throws ClavinException {
-        // short-circuit if no location name was provided
-        String name = locationName != null && locationName.getText() != null ? locationName.getText().trim().toLowerCase() : "";
-        if ("".equals(name)) {
+    public List<ResolvedLocation> getClosestLocations(final GazetteerQuery query) throws ClavinException {
+        // sanitize the query input
+        String sanitizedLocationName = sanitizeQuery(query);
+
+        // if there is no location to query, return no results
+        if ("".equals(sanitizedLocationName)) {
             return Collections.EMPTY_LIST;
         }
-        // santize the query input
-        String sanitizedLocationName = escape(name);
 
+        LocationOccurrence location = query.getOccurrence();
+        int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
+        List<ResolvedLocation> matches;
         try {
-            // Lucene query used to look for matches based on the
-            // "indexName" field
-            Query q = buildHistoricalQuery(new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(),
-                    INDEX_ANALYZER).parse("\"" + sanitizedLocationName + "\""), includeHistorical);
-
-            // collect all the hits up to maxResults, and sort them based
-            // on Lucene match score and population for the associated
-            // GeoNames record
-            TopDocs results = indexSearcher.search(q, null, maxResults, POPULATION_SORT);
-
-            // initialize the return object
-            List<ResolvedLocation> candidateMatches = new ArrayList<ResolvedLocation>();
-            Map<Integer, Set<GeoName>> candidateParentMap = new HashMap<Integer, Set<GeoName>>();
-
-            // see if anything was found
-            if (results.scoreDocs.length > 0) {
-                // one or more exact String matches found for this location name
-                for (ScoreDoc scoreDoc : results.scoreDocs) {
-                    // add each matching location to the list of candidates
-                    Document doc = indexSearcher.doc(scoreDoc.doc);
-                    GeoName geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc));
-                    String matchedName = INDEX_NAME.getValue(doc);
-                    ResolvedLocation location = new ResolvedLocation(locationName, geoname, matchedName, false);
-                    if (!location.getGeoname().isAncestryResolved()) {
-                        IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
-                        Integer parentId = parentIdField != null && parentIdField.numericValue() != null ?
-                                parentIdField.numericValue().intValue() : null;
-                        if (parentId != null) {
-                            Set<GeoName> geos = candidateParentMap.get(parentId);
-                            if (geos == null) {
-                                geos = new HashSet<GeoName>();
-                                candidateParentMap.put(parentId, geos);
-                            }
-                            geos.add(location.getGeoname());
-                        }
-                    }
-                    LOG.debug("{}", location);
-                    candidateMatches.add(location);
+            // attempt to find an exact match for the query
+            Query exactQuery = buildQuery(query, sanitizedLocationName, false);
+            matches = executeQuery(location, exactQuery, maxResults, false);
+            if (LOG.isDebugEnabled()) {
+                for (ResolvedLocation loc : matches) {
+                    LOG.debug("{}", loc);
                 }
-            } else if (fuzzy) { // only if fuzzy matching is turned on
-                // no exact String matches found -- fallback to fuzzy search
-
-                // Using the tilde "~" makes this a fuzzy search. I compared this to FuzzyQuery
-                // with TopTermsBoostOnlyBooleanQueryRewrite, I like the output better this way.
-                // With the other method, we failed to match things like "Stra��enhaus Airport"
-                // as <Stra��enhaus>, and the match scores didn't make as much sense.
-                q = buildHistoricalQuery(new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER).
-                        parse(sanitizedLocationName + "~"), includeHistorical);
-
-                // collect all the fuzzy matches up to maxHits, and sort
-                // them based on Lucene match score and population for the
-                // associated GeoNames record
-                results = indexSearcher.search(q, null, maxResults, POPULATION_SORT);
-
-                // see if anything was found with fuzzy matching
-                if (results.scoreDocs.length > 0) {
-                    // one or more fuzzy matches found for this location name
-                    for (ScoreDoc scoreDoc : results.scoreDocs) {
-                        // add each matching location to the list of candidates
-                        Document doc = indexSearcher.doc(scoreDoc.doc);
-                        GeoName geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc));
-                        String matchedName = INDEX_NAME.getValue(doc);
-                        ResolvedLocation location = new ResolvedLocation(locationName, geoname, matchedName, true);
-                        if (!location.getGeoname().isAncestryResolved()) {
-                            IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
-                            Integer parentId = parentIdField != null && parentIdField.numericValue() != null ?
-                                    parentIdField.numericValue().intValue() : null;
-                            if (parentId != null) {
-                                Set<GeoName> geos = candidateParentMap.get(parentId);
-                                if (geos == null) {
-                                    geos = new HashSet<GeoName>();
-                                    candidateParentMap.put(parentId, geos);
-                                }
-                                geos.add(location.getGeoname());
-                            }
-                        }
-                        LOG.debug("{}[fuzzy]", location);
-                        candidateMatches.add(location);
+            }
+            // if we did not find any exact matches and are configured for fuzzy queries, execute a fuzzy search
+            if (matches.isEmpty() && query.isFuzzy()) {
+                Query fuzzyQuery = buildQuery(query, sanitizedLocationName, true);
+                matches = executeQuery(location, fuzzyQuery, maxResults, true);
+                if (LOG.isDebugEnabled()) {
+                    for (ResolvedLocation loc : matches) {
+                        LOG.debug("{}[fuzzy]", loc);
                     }
-                } else {
-                    // drats, foiled again! no fuzzy matches found either!
-                    // in this case, we'll return an empty list of
-                    // candidate matches
-                    LOG.debug("No match found for: '{}'", locationName.getText());
                 }
-            } else {
-                // no matches found and fuzzy matching is turned off
-                LOG.debug("No match found for: '{}'", locationName.getText());
             }
-
-            // resolve ancestry for all potential matches
-            if (!candidateParentMap.isEmpty()) {
-                resolveParents(candidateParentMap);
+            if (matches.isEmpty()) {
+                LOG.debug("No match found for: '{}'", location.getText());
             }
-
-            return candidateMatches;
-
-        } catch (ParseException e) {
-            String msg = String.format("Error resolving location for : '%s'", locationName.getText());
-            LOG.error(msg, e);
-            throw new ClavinException(msg, e);
-        } catch (IOException e) {
-            String msg = String.format("Error resolving location for : '%s'", locationName.getText());
-            LOG.error(msg, e);
-            throw new ClavinException(msg, e);
+        } catch (ParseException pe) {
+            throw new ClavinException(String.format("Error parsing query for: '%s'}", location.getText()), pe);
+        } catch (IOException ioe) {
+            throw new ClavinException(String.format("Error executing query for: '%s'}", location.getText()), ioe);
         }
+        return matches;
+    }
+
+    /**
+     * Executes a query against the Lucene index, processing the results and returning
+     * at most maxResults ResolvedLocations with ancestry resolved.
+     * @param location the location occurrence
+     * @param query the query to execute
+     * @param maxResults the maximum number of results
+     * @param fuzzy is this a fuzzy query
+     * @return the ResolvedLocations with ancestry resolved matching the query
+     * @throws IOException if an error occurs executing the query
+     */
+    private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final Query query, final int maxResults,
+            final boolean fuzzy) throws IOException {
+        // collect all the hits up to maxResults, and sort them based
+        // on Lucene match score and population for the associated
+        // GeoNames record
+        TopDocs results = indexSearcher.search(query, null, maxResults, POPULATION_SORT);
+
+        List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
+        Map<Integer, Set<GeoName>> parentMap = new HashMap<Integer, Set<GeoName>>();
+
+        // reuse GeoName instances so all ancestry is correctly resolved if multiple names for
+        // the same GeoName match the query; if we dedupe results in the future, this can be
+        // removed or modified to help with deduplication
+        Map<Integer, GeoName> geonameMap = new HashMap<Integer, GeoName>();
+
+        // populate results if matches were discovered
+        for (ScoreDoc scoreDoc : results.scoreDocs) {
+            Document doc = indexSearcher.doc(scoreDoc.doc);
+            // reuse GeoName instances so all ancestry is correctly resolved if multiple names for
+            // the same GeoName match the query; if we dedupe results in the future, this can be
+            // removed or modified to help with deduplication
+            int geonameID = GEONAME_ID.getValue(doc);
+            GeoName geoname = geonameMap.get(geonameID);
+            if (geoname == null) {
+                geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc));
+                geonameMap.put(geonameID, geoname);
+            }
+            String matchedName = INDEX_NAME.getValue(doc);
+            if (!geoname.isAncestryResolved()) {
+                IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
+                Integer parentId = parentIdField != null && parentIdField.numericValue() != null ?
+                        parentIdField.numericValue().intValue() : null;
+                if (parentId != null) {
+                    Set<GeoName> geos = parentMap.get(parentId);
+                    if (geos == null) {
+                        geos = new HashSet<GeoName>();
+                        parentMap.put(parentId, geos);
+                    }
+                    geos.add(geoname);
+                }
+            }
+            matches.add(new ResolvedLocation(location, geoname, matchedName, fuzzy));
+            // stop processing results if we have reached maxResults matches
+            if (matches.size() >= maxResults) {
+                break;
+            }
+        }
+
+        // if any results need ancestry resolution, resolve parents
+        if (!parentMap.isEmpty()) {
+            resolveParents(parentMap);
+        }
+
+        return matches;
+    }
+
+    /**
+     * Sanitizes the text of the LocationOccurrence in the query parameters for
+     * use in a Lucene query, returning an empty string if no text is found.
+     * @param query the query configuration
+     * @return the santitized query text or the empty string if there is no query text
+     */
+    private String sanitizeQuery(final GazetteerQuery query) {
+        String sanitized = "";
+        if (query != null && query.getOccurrence() != null) {
+            String text = query.getOccurrence().getText();
+            if (text != null) {
+                sanitized = escape(text.trim().toLowerCase());
+            }
+        }
+        return sanitized;
+    }
+
+    /**
+     * Build a Lucene query based on the provided parameters, using fuzzy matching
+     * only if requested for this method call.  Note -- the fuzzy configuration in
+     * <code>params</code> is ignored by this method.
+     * @param params the query configuration parameters
+     * @param sanitizedName the sanitized location name
+     * @param fuzzy <code>true</code> for fuzzy matching
+     * @return a Lucene query for the sanitized location name based on the provided parameters
+     * @throws ParseException if an error occurs parsing the query
+     */
+    private Query buildQuery(final GazetteerQuery params, final String sanitizedName, final boolean fuzzy)
+            throws ParseException {
+        List<Query> queryParts = new ArrayList<Query>();
+
+        // create the location name query
+        Query query = new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER)
+                .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
+
+        // create the historical locations restriction if we are not including historical locations
+        if (!params.isIncludeHistorical()) {
+            int val = IndexField.getBooleanIndexValue(false);
+            queryParts.add(NumericRangeQuery.newIntRange(HISTORICAL.key(), val, val, true, true));
+        }
+
+        // create the parent ID restrictions if we were provided at least one parent ID
+        Set<Integer> parentIds = params.getParentIds();
+        if (!parentIds.isEmpty()) {
+            BooleanQuery parentQuery = new BooleanQuery();
+            // locations must descend from at least one of the specified parents (OR)
+            for (Integer id : parentIds) {
+                parentQuery.add(NumericRangeQuery.newIntRange(ANCESTOR_IDS.key(), id, id, true, true), Occur.SHOULD);
+            }
+            queryParts.add(parentQuery);
+        }
+
+        // create the feature code restrictions if we were provided some, but not all, feature codes
+        Set<FeatureCode> codes = params.getFeatureCodes();
+        if (!(codes.isEmpty() || ALL_CODES.equals(codes))) {
+            BooleanQuery codeQuery = new BooleanQuery();
+            // locations must be one of the specified feature codes (OR)
+            for (FeatureCode code : codes) {
+                codeQuery.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.SHOULD);
+            }
+            queryParts.add(codeQuery);
+        }
+
+        if (!queryParts.isEmpty()) {
+            BooleanQuery bq = new BooleanQuery();
+            bq.add(query, Occur.MUST);
+            for (Query part : queryParts) {
+                bq.add(part, Occur.MUST);
+            }
+            query = bq;
+        }
+        return query;
     }
 
     /**
@@ -386,6 +434,16 @@ public class LuceneGazetteer implements Gazetteer {
             String msg = String.format("Error retrieving geoname with ID : %d", geonameId);
             LOG.error(msg, e);
             throw new ClavinException(msg, e);
+        }
+    }
+
+    private static class QueryPart {
+        public final Query query;
+        public final Occur occur;
+
+        public QueryPart(Query query, Occur occur) {
+            this.query = query;
+            this.occur = occur;
         }
     }
 }

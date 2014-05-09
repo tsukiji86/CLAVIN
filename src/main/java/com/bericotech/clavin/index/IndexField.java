@@ -29,6 +29,7 @@ public enum IndexField {
     GEONAME("geoname"),
     GEONAME_ID("geonameID"),
     PARENT_ID("parentID"),
+    ANCESTOR_IDS("ancestorIDs"),
     POPULATION("population"),
     HISTORICAL("historical"),
     FEATURE_CODE("featureCode");
@@ -53,7 +54,9 @@ public enum IndexField {
 
     /**
      * Get the value of this field as set in the given document or <code>null</code>
-     * if the field is not set or cannot be retrieved.
+     * if the field is not set or cannot be retrieved.  If a field has multiple values,
+     * the value that is returned may be arbitrarily selected from one of the values. In
+     * this instance, use the methods in Document directly to retrieve multiple values.
      * @param <T> the expected return type
      * @param doc the input document
      * @return the value of this field in the input document, if it has been set, or <code>null</code>
@@ -70,6 +73,7 @@ public enum IndexField {
                     break;
                 case GEONAME_ID:
                 case PARENT_ID:
+                case ANCESTOR_IDS:
                     value = field.numericValue().intValue();
                     break;
                 case POPULATION:

@@ -344,8 +344,17 @@ public class IndexDirectoryBuilder {
         Document doc = new Document();
         doc.add(new StoredField(GEONAME.key(), fullAncestry ? geoName.getGazetteerRecordWithAncestry() : geoName.getGazetteerRecord()));
         doc.add(new IntField(GEONAME_ID.key(), geoName.getGeonameID(), Field.Store.YES));
-        if (geoName.getParent() != null) {
-            doc.add(new IntField(PARENT_ID.key(), geoName.getParent().getGeonameID(), Field.Store.YES));
+        // index the direct parent ID in the PARENT_ID field
+        GeoName parent = geoName.getParent();
+        if (parent != null) {
+            doc.add(new IntField(PARENT_ID.key(), parent.getGeonameID(), Field.Store.YES));
+        }
+        // index all ancestor IDs in the ANCESTOR_IDS field; this is a secondary field
+        // so it can be used to restrict searches and PARENT_ID can be used for ancestor
+        // resolution
+        while (parent != null) {
+            doc.add(new IntField(ANCESTOR_IDS.key(), parent.getGeonameID(), Field.Store.YES));
+            parent = parent.getParent();
         }
         doc.add(new LongField(POPULATION.key(), geoName.getPopulation(), Field.Store.YES));
         doc.add(new IntField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical()), Field.Store.NO));
@@ -414,7 +423,7 @@ public class IndexDirectoryBuilder {
             LOG.trace("{}: {}", key, unresolvedCodeMap.get(key));
         }
     }
-    
+
     /**
      * Turns a GeoNames gazetteer file into a Lucene index, and adds
      * some supplementary gazetteer records at the end.

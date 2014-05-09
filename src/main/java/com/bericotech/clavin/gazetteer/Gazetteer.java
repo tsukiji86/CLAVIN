@@ -28,7 +28,6 @@
 package com.bericotech.clavin.gazetteer;
 
 import com.bericotech.clavin.ClavinException;
-import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.util.List;
 
@@ -38,30 +37,14 @@ import java.util.List;
  */
 public interface Gazetteer {
     /**
-     * Finds the top <code>maxResults</code> matches for the provided location name,
-     * searching both current and historical locations.
+     * Execute a query against the gazetteer using the provided configuration,
+     * returning the top matches as {@link ResolvedLocation}s.
      *
-     * @param locationName      name of the geographic location to be resolved
-     * @param maxResults        the maximum number of results to return
-     * @param fuzzy             switch for turning on/off fuzzy matching
-     * @return                  list of ResolvedLocations as potential matches
-     * @throws ClavinException  if an error occurs
+     * @param query              the configuration parameters for the query
+     * @return                   the list of ResolvedLocations as potential matches
+     * @throws ClavinException   if an error occurs
      */
-    List<ResolvedLocation> getClosestLocations(final LocationOccurrence locationName, final int maxResults,
-            final boolean fuzzy) throws ClavinException;
-
-    /**
-     * Finds the top <code>maxResults</code> matches for the provided location name,
-     * restricting matches to only non-historical locations.
-     *
-     * @param locationName          name of the geographic location to be resolved
-     * @param maxResults            the maximum number of results to return
-     * @param fuzzy                 switch for turning on/off fuzzy matching
-     * @return                      list of ResolvedLocations as potential matches
-     * @throws ClavinException      if an error occurs
-     */
-    List<ResolvedLocation> getClosestActiveLocations(final LocationOccurrence locationName, final int maxResults,
-            final boolean fuzzy) throws ClavinException;
+    List<ResolvedLocation> getClosestLocations(final GazetteerQuery query) throws ClavinException;
 
     /**
      * Retrieves the GeoName with the provided ID.
