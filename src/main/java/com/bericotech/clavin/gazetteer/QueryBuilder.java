@@ -439,4 +439,10 @@ public class QueryBuilder {
     public QueryBuilder removeCityCodes() {
         return removeFeatureCodes(CITY_CODES);
     }
+
+    @Override
+    public String toString() {
+        return String.format("loc: %s, maxResults: %s, fuzzy? %s, historical? %s, parents: %s, codes: %s",
+                location, maxResults, fuzzy, includeHistorical, parentIds, featureCodes);
+    }
 }

@@ -55,9 +55,11 @@ import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.QueryWrapperFilter;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -88,8 +90,10 @@ public class LuceneGazetteer implements Gazetteer {
      * population of the GeoNames gazetteer entry represented by the
      * matched index document.
      */
-    private static final Sort POPULATION_SORT = new Sort(new SortField[]
-            {SortField.FIELD_SCORE, new SortField(POPULATION.key(), SortField.Type.LONG, true)});
+    private static final Sort POPULATION_SORT = new Sort(new SortField[] {
+        SortField.FIELD_SCORE,
+        new SortField(POPULATION.key(), SortField.Type.LONG, true)
+    });
 
     /**
      * The default number of results to return.
@@ -157,7 +161,7 @@ public class LuceneGazetteer implements Gazetteer {
     @SuppressWarnings("unchecked")
     public List<ResolvedLocation> getClosestLocations(final GazetteerQuery query) throws ClavinException {
         // sanitize the query input
-        String sanitizedLocationName = sanitizeQuery(query);
+        String sanitizedLocationName = sanitizeQueryText(query);
 
         // if there is no location to query, return no results
         if ("".equals(sanitizedLocationName)) {
@@ -166,11 +170,11 @@ public class LuceneGazetteer implements Gazetteer {
 
         LocationOccurrence location = query.getOccurrence();
         int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
+        Filter filter = buildFilter(query);
         List<ResolvedLocation> matches;
         try {
             // attempt to find an exact match for the query
-            Query exactQuery = buildQuery(query, sanitizedLocationName, false);
-            matches = executeQuery(location, exactQuery, maxResults, false);
+            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, false);
             if (LOG.isDebugEnabled()) {
                 for (ResolvedLocation loc : matches) {
                     LOG.debug("{}", loc);
@@ -178,8 +182,7 @@ public class LuceneGazetteer implements Gazetteer {
             }
             // if we did not find any exact matches and are configured for fuzzy queries, execute a fuzzy search
             if (matches.isEmpty() && query.isFuzzy()) {
-                Query fuzzyQuery = buildQuery(query, sanitizedLocationName, true);
-                matches = executeQuery(location, fuzzyQuery, maxResults, true);
+            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, true);
                 if (LOG.isDebugEnabled()) {
                     for (ResolvedLocation loc : matches) {
                         LOG.debug("{}[fuzzy]", loc);
@@ -201,18 +204,22 @@ public class LuceneGazetteer implements Gazetteer {
      * Executes a query against the Lucene index, processing the results and returning
      * at most maxResults ResolvedLocations with ancestry resolved.
      * @param location the location occurrence
-     * @param query the query to execute
+     * @param sanitizedName the sanitized name of the search location
+     * @param filter the filter used to restrict the search results
      * @param maxResults the maximum number of results
      * @param fuzzy is this a fuzzy query
      * @return the ResolvedLocations with ancestry resolved matching the query
+     * @throws ParseException if an error occurs generating the query
      * @throws IOException if an error occurs executing the query
      */
-    private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final Query query, final int maxResults,
-            final boolean fuzzy) throws IOException {
+    private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final String sanitizedName, final Filter filter,
+            final int maxResults, final boolean fuzzy) throws ParseException, IOException {
+        Query query = new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER)
+                .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
         // collect all the hits up to maxResults, and sort them based
         // on Lucene match score and population for the associated
         // GeoNames record
-        TopDocs results = indexSearcher.search(query, null, maxResults, POPULATION_SORT);
+        TopDocs results = indexSearcher.search(query, filter, maxResults, POPULATION_SORT);
 
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
         Map<Integer, Set<GeoName>> parentMap = new HashMap<Integer, Set<GeoName>>();
@@ -269,7 +276,7 @@ public class LuceneGazetteer implements Gazetteer {
      * @param query the query configuration
      * @return the santitized query text or the empty string if there is no query text
      */
-    private String sanitizeQuery(final GazetteerQuery query) {
+    private String sanitizeQueryText(final GazetteerQuery query) {
         String sanitized = "";
         if (query != null && query.getOccurrence() != null) {
             String text = query.getOccurrence().getText();
@@ -281,22 +288,13 @@ public class LuceneGazetteer implements Gazetteer {
     }
 
     /**
-     * Build a Lucene query based on the provided parameters, using fuzzy matching
-     * only if requested for this method call.  Note -- the fuzzy configuration in
-     * <code>params</code> is ignored by this method.
+     * Builds a Lucene search filter based on the provided parameters.
      * @param params the query configuration parameters
-     * @param sanitizedName the sanitized location name
-     * @param fuzzy <code>true</code> for fuzzy matching
-     * @return a Lucene query for the sanitized location name based on the provided parameters
-     * @throws ParseException if an error occurs parsing the query
+     * @return a Lucene search filter that will restrict the returned documents to the criteria provided or <code>null</code>
+     *         if no filtering is necessary
      */
-    private Query buildQuery(final GazetteerQuery params, final String sanitizedName, final boolean fuzzy)
-            throws ParseException {
+    private Filter buildFilter(final GazetteerQuery params) {
         List<Query> queryParts = new ArrayList<Query>();
-
-        // create the location name query
-        Query query = new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER)
-                .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
 
         // create the historical locations restriction if we are not including historical locations
         if (!params.isIncludeHistorical()) {
@@ -326,15 +324,15 @@ public class LuceneGazetteer implements Gazetteer {
             queryParts.add(codeQuery);
         }
 
+        Filter filter = null;
         if (!queryParts.isEmpty()) {
             BooleanQuery bq = new BooleanQuery();
-            bq.add(query, Occur.MUST);
             for (Query part : queryParts) {
                 bq.add(part, Occur.MUST);
             }
-            query = bq;
+            filter = new QueryWrapperFilter(bq);
         }
-        return query;
+        return filter;
     }
 
     /**
@@ -385,20 +383,6 @@ public class LuceneGazetteer implements Gazetteer {
                 child.setParent(parent);
             }
         }
-    }
-
-    private Query buildHistoricalQuery(final Query query, final boolean includeHistorical) {
-        Query historicalQuery = query;
-        // if historical data is included, we don't need to restrict the query at all
-        if (!includeHistorical) {
-            BooleanQuery bq = new BooleanQuery();
-            int notHistorical = IndexField.getBooleanIndexValue(false);
-            bq.add(NumericRangeQuery.newIntRange(HISTORICAL.key(), notHistorical, notHistorical, true, true),
-                    Occur.MUST);
-            bq.add(query, Occur.MUST);
-            historicalQuery = bq;
-        }
-        return historicalQuery;
     }
 
     /**

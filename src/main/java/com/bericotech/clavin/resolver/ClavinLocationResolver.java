@@ -32,6 +32,7 @@ import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.gazetteer.CountryCode;
 import com.bericotech.clavin.gazetteer.Gazetteer;
+import com.bericotech.clavin.gazetteer.QueryBuilder;
 import com.bericotech.clavin.util.ListUtils;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -124,6 +125,8 @@ public class ClavinLocationResolver {
             return Collections.EMPTY_LIST;
         }
 
+        QueryBuilder builder = new QueryBuilder().maxResults(maxHitDepth).fuzzy(fuzzy).includeHistorical(true);
+
         if (maxHitDepth > 1) { // perform context-based heuristic matching
             // stores all possible matches for each location name
             List<List<ResolvedLocation>> allCandidates = new ArrayList<List<ResolvedLocation>>();
@@ -131,7 +134,7 @@ public class ClavinLocationResolver {
             // loop through all the location names
             for (LocationOccurrence location : locations) {
                 // get all possible matches
-                List<ResolvedLocation> candidates = gazetteer.getClosestLocations(location, maxHitDepth, fuzzy);
+                List<ResolvedLocation> candidates = gazetteer.getClosestLocations(builder.location(location).build());
 
                 // if we found some possible matches, save them
                 if (candidates.size() > 0) {
@@ -163,7 +166,7 @@ public class ClavinLocationResolver {
             for (LocationOccurrence location : locations) {
                 // choose the top-sorted candidate for each individual
                 // location name
-                candidateLocations = gazetteer.getClosestLocations(location, maxHitDepth, fuzzy);
+                candidateLocations = gazetteer.getClosestLocations(builder.location(location).build());
 
                 // if a match was found, add it to the return list
                 if (candidateLocations.size() > 0) {
