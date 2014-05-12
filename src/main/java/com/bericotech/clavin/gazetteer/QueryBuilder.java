@@ -45,7 +45,7 @@ public class QueryBuilder {
             FeatureCode.TERR
     ));
 
-    private static final Set<FeatureCode> ADMIN_CODES = Collections.unmodifiableSet(EnumSet.of(
+    private static final Set<FeatureCode> ANCESTRY_ADMIN_CODES = Collections.unmodifiableSet(EnumSet.of(
             FeatureCode.ADM1,
             FeatureCode.ADM1H,
             FeatureCode.ADM2,
@@ -54,6 +54,20 @@ public class QueryBuilder {
             FeatureCode.ADM3H,
             FeatureCode.ADM4,
             FeatureCode.ADM4H
+    ));
+
+    private static final Set<FeatureCode> ADMIN_CODES = Collections.unmodifiableSet(EnumSet.of(
+            FeatureCode.ADM1,
+            FeatureCode.ADM1H,
+            FeatureCode.ADM2,
+            FeatureCode.ADM2H,
+            FeatureCode.ADM3,
+            FeatureCode.ADM3H,
+            FeatureCode.ADM4,
+            FeatureCode.ADM4H,
+            FeatureCode.ADM5,
+            FeatureCode.ADMD,
+            FeatureCode.ADMDH
     ));
 
     private static final Set<FeatureCode> CITY_CODES = Collections.unmodifiableSet(EnumSet.of(
@@ -400,13 +414,33 @@ public class QueryBuilder {
 
     /**
      * Convenience method to add the {@link FeatureCode}s representing administrative
+     * divisions to the restriction list.  This includes all ADM* codes. This method
+     * modifies the existing set of codes.
+     * @return this
+     */
+    public QueryBuilder addAdminCodes() {
+        return addFeatureCodes(ADMIN_CODES);
+    }
+
+    /**
+     * Convenience method to remove the {@link FeatureCode}s representing administrative
+     * divisions from the restriction list.  This includes all ADM* codes. This method
+     * modifies the existing set of codes.
+     * @return this
+     */
+    public QueryBuilder removeAdminCodes() {
+        return removeFeatureCodes(ADMIN_CODES);
+    }
+
+    /**
+     * Convenience method to add the {@link FeatureCode}s representing administrative
      * divisions that can be part of the ancestry tree to the restriction list.  This
      * only includes administrative divisions 1-4 (ADM[1-4]). This method modifies the
      * existing set of codes.
      * @return this
      */
-    public QueryBuilder addAdminCodes() {
-        return addFeatureCodes(ADMIN_CODES);
+    public QueryBuilder addAncestryAdminCodes() {
+        return addFeatureCodes(ANCESTRY_ADMIN_CODES);
     }
 
     /**
@@ -416,8 +450,8 @@ public class QueryBuilder {
      * existing set of codes.
      * @return this
      */
-    public QueryBuilder removeAdminCodes() {
-        return removeFeatureCodes(ADMIN_CODES);
+    public QueryBuilder removeAncestryAdminCodes() {
+        return removeFeatureCodes(ANCESTRY_ADMIN_CODES);
     }
 
     /**
