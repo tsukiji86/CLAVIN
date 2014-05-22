@@ -26,22 +26,12 @@ import com.bericotech.clavin.gazetteer.QueryBuilder;
  * searching for locations that fall into a particular category.
  */
 public enum SearchLevel {
-    COUNTRY(4),
-    ADMIN1(3),
-    ADMIN2(1),
-    ADMIN3(1),
-    ADMIN4(1),
-    CITY(5);
-
-    private final int weight;
-
-    private SearchLevel(final int wgt) {
-        this.weight = wgt;
-    }
-
-    public int getWeight() {
-        return weight;
-    }
+    COUNTRY,
+    ADMIN1,
+    ADMIN2,
+    ADMIN3,
+    ADMIN4,
+    CITY;
 
     public static SearchLevel forGeoName(final GeoName name) {
         SearchLevel level = null;
@@ -51,6 +41,7 @@ public enum SearchLevel {
             switch (name.getFeatureCode()) {
                 case ADM1:
                 case ADM1H:
+                case TERR:
                     level = ADMIN1;
                     break;
                 case ADM2:
@@ -79,7 +70,7 @@ public enum SearchLevel {
                 builder.addCountryCodes();
                 break;
             case ADMIN1:
-                builder.addFeatureCodes(FeatureCode.ADM1, FeatureCode.ADM1H);
+                builder.addFeatureCodes(FeatureCode.ADM1, FeatureCode.ADM1H, FeatureCode.TERR);
                 break;
             case ADMIN2:
                 builder.addFeatureCodes(FeatureCode.ADM2, FeatureCode.ADM2H);

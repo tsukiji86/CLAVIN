@@ -24,11 +24,15 @@ import java.util.Deque;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A candidate match for a multi-level search.
  */
 public class MatchedLocation {
+    private static final Logger LOG = LoggerFactory.getLogger(MatchedLocation.class);
+
     private final Map<SearchLevel, Match> matches;
 
     public MatchedLocation(final Deque<SearchResult> results) {
@@ -64,9 +68,16 @@ public class MatchedLocation {
                         }
                     }
                     if (parentLoc == null) {
-                        throw new IllegalStateException(String.format("Missing parent [%s] in search results for match: %s.", parent, bestMatch));
+                        // log this as an error condition; it indicates a problem with either
+                        // gazetteer construction or ancestry indexing; this has been noticed
+                        // with certain historical locations, specifically Netherlands Antilles (PCLH),
+                        // which lists Curacao (PCLIX), another country, as a parent. We shouldn't
+                        // fail the entire matching algorithm at this point; just log and ignore
+                        LOG.error(String.format("Missing parent [%s] in search results for match: %s.", parent, bestMatch));
+                    } else {
+                        // found a match, add it to the list
+                        matches.put(level, new Match(level, parentLoc, depth));
                     }
-                    matches.put(level, new Match(level, parentLoc, depth));
                 }
                 parent = parent.getParent();
             }

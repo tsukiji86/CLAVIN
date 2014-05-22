@@ -42,7 +42,7 @@ public class QueryBuilder {
             FeatureCode.PCLI,
             FeatureCode.PCLIX,
             FeatureCode.PCLS,
-            FeatureCode.TERR
+            FeatureCode.TERRI
     ));
 
     private static final Set<FeatureCode> ANCESTRY_ADMIN_CODES = Collections.unmodifiableSet(EnumSet.of(
@@ -67,7 +67,9 @@ public class QueryBuilder {
             FeatureCode.ADM4H,
             FeatureCode.ADM5,
             FeatureCode.ADMD,
-            FeatureCode.ADMDH
+            FeatureCode.ADMDH,
+            FeatureCode.TERR,
+            FeatureCode.PRSH
     ));
 
     private static final Set<FeatureCode> CITY_CODES = Collections.unmodifiableSet(EnumSet.of(
@@ -414,8 +416,8 @@ public class QueryBuilder {
 
     /**
      * Convenience method to add the {@link FeatureCode}s representing administrative
-     * divisions to the restriction list.  This includes all ADM* codes. This method
-     * modifies the existing set of codes.
+     * divisions to the restriction list. This includes all ADM* codes, territories (TERR)
+     * and parishes (PRSH). This method modifies the existing set of codes.
      * @return this
      */
     public QueryBuilder addAdminCodes() {
@@ -424,8 +426,8 @@ public class QueryBuilder {
 
     /**
      * Convenience method to remove the {@link FeatureCode}s representing administrative
-     * divisions from the restriction list.  This includes all ADM* codes. This method
-     * modifies the existing set of codes.
+     * divisions from the restriction list. This includes all ADM* codes, territories (TERR)
+     * and parishes (PRSH). This method modifies the existing set of codes.
      * @return this
      */
     public QueryBuilder removeAdminCodes() {

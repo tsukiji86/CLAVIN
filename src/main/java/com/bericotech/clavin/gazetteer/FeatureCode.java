@@ -27,7 +27,6 @@ package com.bericotech.clavin.gazetteer;
  * FeatureCode.java
  *
  *###################################################################*/
-
 /**
  * Individual feature codes used by GeoNames. (see http://www.geonames.org/export/codes.html)
  *
@@ -35,6 +34,7 @@ package com.bericotech.clavin.gazetteer;
  *
  */
 public enum FeatureCode {
+
     ADM1(FeatureClass.A, "first-order administrative division", "a primary administrative division of a country, such as a state in the United States", false),
     ADM1H(FeatureClass.A, "historical first-order administrative division", "a former first-order administrative division", true),
     ADM2(FeatureClass.A, "second-order administrative division", "a subdivision of a first-order administrative division", false),
@@ -56,6 +56,7 @@ public enum FeatureCode {
     PCLS(FeatureClass.A, "semi-independent political entity", "", false),
     PRSH(FeatureClass.A, "parish", "an ecclesiastical district", false),
     TERR(FeatureClass.A, "territory", "", false),
+    TERRI(FeatureClass.A, "independent territory", "a territory that acts as an independent political entity", false), // manually added to identify territories that can contain other administrative divisions
     ZN(FeatureClass.A, "zone", "", false),
     ZNB(FeatureClass.A, "buffer zone", "a zone recognized as a buffer between two nations in which military presence is minimal or absent", false),
     AIRS(FeatureClass.H, "seaplane landing area", "a place on a waterbody where floatplanes land and take off", false),
@@ -702,10 +703,9 @@ public enum FeatureCode {
     TUND(FeatureClass.V, "tundra", "a marshy, treeless, high latitude plain, dominated by mosses, lichens, and low shrub vegetation under permafrost conditions", false),
     VIN(FeatureClass.V, "vineyard", "a planting of grapevines", false),
     VINS(FeatureClass.V, "vineyards", "plantings of grapevines", false),
-
     // manually added for locations not assigned to a feature code
     NULL(FeatureClass.NULL, "not available", "", false);
-
+    
     // the feature class this feature code belongs to
     private final FeatureClass featureClass;
 

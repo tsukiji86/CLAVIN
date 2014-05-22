@@ -93,6 +93,9 @@ public class MultiLevelMultipartLocationResolverTest {
     private static final int SWITZERLAND = 2658434;
         private static final int ZURICH_CANTON = 2657895;
             private static final int ZURICH_CITY = 2657896;
+    private static final int AUSTRALIA = 2077456;
+        private static final int ASHMORE_AND_CARTIER_ISLANDS = 2077507;
+    private static final int NETHERLANDS_ANTILLES = 8505032;
 
 
     @Parameters(name="{index}: multipartResolve({0} {1})")
@@ -135,6 +138,10 @@ public class MultiLevelMultipartLocationResolverTest {
             { Arrays.asList("London", "", ""), LONDON_UK_43 },
             { Arrays.asList("", "ENG", ""), ENGLAND },
             { Arrays.asList("", "", "UK"), UNITED_KINGDOM },
+            { Arrays.asList("Ashmore and Cartier Islands"), ASHMORE_AND_CARTIER_ISLANDS },
+            { Arrays.asList("Ashmore and Cartier Islands", "Australia"), ASHMORE_AND_CARTIER_ISLANDS },
+            { Arrays.asList("Netherlands Antilles"), NETHERLANDS_ANTILLES },
+            { Arrays.asList("Parish of Saint Thomas", "Ashmore and Cartier Islands"), null},
             { Arrays.asList("", "", ""), null },
             { Collections.EMPTY_LIST, null }
         });

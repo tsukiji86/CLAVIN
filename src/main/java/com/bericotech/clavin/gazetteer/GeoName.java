@@ -72,7 +72,7 @@ public class GeoName {
             FeatureCode.PCLI,
             FeatureCode.PCLIX,
             FeatureCode.PCLS,
-            FeatureCode.TERR
+            FeatureCode.TERRI
     );
 
     /**
@@ -89,7 +89,7 @@ public class GeoName {
             FeatureCode.PCLI,
             FeatureCode.PCLIX,
             FeatureCode.PCLS,
-            FeatureCode.TERR
+            FeatureCode.TERRI
     );
 
     // id of record in geonames database
@@ -235,7 +235,16 @@ public class GeoName {
         this.latitude = latitude;
         this.longitude = longitude;
         this.featureClass = featureClass;
-        this.featureCode = featureCode;
+        if (featureCode == FeatureCode.TERR) {
+            // configure the feature code so top-level territories are distinguishable
+            String pccName = primaryCountryCode != null ? primaryCountryCode.name : "";
+            boolean topLevel = (this.name != null && !this.name.isEmpty() && this.name.equals(pccName)) ||
+                    (this.asciiName != null && !this.asciiName.isEmpty() && this.asciiName.equals(pccName)) ||
+                    this.alternateNames.contains(pccName);
+            this.featureCode = topLevel ? FeatureCode.TERRI : FeatureCode.TERR;
+        } else {
+            this.featureCode = featureCode;
+        }
         this.primaryCountryCode = primaryCountryCode;
         if (alternateCountryCodes != null) {
             // defensive copy
@@ -400,7 +409,7 @@ public class GeoName {
             if (fCode == null) {
                 admLevel = -1;
             } else if (fCode == FeatureCode.TERR) {
-                admLevel = (geoname != null && geoname.equals(countryName)) || (altNames != null && altNames.contains(countryName)) ? 0 : 1;
+                admLevel = 1;
             } else if (fCode == FeatureCode.PRSH) {
                 admLevel = 1;
             } else if (TOP_LEVEL_FEATURES.contains(fCode)) {
@@ -516,10 +525,8 @@ public class GeoName {
                 case PCLI:
                 case PCLIX:
                 case PCLS:
+                case TERRI:
                     myCode = primaryCountryCode != null ? primaryCountryCode.name() : null;
-                    break;
-                case TERR:
-                    myCode = isTopLevelTerritory() ? primaryCountryCode.name() : null;
                     break;
                 default:
                     myCode = null;
@@ -536,9 +543,7 @@ public class GeoName {
      * @return <code>true</code> if this is a top-level administrative division
      */
     public boolean isTopLevelAdminDivision() {
-        boolean isAdmin = featureClass == FeatureClass.A;
-        boolean isTerr = isAdmin && featureCode == FeatureCode.TERR;
-        return (isTerr && isTopLevelTerritory()) || (isAdmin && !isTerr && TOP_LEVEL_FEATURES.contains(featureCode));
+        return TOP_LEVEL_FEATURES.contains(featureCode);
     }
 
     /**
@@ -549,12 +554,7 @@ public class GeoName {
      * @return <code>true</code> if the GeoName is a top level territory
      */
     public boolean isTopLevelTerritory() {
-        boolean topLevel = false;
-        if (featureClass == FeatureClass.A && featureCode == FeatureCode.TERR) {
-            String pccName = primaryCountryCode != null ? primaryCountryCode.name : "";
-            topLevel = (name != null && !name.isEmpty() && name.equals(pccName)) || alternateNames.contains(pccName);
-        }
-        return topLevel;
+        return featureCode == FeatureCode.TERRI;
     }
 
     /**
