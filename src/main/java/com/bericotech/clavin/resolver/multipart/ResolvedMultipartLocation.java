@@ -1,4 +1,6 @@
-package com.bericotech.clavin.resolver;
+package com.bericotech.clavin.resolver.multipart;
+
+import com.bericotech.clavin.resolver.ResolvedLocation;
 
 /**
  * Convenience object used as output for {@link LocationResolver}

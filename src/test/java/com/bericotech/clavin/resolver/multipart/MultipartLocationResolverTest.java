@@ -1,4 +1,5 @@
-package com.bericotech.clavin.resolver;
+package com.bericotech.clavin.resolver.multipart;
+
 
 
 import static org.junit.Assert.*;
@@ -6,6 +7,8 @@ import static org.junit.Assert.*;
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.gazetteer.GeoName;
 import com.bericotech.clavin.gazetteer.LuceneGazetteer;
+import com.bericotech.clavin.resolver.MultipartLocationName;
+import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -51,12 +54,6 @@ import org.junit.runners.Parameterized.Parameters;
  */
 @RunWith(Parameterized.class)
 public class MultipartLocationResolverTest {
-    // objects required for running tests
-//    File indexDirectory;
-//    MultipartLocationResolver resolver;
-//    MultipartLocationName locationNames;
-//    ResolvedMultipartLocation resolvedLocations;
-
     // expected geonameID numbers for given location names
     private static final int UNITED_STATES = 6252001;
         private static final int MASSACHUSETTS = 6254926;

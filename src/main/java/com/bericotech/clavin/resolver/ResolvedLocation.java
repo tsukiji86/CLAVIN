@@ -80,28 +80,26 @@ public class ResolvedLocation {
         /// TODO: fix this confidence score... it doesn't fully make sense
     }
 
-    /**
-     * Tests equivalence between {@link ResolvedLocation} objects.
-     *
-     * @param obj   the other object being compared against
-     */
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + (this.geoname != null ? this.geoname.hashCode() : 0);
+        return hash;
+    }
+
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null) return false;
-
-        // only a ResolvedLocation can equal a ResolvedLocation
-        if (this.getClass() != obj.getClass()) return false;
-
-        // cast the other object into a ResolvedLocation, now that we
-        // know that it is one
-        ResolvedLocation other = (ResolvedLocation)obj;
-
-        // as long as the geonameIDs are the same, we'll treat these
-        // ResolvedLocations as equal since they point to the same
-        // geographic entity (even if the circumstances of the entity
-        // resolution process differed)
-        return (this.geoname.getGeonameID() == other.geoname.getGeonameID());
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ResolvedLocation other = (ResolvedLocation) obj;
+        if (this.geoname != other.geoname && (this.geoname == null || !this.geoname.equals(other.geoname))) {
+            return false;
+        }
+        return true;
     }
 
     /**
