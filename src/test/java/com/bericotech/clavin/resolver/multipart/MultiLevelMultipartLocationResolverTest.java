@@ -96,6 +96,7 @@ public class MultiLevelMultipartLocationResolverTest {
     private static final int AUSTRALIA = 2077456;
         private static final int ASHMORE_AND_CARTIER_ISLANDS = 2077507;
     private static final int NETHERLANDS_ANTILLES = 8505032;
+    private static final int CLIPPERTON_ISLAND = 4020092;
 
 
     @Parameters(name="{index}: multipartResolve({0} {1})")
@@ -142,6 +143,8 @@ public class MultiLevelMultipartLocationResolverTest {
             { Arrays.asList("Ashmore and Cartier Islands", "Australia"), ASHMORE_AND_CARTIER_ISLANDS },
             { Arrays.asList("Netherlands Antilles"), NETHERLANDS_ANTILLES },
             { Arrays.asList("Parish of Saint Thomas", "Ashmore and Cartier Islands"), null},
+            { Arrays.asList("Clipperton Island"), CLIPPERTON_ISLAND },
+            { Arrays.asList("Clipperton Island", "France"), CLIPPERTON_ISLAND },
             { Arrays.asList("", "", ""), null },
             { Collections.EMPTY_LIST, null }
         });

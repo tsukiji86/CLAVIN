@@ -31,6 +31,7 @@ public enum SearchLevel {
     ADMIN2,
     ADMIN3,
     ADMIN4,
+    ADMINX,
     CITY;
 
     public static SearchLevel forGeoName(final GeoName name) {
@@ -43,6 +44,7 @@ public enum SearchLevel {
                     case ADM1:
                     case ADM1H:
                     case TERR:
+                    case PRSH:
                         level = ADMIN1;
                         break;
                     case ADM2:
@@ -56,6 +58,11 @@ public enum SearchLevel {
                     case ADM4:
                     case ADM4H:
                         level = ADMIN4;
+                        break;
+                    case ADM5:
+                    case ADMD:
+                    case ADMDH:
+                        level = ADMINX;
                         break;
                 }
             } else if (name.getFeatureClass() == FeatureClass.P) {
@@ -72,7 +79,7 @@ public enum SearchLevel {
                 builder.addCountryCodes();
                 break;
             case ADMIN1:
-                builder.addFeatureCodes(FeatureCode.ADM1, FeatureCode.ADM1H, FeatureCode.TERR);
+                builder.addFeatureCodes(FeatureCode.ADM1, FeatureCode.ADM1H, FeatureCode.TERR, FeatureCode.PRSH);
                 break;
             case ADMIN2:
                 builder.addFeatureCodes(FeatureCode.ADM2, FeatureCode.ADM2H);
@@ -82,6 +89,9 @@ public enum SearchLevel {
                 break;
             case ADMIN4:
                 builder.addFeatureCodes(FeatureCode.ADM4, FeatureCode.ADM4H);
+                break;
+            case ADMINX:
+                builder.addFeatureCodes(FeatureCode.ADM5, FeatureCode.ADMD, FeatureCode.ADMDH);
                 break;
             case CITY:
                 builder.addCityCodes();
@@ -101,6 +111,8 @@ public enum SearchLevel {
             case ADMIN3:
                 return ADMIN4;
             case ADMIN4:
+                return ADMINX;
+            case ADMINX:
                 return CITY;
             default:
                 return null;
@@ -121,8 +133,10 @@ public enum SearchLevel {
                 return ADMIN2;
             case ADMIN4:
                 return ADMIN3;
-            case CITY:
+            case ADMINX:
                 return ADMIN4;
+            case CITY:
+                return ADMINX;
             default:
                 return null;
         }
@@ -145,4 +159,16 @@ public enum SearchLevel {
         }
     }
 
+    public boolean isAdmin() {
+        switch (this) {
+            case ADMIN1:
+            case ADMIN2:
+            case ADMIN3:
+            case ADMIN4:
+            case ADMINX:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

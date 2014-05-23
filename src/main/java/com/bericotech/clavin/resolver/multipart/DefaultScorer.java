@@ -67,6 +67,7 @@ public class DefaultScorer implements Scorer {
         weightMap.put(SearchLevel.ADMIN2, 1);
         weightMap.put(SearchLevel.ADMIN3, 1);
         weightMap.put(SearchLevel.ADMIN4, 1);
+        weightMap.put(SearchLevel.ADMINX, 1);
         COMPONENT_WEIGHTS = Collections.unmodifiableMap(weightMap);
 
         int maxWeight = 0;
@@ -82,6 +83,7 @@ public class DefaultScorer implements Scorer {
         singleWeightMap.put(SearchLevel.ADMIN2, 2);
         singleWeightMap.put(SearchLevel.ADMIN3, 1);
         singleWeightMap.put(SearchLevel.ADMIN4, 1);
+        singleWeightMap.put(SearchLevel.ADMINX, 1);
         SINGLE_COMPONENT_WEIGHTS = Collections.unmodifiableMap(singleWeightMap);
 
         int maxSingleWeight = 0;
