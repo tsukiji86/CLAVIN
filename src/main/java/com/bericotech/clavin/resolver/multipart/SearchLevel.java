@@ -35,30 +35,32 @@ public enum SearchLevel {
 
     public static SearchLevel forGeoName(final GeoName name) {
         SearchLevel level = null;
-        if (name.isTopLevelAdminDivision()) {
-            level = COUNTRY;
-        } else if (name.getFeatureClass() == FeatureClass.A) {
-            switch (name.getFeatureCode()) {
-                case ADM1:
-                case ADM1H:
-                case TERR:
-                    level = ADMIN1;
-                    break;
-                case ADM2:
-                case ADM2H:
-                    level = ADMIN2;
-                    break;
-                case ADM3:
-                case ADM3H:
-                    level = ADMIN3;
-                    break;
-                case ADM4:
-                case ADM4H:
-                    level = ADMIN4;
-                    break;
+        if (name != null) {
+            if (name.isTopLevelAdminDivision()) {
+                level = COUNTRY;
+            } else if (name.getFeatureClass() == FeatureClass.A) {
+                switch (name.getFeatureCode()) {
+                    case ADM1:
+                    case ADM1H:
+                    case TERR:
+                        level = ADMIN1;
+                        break;
+                    case ADM2:
+                    case ADM2H:
+                        level = ADMIN2;
+                        break;
+                    case ADM3:
+                    case ADM3H:
+                        level = ADMIN3;
+                        break;
+                    case ADM4:
+                    case ADM4H:
+                        level = ADMIN4;
+                        break;
+                }
+            } else if (name.getFeatureClass() == FeatureClass.P) {
+                level = CITY;
             }
-        } else if (name.getFeatureClass() == FeatureClass.P) {
-            level = CITY;
         }
         return level;
     }
