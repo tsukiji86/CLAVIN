@@ -238,7 +238,7 @@ public class LuceneGazetteer implements Gazetteer {
             int geonameID = GEONAME_ID.getValue(doc);
             GeoName geoname = geonameMap.get(geonameID);
             if (geoname == null) {
-                geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc));
+                geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc), (String) PREFERRED_NAME.getValue(doc));
                 geonameMap.put(geonameID, geoname);
             }
             String matchedName = INDEX_NAME.getValue(doc);
@@ -349,7 +349,7 @@ public class LuceneGazetteer implements Gazetteer {
             TopDocs results = indexSearcher.search(q, null, 1, POPULATION_SORT);
             if (results.scoreDocs.length > 0) {
                 Document doc = indexSearcher.doc(results.scoreDocs[0].doc);
-                GeoName parent = GeoName.parseFromGeoNamesRecord(doc.get(GEONAME.key()));
+                GeoName parent = GeoName.parseFromGeoNamesRecord(doc.get(GEONAME.key()), doc.get(PREFERRED_NAME.key()));
                 parentMap.put(parent.getGeonameID(), parent);
                 if (!parent.isAncestryResolved()) {
                     Integer grandParentId = PARENT_ID.getValue(doc);
@@ -401,7 +401,7 @@ public class LuceneGazetteer implements Gazetteer {
             TopDocs results = indexSearcher.search(q, 1);
             if (results.scoreDocs.length > 0) {
                 Document doc = indexSearcher.doc(results.scoreDocs[0].doc);
-                geoName = GeoName.parseFromGeoNamesRecord(doc.get(GEONAME.key()));
+                geoName = GeoName.parseFromGeoNamesRecord(doc.get(GEONAME.key()), doc.get(PREFERRED_NAME.key()));
                 if (!geoName.isAncestryResolved()) {
                     Integer parentId = PARENT_ID.getValue(doc);
                     if (parentId != null) {

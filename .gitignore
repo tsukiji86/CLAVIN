@@ -16,3 +16,5 @@ Evaluator.java
 StanfordExtractor.java
 /dependency-reduced-pom.xml
 hierarchy.txt
+alternateNames.txt
+iso-languagecodes.txt

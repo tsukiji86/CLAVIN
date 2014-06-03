@@ -104,6 +104,9 @@ public class GeoName {
     // list of alternate names for location
     private final List<String> alternateNames;
 
+    // the preferred name of this GeoName
+    private final String preferredName;
+
     // latitude in decimal degrees
     private final double latitude;
 
@@ -184,6 +187,7 @@ public class GeoName {
      * @param name                      name of this location
      * @param asciiName                 plain text version of name
      * @param alternateNames            list of alternate names, if any
+     * @param preferredName             the preferred name, if known
      * @param latitude                  lat coord
      * @param longitude                 lon coord
      * @param featureClass              general type of feature (e.g., "Populated place")
@@ -206,6 +210,7 @@ public class GeoName {
             String name,
             String asciiName,
             List<String> alternateNames,
+            String preferredName,
             Double latitude,
             Double longitude,
             FeatureClass featureClass,
@@ -232,6 +237,7 @@ public class GeoName {
             // ensure this is never null
             this.alternateNames = Collections.EMPTY_LIST;
         }
+        this.preferredName = preferredName != null && !preferredName.trim().isEmpty() ? preferredName.trim() : null;
         this.latitude = latitude;
         this.longitude = longitude;
         this.featureClass = featureClass;
@@ -265,6 +271,7 @@ public class GeoName {
         this.gazetteerRecord = gazetteerRecord;
     }
 
+
     /**
      * Builds a {@link GeoName} object based on a single gazetteer
      * record in the GeoNames geographical database.
@@ -273,13 +280,25 @@ public class GeoName {
      * @return              new GeoName object
      */
     public static GeoName parseFromGeoNamesRecord(String inputLine) {
+        return parseFromGeoNamesRecord(inputLine, null);
+    }
+
+    /**
+     * Builds a {@link GeoName} object based on a single gazetteer
+     * record in the GeoNames geographical database.
+     *
+     * @param inputLine     single line of tab-delimited text representing one record from the GeoNames gazetteer
+     * @param preferredName the preferred name of this GeoName as indicated by the GeoNames alternate names table
+     * @return              new GeoName object
+     */
+    public static GeoName parseFromGeoNamesRecord(final String inputLine, final String preferredName) {
         String[] ancestry = inputLine.split("\n");
-        GeoName geoName = parseGeoName(ancestry[0]);
+        GeoName geoName = parseGeoName(ancestry[0], preferredName);
         // if more records exist, assume they are the ancestory of the target GeoName
         if (ancestry.length > 1) {
             GeoName current = geoName;
             for (int idx = 1; idx < ancestry.length; idx++) {
-                GeoName parent = parseGeoName(ancestry[idx]);
+                GeoName parent = parseGeoName(ancestry[idx], null);
                 if (!current.setParent(parent)) {
                     LOG.error("Invalid ancestry path for GeoName [{}]: {}", geoName, inputLine.replaceAll("\n", " |@| "));
                     break;
@@ -290,7 +309,7 @@ public class GeoName {
         return geoName;
     }
 
-    private static GeoName parseGeoName(final String inputLine) {
+    private static GeoName parseGeoName(final String inputLine, final String preferredName) {
         // GeoNames gazetteer entries are tab-delimited
         String[] tokens = inputLine.split("\t");
 
@@ -391,7 +410,7 @@ public class GeoName {
             }
         }
 
-        return new GeoName(geonameID, name, asciiName, alternateNames,
+        return new GeoName(geonameID, name, asciiName, alternateNames, preferredName,
                 latitude, longitude, featureClass, featureCode,
                 primaryCountryCode, alternateCountryCodes, admin1Code,
                 admin2Code, admin3Code, admin4Code, population,
@@ -728,6 +747,15 @@ public class GeoName {
      */
     public List<String> getAlternateNames() {
         return alternateNames;
+    }
+
+    /**
+     * Gets the preferred name of this GeoName, if configured,
+     * otherwise returns the name.
+     * @return the preferred name
+     */
+    public String getPreferredName() {
+        return preferredName != null ? preferredName : name;
     }
 
     /**

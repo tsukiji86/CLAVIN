@@ -32,7 +32,8 @@ public enum IndexField {
     ANCESTOR_IDS("ancestorIDs"),
     POPULATION("population"),
     HISTORICAL("historical"),
-    FEATURE_CODE("featureCode");
+    FEATURE_CODE("featureCode"),
+    PREFERRED_NAME("preferredName");
 
     /**
      * The class logger.
@@ -69,6 +70,7 @@ public enum IndexField {
             switch (this) {
                 case INDEX_NAME:
                 case GEONAME:
+                case PREFERRED_NAME:
                     value = field.stringValue();
                     break;
                 case GEONAME_ID:

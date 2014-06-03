@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -89,6 +90,7 @@ public class IndexDirectoryBuilder {
     private static final String GAZETTEER_FILES_OPTION = "gazetteer-files";
     private static final String INDEX_PATH_OPTION = "index-path";
     private static final String REPLACE_INDEX_OPTION = "replace-index";
+    private static final String ALTERNATE_NAMES_OPTION = "alt-names-file";
 
     private static final String[] DEFAULT_GAZETTEER_FILES = new String[] {
         "./allCountries.txt",
@@ -96,11 +98,9 @@ public class IndexDirectoryBuilder {
     };
     private static final String DEFAULT_INDEX_DIRECTORY = "./IndexDirectory";
 
-    // the GeoNames gazetteer file to be loaded
-    static String pathToGazetteer = "./allCountries.txt";
-
     private final Map<String, GeoName> adminMap;
     private final Map<String, Set<GeoName>> unresolvedMap;
+    private final Map<Integer, AlternateName> alternateNameMap;
     private final boolean fullAncestry;
 
     private IndexWriter indexWriter;
@@ -109,10 +109,11 @@ public class IndexDirectoryBuilder {
     private IndexDirectoryBuilder(final boolean fullAncestryIn) {
         adminMap = new TreeMap<String, GeoName>();
         unresolvedMap = new TreeMap<String, Set<GeoName>>();
+        alternateNameMap = new HashMap<Integer, AlternateName>();
         this.fullAncestry = fullAncestryIn;
     }
 
-    public void buildIndex(final File indexDir, final List<File> gazetteerFiles) throws IOException {
+    public void buildIndex(final File indexDir, final List<File> gazetteerFiles, final File altNamesFile) throws IOException {
         LOG.info("Indexing... please wait.");
 
         indexCount = 0;
@@ -129,6 +130,11 @@ public class IndexDirectoryBuilder {
 
         // let's see how long this takes...
         Date start = new Date();
+
+        // if we were given an alternate names file, process it
+        if (altNamesFile != null) {
+            loadAlternateNames(altNamesFile);
+        }
 
         // load GeoNames gazetteer into Lucene index
         String line;
@@ -185,6 +191,49 @@ public class IndexDirectoryBuilder {
         long elapsed_MILLIS = stop.getTime() - start.getTime();
         LOG.info("Process started: " + df.format(start) + ", ended: " + df.format(stop)
                 + "; elapsed time: " + MILLISECONDS.toSeconds(elapsed_MILLIS) + " seconds.");
+    }
+
+    private static final int ALT_NAMES_ID_FIELD = 1;
+    private static final int ALT_NAMES_LANG_FIELD = 2;
+    private static final int ALT_NAMES_NAME_FIELD = 3;
+    private static final int ALT_NAMES_PREFERRED_FIELD = 4;
+    private static final int ALT_NAMES_SHORT_FIELD = 5;
+    private static final String ALT_NAMES_TRUE = "1";
+    private static final String ISO2_ENGLISH = "en";
+    private static final String ISO3_ENGLISH = "eng";
+
+    private void loadAlternateNames(final File altNamesFile) throws IOException {
+        LOG.info("Reading alternate names file: {}", altNamesFile.getAbsolutePath());
+
+        // parse all lines of the alternate names database and store only the 'en' names
+        // marked as preferred or short names for each location
+        //
+        // Column format (see http://download.geonames.org/export/dump/)
+        // ------------------------------------------------------
+        // alternateNameId   : the id of this alternate name, int
+        // geonameid         : geonameId referring to id in table 'geoname', int
+        // isolanguage       : iso 639 language code 2- or 3-characters; 4-characters 'post' for postal
+        //                     codes and 'iata','icao' and faac for airport codes, fr_1793 for French
+        //                     Revolution names,  abbr for abbreviation, link for a website, varchar(7)
+        // alternate name    : alternate name or name variant, varchar(200)
+        // isPreferredName   : '1', if this alternate name is an official/preferred name
+        // isShortName       : '1', if this is a short name like 'California' for 'State of California'
+        // isColloquial      : '1', if this alternate name is a colloquial or slang term
+        // isHistoric        : '1', if this alternate name is historic and was used in the past
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(altNamesFile), "UTF-8"));
+        String line;
+        int lineNum = 0;
+        while ((line = reader.readLine()) != null) {
+            lineNum++;
+            AlternateName name = new AlternateName(line);
+            if (name.isEnglish() && name.isPrefOrShort()) {
+                alternateNameMap.put(name.geonameId, name.bestName(alternateNameMap.get(name.geonameId)));
+            }
+        }
+        reader.close();
+
+        LOG.info("Processed {} alternate names.  Found {} names.", lineNum, alternateNameMap.size());
     }
 
     private void resolveAncestry(final GeoName geoname) throws IOException {
@@ -337,6 +386,11 @@ public class IndexDirectoryBuilder {
                 names.add(cc.name());
             }
         }
+        AlternateName preferredName = alternateNameMap.get(geoName.getGeonameID());
+        // ensure preferred name is found in alternate names
+        if (preferredName != null) {
+            names.add(preferredName.name);
+        }
         names.remove(null);
         names.remove("");
 
@@ -344,6 +398,10 @@ public class IndexDirectoryBuilder {
         Document doc = new Document();
         doc.add(new StoredField(GEONAME.key(), fullAncestry ? geoName.getGazetteerRecordWithAncestry() : geoName.getGazetteerRecord()));
         doc.add(new IntField(GEONAME_ID.key(), geoName.getGeonameID(), Field.Store.YES));
+        // if the alternate names file was loaded and we found a preferred name for this GeoName, store it
+        if (preferredName != null) {
+            doc.add(new StoredField(PREFERRED_NAME.key(), preferredName.name));
+        }
         // index the direct parent ID in the PARENT_ID field
         GeoName parent = geoName.getParent();
         if (parent != null) {
@@ -482,7 +540,15 @@ public class IndexDirectoryBuilder {
             LOG.error("No Gazetteer files found.");
             System.exit(-1);
         }
-        new IndexDirectoryBuilder(fullAncestry).buildIndex(idir, gazetteerFiles);
+
+        String altNamesPath = cmd.getOptionValue(ALTERNATE_NAMES_OPTION);
+        File altNamesFile = altNamesPath != null ? new File(altNamesPath) : null;
+        if (altNamesFile != null && !(altNamesFile.isFile() && altNamesFile.canRead())) {
+            LOG.error("Unable to read alternate names file: {}", altNamesPath);
+            System.exit(-1);
+        }
+
+        new IndexDirectoryBuilder(fullAncestry).buildIndex(idir, gazetteerFiles, altNamesFile);
     }
 
     private static Options getOptions() {
@@ -508,6 +574,13 @@ public class IndexDirectoryBuilder {
                 .create('i'));
 
         options.addOption(OptionBuilder
+                .withLongOpt(ALTERNATE_NAMES_OPTION)
+                .withDescription("When provided, the path to the GeoNames.org alternate names file for resolution of common and "
+                        + "short names for each location. If not provided, the default name for each location will be used.")
+                .hasArg()
+                .create());
+
+        options.addOption(OptionBuilder
                 .withLongOpt(INDEX_PATH_OPTION)
                 .withDescription(String.format("The path to the output index directory. Default: %s", DEFAULT_INDEX_DIRECTORY))
                 .hasArg()
@@ -525,5 +598,69 @@ public class IndexDirectoryBuilder {
     private static void printHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("run", options, true);
+    }
+
+    private static class AlternateName implements Comparable<AlternateName> {
+        private final int geonameId;
+        private final String name;
+        private final String lang;
+        private final boolean preferredName;
+        private final boolean shortName;
+
+        public AlternateName(final String line) {
+            String[] fields = line.split("\t");
+
+            geonameId = Integer.parseInt(fields[ALT_NAMES_ID_FIELD]);
+            lang = fields[ALT_NAMES_LANG_FIELD];
+            name = fields[ALT_NAMES_NAME_FIELD];
+            preferredName = fields.length > ALT_NAMES_PREFERRED_FIELD && ALT_NAMES_TRUE.equals(fields[ALT_NAMES_PREFERRED_FIELD].trim());
+            shortName = fields.length > ALT_NAMES_SHORT_FIELD && ALT_NAMES_TRUE.equals(fields[ALT_NAMES_SHORT_FIELD].trim());
+        }
+
+        public boolean isEnglish() {
+            return ISO2_ENGLISH.equalsIgnoreCase(lang) || ISO3_ENGLISH.equalsIgnoreCase(lang);
+        }
+
+        public boolean isPrefOrShort() {
+            return preferredName || shortName;
+        }
+
+        @Override
+        public int compareTo(final AlternateName other) {
+            int comp = geonameId - other.geonameId;
+            comp = comp == 0 ? Boolean.compare(preferredName, other.preferredName) : comp;
+            comp = comp == 0 ? Boolean.compare(shortName, other.shortName) : comp;
+            comp = comp == 0 ? name.compareTo(other.name) : comp;
+            return comp;
+        }
+
+        /**
+         * Get the "best" alternate name for the target GeoName.  The best name
+         * is selected in the following order:
+         *
+         * 1. non-null
+         * 2. preferred AND short
+         * 3. preferred only
+         * 4. short only
+         * 5. this
+         *
+         * Note that if the preferred and short name flags are identical, this method
+         * returns the object on which it was called.
+         *
+         * @param other the object to compare to
+         * @return the "best" AlternateName determined by the criteria listed above
+         */
+        public AlternateName bestName(final AlternateName other) {
+            if (other == null) {
+                return this;
+            }
+
+            // if one name is preferred and the other is not, use the preferred name
+            int comp = Boolean.compare(preferredName, other.preferredName);
+            // if preferred is the same, use a short name over a non-short name
+            comp = comp != 0 ? Boolean.compare(shortName, other.shortName) : comp;
+            // if all things are still equal, use this
+            return comp >= 0 ? this : other;
+        }
     }
 }
