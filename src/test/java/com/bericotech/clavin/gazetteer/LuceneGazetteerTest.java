@@ -24,7 +24,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -274,5 +276,29 @@ public class LuceneGazetteerTest {
         for (ResolvedLocation loc : activeOnly) {
             assertNotEquals("Soviet Union should not be in active only results", USSR, loc.getGeoname().getGeonameID());
         }
+    }
+
+    /**
+     * Ensure locations are properly filtered when filterDupes is enabled.
+     */
+    @Test
+    public void testFilterDupes() throws ClavinException {
+        // without filtering, query for london should return the same results several times; with filtering
+        // all results should be unique
+        queryBuilder.maxResults(200).location("london");
+
+        List<ResolvedLocation> unfiltered = instance.getClosestLocations(queryBuilder.filterDupes(false).build());
+        Set<Integer> unfilteredIds = new HashSet<Integer>();
+        for (ResolvedLocation loc : unfiltered) {
+            unfilteredIds.add(loc.getGeoname().getGeonameID());
+        }
+        assertNotEquals("Expected fewer IDs than results for unfiltered query.", unfiltered.size(), unfilteredIds.size());
+
+        List<ResolvedLocation> filtered = instance.getClosestLocations(queryBuilder.filterDupes(true).build());
+        Set<Integer> filteredIds = new HashSet<Integer>();
+        for (ResolvedLocation loc : filtered) {
+            filteredIds.add(loc.getGeoname().getGeonameID());
+        }
+        assertEquals("Expected same number of IDs and results for filtered query.", filtered.size(), filteredIds.size());
     }
 }

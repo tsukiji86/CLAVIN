@@ -49,6 +49,13 @@ public class GazetteerQuery {
     private final boolean includeHistorical;
 
     /**
+     * When <code>true</code>, queries that match multiple names for the
+     * same location (e.g. "Virginia" and "Commonwealth of Virginia") will
+     * only return the best match for that location.
+     */
+    private final boolean filterDupes;
+
+    /**
      * Searches should be restricted to locations found in at least
      * one of this set of parents.
      */
@@ -66,16 +73,19 @@ public class GazetteerQuery {
      * @param maxResults the maximum number of results
      * @param fuzzy <code>true</code> for fuzzy matching
      * @param includeHistorical <code>true</code> to include historical locations
+     * @param filterDupes <code>true</code> to return only the highest scoring match for each individual location
      * @param parentIds the set of parent IDs to restrict the search to; these will be OR'ed
      * @param featureCodes the set of feature codes to restrict the search to; these will be OR'ed
      */
     @SuppressWarnings("unchecked")
     public GazetteerQuery(final LocationOccurrence occurrence, final int maxResults, final boolean fuzzy,
-            final boolean includeHistorical, final Set<Integer> parentIds, final Set<FeatureCode> featureCodes) {
+            final boolean includeHistorical, final boolean filterDupes, final Set<Integer> parentIds,
+            final Set<FeatureCode> featureCodes) {
         this.occurrence = occurrence;
         this.maxResults = maxResults;
         this.fuzzy = fuzzy;
         this.includeHistorical = includeHistorical;
+        this.filterDupes = filterDupes;
         this.parentIds = parentIds != null ? new HashSet<Integer>(parentIds) : Collections.EMPTY_SET;
         this.featureCodes = featureCodes != null ? EnumSet.copyOf(featureCodes) : EnumSet.noneOf(FeatureCode.class);
     }
@@ -110,6 +120,15 @@ public class GazetteerQuery {
      */
     public boolean isIncludeHistorical() {
         return includeHistorical;
+    }
+
+    /**
+     * Should duplicate results be filtered so only the best match for each
+     * location is returned?
+     * @return <code>true</code> if duplicates should be filtered
+     */
+    public boolean isFilterDupes() {
+        return filterDupes;
     }
 
     /**

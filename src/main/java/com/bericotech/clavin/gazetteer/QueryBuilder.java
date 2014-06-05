@@ -33,6 +33,7 @@ public class QueryBuilder {
     private static final int DEFAULT_MAX_RESULTS = 10;
     private static final boolean DEFAULT_FUZZY = false;
     private static final boolean DEFAULT_INCLUDE_HISTORICAL = true;
+    private static final boolean DEFAULT_FILTER_DUPES = false;
 
     private static final Set<FeatureCode> COUNTRY_CODES = Collections.unmodifiableSet(EnumSet.of(
             FeatureCode.PCL,
@@ -96,6 +97,7 @@ public class QueryBuilder {
     private int maxResults = DEFAULT_MAX_RESULTS;
     private boolean fuzzy = DEFAULT_FUZZY;
     private boolean includeHistorical = DEFAULT_INCLUDE_HISTORICAL;
+    private boolean filterDupes = DEFAULT_FILTER_DUPES;
     private Set<Integer> parentIds = new HashSet<Integer>();
     private Set<FeatureCode> featureCodes = EnumSet.noneOf(FeatureCode.class);
 
@@ -104,7 +106,7 @@ public class QueryBuilder {
      * @return a {@link GazetteerQuery} configuration object
      */
     public GazetteerQuery build() {
-        return new GazetteerQuery(location, maxResults, fuzzy, includeHistorical, parentIds, featureCodes);
+        return new GazetteerQuery(location, maxResults, fuzzy, includeHistorical, filterDupes, parentIds, featureCodes);
     }
 
     /**
@@ -187,6 +189,24 @@ public class QueryBuilder {
      */
     public QueryBuilder includeHistorical(final boolean incHist) {
         includeHistorical = incHist;
+        return this;
+    }
+
+    /**
+     * Does this builder filter duplicate results?
+     * @return <code>true</code> if this builder is configured to filter duplicates
+     */
+    public boolean filterDupes() {
+        return filterDupes;
+    }
+
+    /**
+     * Indicate whether or not this builder should filter duplicate results.
+     * @param filter <code>true</code> to filter duplicate results
+     * @return this
+     */
+    public QueryBuilder filterDupes(final boolean filter) {
+        filterDupes = filter;
         return this;
     }
 
@@ -478,7 +498,7 @@ public class QueryBuilder {
 
     @Override
     public String toString() {
-        return String.format("loc: %s, maxResults: %s, fuzzy? %s, historical? %s, parents: %s, codes: %s",
-                location, maxResults, fuzzy, includeHistorical, parentIds, featureCodes);
+        return String.format("loc: %s, maxResults: %s, fuzzy? %s, historical? %s, filterDupes? %s, parents: %s, codes: %s",
+                location, maxResults, fuzzy, includeHistorical, filterDupes, parentIds, featureCodes);
     }
 }

@@ -174,7 +174,7 @@ public class LuceneGazetteer implements Gazetteer {
         List<ResolvedLocation> matches;
         try {
             // attempt to find an exact match for the query
-            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, false);
+            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, false, query.isFilterDupes());
             if (LOG.isDebugEnabled()) {
                 for (ResolvedLocation loc : matches) {
                     LOG.debug("{}", loc);
@@ -182,7 +182,7 @@ public class LuceneGazetteer implements Gazetteer {
             }
             // if we did not find any exact matches and are configured for fuzzy queries, execute a fuzzy search
             if (matches.isEmpty() && query.isFuzzy()) {
-            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, true);
+            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, true, query.isFilterDupes());
                 if (LOG.isDebugEnabled()) {
                     for (ResolvedLocation loc : matches) {
                         LOG.debug("{}[fuzzy]", loc);
@@ -213,13 +213,9 @@ public class LuceneGazetteer implements Gazetteer {
      * @throws IOException if an error occurs executing the query
      */
     private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final String sanitizedName, final Filter filter,
-            final int maxResults, final boolean fuzzy) throws ParseException, IOException {
+            final int maxResults, final boolean fuzzy, final boolean dedupe) throws ParseException, IOException {
         Query query = new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER)
                 .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
-        // collect all the hits up to maxResults, and sort them based
-        // on Lucene match score and population for the associated
-        // GeoNames record
-        TopDocs results = indexSearcher.search(query, filter, maxResults, POPULATION_SORT);
 
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
         Map<Integer, Set<GeoName>> parentMap = new HashMap<Integer, Set<GeoName>>();
@@ -229,39 +225,53 @@ public class LuceneGazetteer implements Gazetteer {
         // removed or modified to help with deduplication
         Map<Integer, GeoName> geonameMap = new HashMap<Integer, GeoName>();
 
-        // populate results if matches were discovered
-        for (ScoreDoc scoreDoc : results.scoreDocs) {
-            Document doc = indexSearcher.doc(scoreDoc.doc);
-            // reuse GeoName instances so all ancestry is correctly resolved if multiple names for
-            // the same GeoName match the query; if we dedupe results in the future, this can be
-            // removed or modified to help with deduplication
-            int geonameID = GEONAME_ID.getValue(doc);
-            GeoName geoname = geonameMap.get(geonameID);
-            if (geoname == null) {
-                geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc), (String) PREFERRED_NAME.getValue(doc));
-                geonameMap.put(geonameID, geoname);
-            }
-            String matchedName = INDEX_NAME.getValue(doc);
-            if (!geoname.isAncestryResolved()) {
-                IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
-                Integer parentId = parentIdField != null && parentIdField.numericValue() != null ?
-                        parentIdField.numericValue().intValue() : null;
-                if (parentId != null) {
-                    Set<GeoName> geos = parentMap.get(parentId);
-                    if (geos == null) {
-                        geos = new HashSet<GeoName>();
-                        parentMap.put(parentId, geos);
+        // track the last discovered hit so we can re-execute the query if we are
+        // deduping and need to fill results
+        ScoreDoc lastDoc = null;
+        do {
+            // collect all the hits up to maxResults, and sort them based
+            // on Lucene match score and population for the associated
+            // GeoNames record
+            TopDocs results = indexSearcher.searchAfter(lastDoc, query, filter, maxResults, POPULATION_SORT);
+            // set lastDoc to null so we don't infinite loop if results is empty
+            lastDoc = null;
+            // populate results if matches were discovered
+            for (ScoreDoc scoreDoc : results.scoreDocs) {
+                lastDoc = scoreDoc;
+                Document doc = indexSearcher.doc(scoreDoc.doc);
+                // reuse GeoName instances so all ancestry is correctly resolved if multiple names for
+                // the same GeoName match the query; if we dedupe results in the future, this can be
+                // removed or modified to help with deduplication
+                int geonameID = GEONAME_ID.getValue(doc);
+                GeoName geoname = geonameMap.get(geonameID);
+                if (geoname == null) {
+                    geoname = GeoName.parseFromGeoNamesRecord((String) GEONAME.getValue(doc), (String) PREFERRED_NAME.getValue(doc));
+                    geonameMap.put(geonameID, geoname);
+                } else if (dedupe) {
+                    // if we have already seen this GeoName and we are removing duplicates, skip to the next doc
+                    continue;
+                }
+                String matchedName = INDEX_NAME.getValue(doc);
+                if (!geoname.isAncestryResolved()) {
+                    IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
+                    Integer parentId = parentIdField != null && parentIdField.numericValue() != null ?
+                            parentIdField.numericValue().intValue() : null;
+                    if (parentId != null) {
+                        Set<GeoName> geos = parentMap.get(parentId);
+                        if (geos == null) {
+                            geos = new HashSet<GeoName>();
+                            parentMap.put(parentId, geos);
+                        }
+                        geos.add(geoname);
                     }
-                    geos.add(geoname);
+                }
+                matches.add(new ResolvedLocation(location, geoname, matchedName, fuzzy));
+                // stop processing results if we have reached maxResults matches
+                if (matches.size() >= maxResults) {
+                    break;
                 }
             }
-            matches.add(new ResolvedLocation(location, geoname, matchedName, fuzzy));
-            // stop processing results if we have reached maxResults matches
-            if (matches.size() >= maxResults) {
-                break;
-            }
-        }
-
+        } while (dedupe && lastDoc != null && matches.size() < maxResults);
         // if any results need ancestry resolution, resolve parents
         if (!parentMap.isEmpty()) {
             resolveParents(parentMap);
