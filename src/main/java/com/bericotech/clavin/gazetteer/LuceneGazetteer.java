@@ -174,15 +174,17 @@ public class LuceneGazetteer implements Gazetteer {
         List<ResolvedLocation> matches;
         try {
             // attempt to find an exact match for the query
-            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, false, query.isFilterDupes());
+            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, false, query.isFilterDupes(), null);
             if (LOG.isDebugEnabled()) {
                 for (ResolvedLocation loc : matches) {
                     LOG.debug("{}", loc);
                 }
             }
-            // if we did not find any exact matches and are configured for fuzzy queries, execute a fuzzy search
-            if (matches.isEmpty() && query.isFuzzy()) {
-            matches = executeQuery(location, sanitizedLocationName, filter, maxResults, true, query.isFilterDupes());
+            // check to see if we should run a fuzzy query based on the configured FuzzyMode
+            if (query.getFuzzyMode().useFuzzyMatching(maxResults, matches.size())) {
+                // provide any exact matches if we are running a fuzzy query so they can be considered for deduplication
+                // and result count
+                matches = executeQuery(location, sanitizedLocationName, filter, maxResults, true, query.isFilterDupes(), matches);
                 if (LOG.isDebugEnabled()) {
                     for (ResolvedLocation loc : matches) {
                         LOG.debug("{}[fuzzy]", loc);
@@ -208,22 +210,42 @@ public class LuceneGazetteer implements Gazetteer {
      * @param filter the filter used to restrict the search results
      * @param maxResults the maximum number of results
      * @param fuzzy is this a fuzzy query
+     * @param dedupe should duplicate locations be filtered from the results
+     * @param previousResults the results of a previous query that should be used for duplicate filtering and appended to until
+     *                        no additional matches are found or maxResults has been reached; the input list will not be modified
+     *                        and may be <code>null</code>
      * @return the ResolvedLocations with ancestry resolved matching the query
      * @throws ParseException if an error occurs generating the query
      * @throws IOException if an error occurs executing the query
      */
     private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final String sanitizedName, final Filter filter,
-            final int maxResults, final boolean fuzzy, final boolean dedupe) throws ParseException, IOException {
+            final int maxResults, final boolean fuzzy, final boolean dedupe, final List<ResolvedLocation> previousResults)
+            throws ParseException, IOException {
         Query query = new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER)
                 .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
 
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
+
         Map<Integer, Set<GeoName>> parentMap = new HashMap<Integer, Set<GeoName>>();
 
         // reuse GeoName instances so all ancestry is correctly resolved if multiple names for
-        // the same GeoName match the query; if we dedupe results in the future, this can be
-        // removed or modified to help with deduplication
+        // the same GeoName match the query
         Map<Integer, GeoName> geonameMap = new HashMap<Integer, GeoName>();
+        // if we are filling previous results, add them to the match list and the geoname map
+        // so they can be used for deduplication or re-used if additional matches are found
+        if (previousResults != null) {
+            matches.addAll(previousResults);
+            for (ResolvedLocation loc : previousResults) {
+                geonameMap.put(loc.getGeoname().getGeonameID(), loc.getGeoname());
+            }
+        }
+
+        // short circuit if we were provided enough previous results to satisfy maxResults;
+        // we do this here because the query loop condition is evaluated after the query
+        // is executed and results are processed to support de-duplication
+        if (matches.size() >= maxResults) {
+            return matches;
+        }
 
         // track the last discovered hit so we can re-execute the query if we are
         // deduping and need to fill results
@@ -240,8 +262,7 @@ public class LuceneGazetteer implements Gazetteer {
                 lastDoc = scoreDoc;
                 Document doc = indexSearcher.doc(scoreDoc.doc);
                 // reuse GeoName instances so all ancestry is correctly resolved if multiple names for
-                // the same GeoName match the query; if we dedupe results in the future, this can be
-                // removed or modified to help with deduplication
+                // the same GeoName match the query
                 int geonameID = GEONAME_ID.getValue(doc);
                 GeoName geoname = geonameMap.get(geonameID);
                 if (geoname == null) {

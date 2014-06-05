@@ -31,6 +31,7 @@ package com.bericotech.clavin.resolver;
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.gazetteer.CountryCode;
+import com.bericotech.clavin.gazetteer.FuzzyMode;
 import com.bericotech.clavin.gazetteer.Gazetteer;
 import com.bericotech.clavin.gazetteer.QueryBuilder;
 import com.bericotech.clavin.util.ListUtils;
@@ -125,7 +126,12 @@ public class ClavinLocationResolver {
             return Collections.EMPTY_LIST;
         }
 
-        QueryBuilder builder = new QueryBuilder().maxResults(maxHitDepth).fuzzy(fuzzy).includeHistorical(true);
+        QueryBuilder builder = new QueryBuilder()
+                .maxResults(maxHitDepth)
+                // translate CLAVIN 1.x 'fuzzy' parameter into NO_EXACT or OFF; it isn't
+                // necessary, or desirable to support FILL for the CLAVIN resolution algorithm
+                .fuzzyMode(fuzzy ? FuzzyMode.NO_EXACT : FuzzyMode.OFF)
+                .includeHistorical(true);
 
         if (maxHitDepth > 1) { // perform context-based heuristic matching
             // stores all possible matches for each location name

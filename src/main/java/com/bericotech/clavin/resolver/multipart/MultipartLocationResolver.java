@@ -2,6 +2,7 @@ package com.bericotech.clavin.resolver.multipart;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.gazetteer.CountryCode;
+import com.bericotech.clavin.gazetteer.FuzzyMode;
 import com.bericotech.clavin.gazetteer.Gazetteer;
 import com.bericotech.clavin.gazetteer.GeoName;
 import com.bericotech.clavin.gazetteer.QueryBuilder;
@@ -70,7 +71,9 @@ public class MultipartLocationResolver {
             throws ClavinException {
         // find all component locations in the gazetteer
         QueryBuilder queryBuilder = new QueryBuilder()
-                .fuzzy(fuzzy)
+                // translate CLAVIN 1.x 'fuzzy' parameter into NO_EXACT or OFF; it isn't
+                // necessary, or desirable to support FILL for the multi-part resolution algorithm
+                .fuzzyMode(fuzzy ? FuzzyMode.NO_EXACT : FuzzyMode.OFF)
                 .includeHistorical(true)
                 .maxResults(MAX_RESULTS);
 
@@ -171,21 +174,29 @@ public class MultipartLocationResolver {
         return new ResolvedMultipartLocation(finalCity, finalState, finalCountry);
     }
 
+    /**
+     * Attempts to resolve a location provided as a comma-separated string of political divisions from
+     * narrowest to broadest. The gazetteer current supports ancestry from the country level through four
+     * administrative divisions so any more-specific divisions will be ignored once a city (lowest available
+     * level of resolution) is found. Results will only be returned if all unignored location components are
+     * matched.
+     * @param loc the comma-separated location name (e.g. "City, County, State, Country")
+     * @param fuzzy <code>true</code> to use fuzzy matching if an exact match for any location could not be found
+     * @return the resolved location
+     * @throws ClavinException if an error occurs while searching
+     */
     public ResolvedLocation resolveLocation(final String loc, final boolean fuzzy) throws ClavinException {
         return resolveLocation(fuzzy, loc.split(","));
     }
 
     /**
-     * Resolves a city within the specified administrative divisions. Administrative divisions should be
-     * specified in order of most specific to most general with a country or other top-level division
-     * as the last element (if available). The gazetteer currently handles ancestry from the country
-     * level through four administrative divisions so any more-specific divisions will be ignored while
-     * resolving the city itself, but will be provided in the result set if they can be identified or
-     * indicated as <code>null</code> values if they could not. With the exception of administrative
-     * divisions 5 or higher, results will only be returned if a complete match could be found.
+     * Resolves a location provided as a series of political divisions from narrowest to broadest. The gazetteer
+     * current supports ancestry from the country level through four administrative divisions so any more-specific
+     * divisions will be ignored once a city (lowest available level of resolution) is found. Results will only
+     * be returned if all unignored location components are matched.
      * @param fuzzy <code>true</code> to use fuzzy matching if an exact match for any location could not be found
      * @param locationParts the names of the locations to match, ordered from most to least specific
-     *                      (e.g. City, County, State, Country)
+     *                      (e.g. [ "City", "County", "State", "Country" ])
      * @return the resolved location
      * @throws ClavinException if an error occurs while searching
      */
@@ -208,7 +219,9 @@ public class MultipartLocationResolver {
         Deque<SearchResult> matches = new LinkedList<SearchResult>();
         QueryBuilder query = new QueryBuilder()
                 .maxResults(MAX_RESULTS)
-                .fuzzy(fuzzy)
+                // translate CLAVIN 1.x 'fuzzy' parameter into NO_EXACT or OFF; it isn't
+                // necessary, or desirable to support FILL for the multi-part resolution algorithm
+                .fuzzyMode(fuzzy ? FuzzyMode.NO_EXACT : FuzzyMode.OFF)
                 .includeHistorical(true);
         findCandidates(candidates, terms, SearchLevel.COUNTRY, matches, query);
 

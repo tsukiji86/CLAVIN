@@ -39,9 +39,9 @@ public class GazetteerQuery {
     private final int maxResults;
 
     /**
-     * Should fuzzy matching be used?
+     * Indicates how fuzzy matching should be applied.
      */
-    private final boolean fuzzy;
+    private final FuzzyMode fuzzyMode;
 
     /**
      * Should historical locations be included?
@@ -71,19 +71,19 @@ public class GazetteerQuery {
      * Create a new GazetteerQuery.
      * @param occurrence the location occurrence
      * @param maxResults the maximum number of results
-     * @param fuzzy <code>true</code> for fuzzy matching
+     * @param fuzzyMode the fuzzy mode for this query
      * @param includeHistorical <code>true</code> to include historical locations
      * @param filterDupes <code>true</code> to return only the highest scoring match for each individual location
      * @param parentIds the set of parent IDs to restrict the search to; these will be OR'ed
      * @param featureCodes the set of feature codes to restrict the search to; these will be OR'ed
      */
     @SuppressWarnings("unchecked")
-    public GazetteerQuery(final LocationOccurrence occurrence, final int maxResults, final boolean fuzzy,
+    public GazetteerQuery(final LocationOccurrence occurrence, final int maxResults, final FuzzyMode fuzzyMode,
             final boolean includeHistorical, final boolean filterDupes, final Set<Integer> parentIds,
             final Set<FeatureCode> featureCodes) {
         this.occurrence = occurrence;
         this.maxResults = maxResults;
-        this.fuzzy = fuzzy;
+        this.fuzzyMode = fuzzyMode;
         this.includeHistorical = includeHistorical;
         this.filterDupes = filterDupes;
         this.parentIds = parentIds != null ? new HashSet<Integer>(parentIds) : Collections.EMPTY_SET;
@@ -107,11 +107,11 @@ public class GazetteerQuery {
     }
 
     /**
-     * Should fuzzy matching be used?
-     * @return <code>true</code> if fuzzy matching should be used
+     * Indicates how fuzzy matching should be used.
+     * @return the fuzzy matching mode
      */
-    public boolean isFuzzy() {
-        return fuzzy;
+    public FuzzyMode getFuzzyMode() {
+        return fuzzyMode;
     }
 
     /**

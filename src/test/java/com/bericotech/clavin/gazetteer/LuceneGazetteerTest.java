@@ -63,7 +63,7 @@ public class LuceneGazetteerTest {
     @Before
     public void setUp() throws ClavinException {
         instance = new LuceneGazetteer(INDEX_DIRECTORY);
-        queryBuilder = new QueryBuilder().maxResults(1).fuzzy(false);
+        queryBuilder = new QueryBuilder().maxResults(1).fuzzyMode(FuzzyMode.OFF);
     }
 
     /**
@@ -103,7 +103,7 @@ public class LuceneGazetteerTest {
             // this query results in an exact match even though a term is missing
             new Object[]{"Gun Barrel", GUN_BARREL_CITY_TX, false, "Gazetteer failed on missing term"}
         };
-        queryBuilder.fuzzy(true);
+        queryBuilder.fuzzyMode(FuzzyMode.NO_EXACT);
         for (Object[] test : testCases) {
             // match a single location with fuzzy matching
             List<ResolvedLocation> locs = instance.getClosestLocations(queryBuilder.location((String) test[0]).build());
@@ -202,7 +202,7 @@ public class LuceneGazetteerTest {
         String[] locations = {"OR", "IN", "A + B", "A+B", "A +B", "A+ B", "A OR B", "A IN B", "A / B", "A \\ B",
             "Dallas/Fort Worth Airport", "New Delhi/Chennai", "Falkland ] Islands", "Baima ] County",
             "MUSES \" City Hospital", "North \" Carolina State"};
-        queryBuilder.fuzzy(true);
+        queryBuilder.fuzzyMode(FuzzyMode.NO_EXACT);
         for (String loc : locations) {
             try {
                 instance.getClosestLocations(queryBuilder.location(loc).build());
@@ -220,8 +220,8 @@ public class LuceneGazetteerTest {
         // ensure we get no matches for this crazy String
         LocationOccurrence loc = new LocationOccurrence("jhadghaoidhg", 0);
         queryBuilder.location(loc);
-        assertTrue("Gazetteer fuzzy off, no match", instance.getClosestLocations(queryBuilder.fuzzy(false).build()).isEmpty());
-        assertTrue("Gazetteer fuzzy on, no match", instance.getClosestLocations(queryBuilder.fuzzy(true).build()).isEmpty());
+        assertTrue("Gazetteer fuzzy off, no match", instance.getClosestLocations(queryBuilder.fuzzyMode(FuzzyMode.OFF).build()).isEmpty());
+        assertTrue("Gazetteer fuzzy on, no match", instance.getClosestLocations(queryBuilder.fuzzyMode(FuzzyMode.NO_EXACT).build()).isEmpty());
     }
 
     /**
@@ -264,7 +264,7 @@ public class LuceneGazetteerTest {
     @Test
     public void testFindHistoricalLocations() throws ClavinException {
         LocationOccurrence sovietUnion = new LocationOccurrence("Soviet Union", 0);
-        queryBuilder.location(sovietUnion).maxResults(10).fuzzy(true);
+        queryBuilder.location(sovietUnion).maxResults(10).fuzzyMode(FuzzyMode.NO_EXACT);
         List<ResolvedLocation> withHistorical = instance.getClosestLocations(queryBuilder.includeHistorical(true).build());
         List<ResolvedLocation> activeOnly = instance.getClosestLocations(queryBuilder.includeHistorical(false).build());
 
@@ -300,5 +300,55 @@ public class LuceneGazetteerTest {
             filteredIds.add(loc.getGeoname().getGeonameID());
         }
         assertEquals("Expected same number of IDs and results for filtered query.", filtered.size(), filteredIds.size());
+    }
+
+    /**
+     * Ensure fuzzy mode behavior works properly.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testFuzzyMode() throws ClavinException {
+        queryBuilder.location("lond");
+
+        List<ResolvedLocation> noFuzzy = Collections.EMPTY_LIST;
+        List<ResolvedLocation> fuzzyNoExact = Collections.EMPTY_LIST;
+        List<ResolvedLocation> fuzzyFill = Collections.EMPTY_LIST;
+
+        int maxResults = 0;
+        // increase max results until we are forced to fuzzy fill or there are no more
+        // results available; this shouldn't happen, but if it does we need to short-circuit
+        // the test and find a new query to avoid infinite loops; note this will cause the test to fail
+        while (noFuzzy.size() == fuzzyFill.size() && fuzzyFill.size() == maxResults) {
+            maxResults += 10;
+            queryBuilder.maxResults(maxResults);
+            noFuzzy = instance.getClosestLocations(queryBuilder.fuzzyMode(FuzzyMode.OFF).build());
+            fuzzyNoExact = instance.getClosestLocations(queryBuilder.fuzzyMode(FuzzyMode.NO_EXACT).build());
+            fuzzyFill = instance.getClosestLocations(queryBuilder.fuzzyMode(FuzzyMode.FILL).build());
+        }
+
+        // lond matches at least one location exactly and should have no fuzzy results (and identical results) when operating
+        // in FuzzyMode.OFF and FuzzyMode.NO_EXACT.
+        assertEquals("Expected OFF and FUZZY_NO_EXACT results to be identical.", noFuzzy, fuzzyNoExact);
+        for (ResolvedLocation loc : noFuzzy) {
+            assertFalse(String.format("Unexpected (OFF) fuzzy result: %s", loc), loc.isFuzzy());
+        }
+        for (ResolvedLocation loc : fuzzyNoExact) {
+            assertFalse(String.format("Unexpected (FUZZY_NO_EXACT) fuzzy result: %s", loc), loc.isFuzzy());
+        }
+
+        // when FILL is enabled, we should have the exact matches followed by fuzzy matches up to
+        // the max results
+        assertEquals("Expected results filled to maximum number.", maxResults, fuzzyFill.size());
+        assertTrue(String.format("Expected more results in fuzzy fill than no fuzzy but was: %d > %d", fuzzyFill.size(), noFuzzy.size()),
+                fuzzyFill.size() > noFuzzy.size());
+        for (int idx=0; idx < maxResults; idx++) {
+            if (idx < noFuzzy.size()) {
+                // results should be identical for exact matches
+                assertEquals("Expected FUZZY_FILL results to start with OFF results.", noFuzzy.get(idx), fuzzyFill.get(idx));
+            } else {
+                // filled results should be fuzzy matches
+                assertTrue(String.format("Unexpected non-fuzzy result: %s", fuzzyFill.get(idx)), fuzzyFill.get(idx).isFuzzy());
+            }
+        }
     }
 }

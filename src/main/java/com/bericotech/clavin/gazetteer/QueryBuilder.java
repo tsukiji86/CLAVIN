@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public class QueryBuilder {
     private static final int DEFAULT_MAX_RESULTS = 10;
-    private static final boolean DEFAULT_FUZZY = false;
+    private static final FuzzyMode DEFAULT_FUZZY_MODE = FuzzyMode.OFF;
     private static final boolean DEFAULT_INCLUDE_HISTORICAL = true;
     private static final boolean DEFAULT_FILTER_DUPES = false;
 
@@ -95,7 +95,7 @@ public class QueryBuilder {
 
     private LocationOccurrence location;
     private int maxResults = DEFAULT_MAX_RESULTS;
-    private boolean fuzzy = DEFAULT_FUZZY;
+    private FuzzyMode fuzzyMode = DEFAULT_FUZZY_MODE;
     private boolean includeHistorical = DEFAULT_INCLUDE_HISTORICAL;
     private boolean filterDupes = DEFAULT_FILTER_DUPES;
     private Set<Integer> parentIds = new HashSet<Integer>();
@@ -106,7 +106,7 @@ public class QueryBuilder {
      * @return a {@link GazetteerQuery} configuration object
      */
     public GazetteerQuery build() {
-        return new GazetteerQuery(location, maxResults, fuzzy, includeHistorical, filterDupes, parentIds, featureCodes);
+        return new GazetteerQuery(location, maxResults, fuzzyMode, includeHistorical, filterDupes, parentIds, featureCodes);
     }
 
     /**
@@ -157,20 +157,20 @@ public class QueryBuilder {
     }
 
     /**
-     * Does this builder generate fuzzy matching queries?
-     * @return <code>true</code> if this builder is configured to create fuzzy queries
+     * Get the current fuzzy matching mode.
+     * @return the fuzzy matching mode
      */
-    public boolean fuzzy() {
-        return fuzzy;
+    public FuzzyMode fuzzyMode() {
+        return fuzzyMode;
     }
 
     /**
-     * Indicate whether or not this builder generates fuzzy queries.
-     * @param fuzz <code>true</code> to use fuzzy matching
+     * Configure the fuzzy matching mode.
+     * @param mode the fuzzy matching mode
      * @return this
      */
-    public QueryBuilder fuzzy(final boolean fuzz) {
-        fuzzy = fuzz;
+    public QueryBuilder fuzzyMode(final FuzzyMode mode) {
+        fuzzyMode = mode;
         return this;
     }
 
@@ -498,7 +498,7 @@ public class QueryBuilder {
 
     @Override
     public String toString() {
-        return String.format("loc: %s, maxResults: %s, fuzzy? %s, historical? %s, filterDupes? %s, parents: %s, codes: %s",
-                location, maxResults, fuzzy, includeHistorical, filterDupes, parentIds, featureCodes);
+        return String.format("loc: %s, maxResults: %s, fuzzyMode: %s, historical? %s, filterDupes? %s, parents: %s, codes: %s",
+                location, maxResults, fuzzyMode, includeHistorical, filterDupes, parentIds, featureCodes);
     }
 }
