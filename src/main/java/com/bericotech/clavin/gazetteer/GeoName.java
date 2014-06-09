@@ -237,21 +237,10 @@ public class GeoName {
             // ensure this is never null
             this.alternateNames = Collections.EMPTY_LIST;
         }
-        this.preferredName = preferredName != null && !preferredName.trim().isEmpty() ? preferredName.trim() : null;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.featureClass = featureClass;
-        if (featureCode == FeatureCode.TERR) {
-            // configure the feature code so top-level territories are distinguishable
-            String pccName = primaryCountryCode != null ? primaryCountryCode.name : "";
-            boolean topLevel = (this.name != null && !this.name.isEmpty() && this.name.equals(pccName)) ||
-                    (this.asciiName != null && !this.asciiName.isEmpty() && this.asciiName.equals(pccName)) ||
-                    this.alternateNames.contains(pccName);
-            this.featureCode = topLevel ? FeatureCode.TERRI : FeatureCode.TERR;
-        } else {
-            this.featureCode = featureCode;
-        }
         this.primaryCountryCode = primaryCountryCode;
+        String pccName = primaryCountryCode != null ? primaryCountryCode.name : "";
         if (alternateCountryCodes != null) {
             // defensive copy
             this.alternateCountryCodes = Collections.unmodifiableList(new ArrayList<CountryCode>(alternateCountryCodes));
@@ -259,6 +248,28 @@ public class GeoName {
             // ensure this is never null
             this.alternateCountryCodes = Collections.EMPTY_LIST;
         }
+        this.featureClass = featureClass;
+        // configure the feature code so top-level territories are distinguishable
+        if (featureCode == FeatureCode.TERR) {
+            boolean topLevel = (this.name != null && !this.name.isEmpty() && this.name.equals(pccName)) ||
+                    (this.asciiName != null && !this.asciiName.isEmpty() && this.asciiName.equals(pccName)) ||
+                    this.alternateNames.contains(pccName);
+            this.featureCode = topLevel ? FeatureCode.TERRI : FeatureCode.TERR;
+        } else {
+            this.featureCode = featureCode;
+        }
+        // if this is a top level division, use the primary country name as the preferred name; otherwise
+        // use the name provided or null
+        boolean usePcc = TOP_LEVEL_FEATURES.contains(featureCode) && !pccName.isEmpty() &&
+                ((this.name != null && !this.name.isEmpty() && this.name.equals(pccName)) ||
+                (this.asciiName != null && !this.asciiName.isEmpty() && this.asciiName.equals(pccName)) ||
+                this.alternateNames.contains(pccName));
+        if (usePcc) {
+            this.preferredName = pccName;
+        } else {
+            this.preferredName = preferredName != null && !preferredName.trim().isEmpty() ? preferredName.trim() : null;
+        }
+
         this.admin1Code = admin1Code;
         this.admin2Code = admin2Code;
         this.admin3Code = admin3Code;
