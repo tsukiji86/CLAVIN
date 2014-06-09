@@ -43,7 +43,7 @@ import org.junit.runners.Parameterized.Parameters;
  *
  * ====================================================================
  *
- * LuceneLocationResolverHeuristicsTest.java
+ * MultipartLocationResolverTest.java
  *
  *###################################################################*/
 

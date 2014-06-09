@@ -25,6 +25,7 @@
  * Gazetteer.java
  *
  *###################################################################*/
+
 package com.bericotech.clavin.gazetteer;
 
 import com.bericotech.clavin.ClavinException;

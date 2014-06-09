@@ -25,6 +25,7 @@
  * LuceneGazetteer.java
  *
  *###################################################################*/
+
 package com.bericotech.clavin.gazetteer;
 
 import static com.bericotech.clavin.index.IndexField.*;
