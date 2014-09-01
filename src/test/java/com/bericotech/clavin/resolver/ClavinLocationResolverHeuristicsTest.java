@@ -55,7 +55,6 @@ public class ClavinLocationResolverHeuristicsTest {
     private static final int HAVERHILL_MA = 4939085;
     private static final int WORCESTER_MA = 4956184;
     private static final int SPRINGFIELD_MA = 4951788;
-    private static final int LEOMINSTER_MA = 4941873;
     private static final int CHICAGO_IL = 4887398;
     private static final int ROCKFORD_IL = 4907959;
     private static final int SPRINGFIELD_IL = 4250542;
@@ -64,18 +63,14 @@ public class ClavinLocationResolverHeuristicsTest {
     private static final int SPRINGFIELD_MO = 4409896;
     private static final int ST_LOUIS_MO = 6955119;
     private static final int INDEPENDENCE_MO = 4391812;
-    private static final int LONDON_UK = 2643743;
+    private static final int LIVERPOOL_UK = 3333167;
     private static final int MANCHESTER_UK = 2643123;
     private static final int HAVERHILL_UK = 2647310;
     private static final int WORCESTER_UK = 2633560;
-    private static final int RESTON_VA = 4781530;
-    private static final int STRAßENHAUS_DE = 2826158;
-    private static final int GUN_BARREL_CITY_TX = 4695535;
     private static final int TORONTO_ON = 6167865;
     private static final int OTTAWA_ON = 6094817;
     private static final int HAMILTON_ON = 5969782;
     private static final int KITCHENER_ON = 5992996;
-    private static final int LONDON_ON = 6058560;
 
     private static final int NO_HEURISTICS_MAX_HIT_DEPTH = 1;
     private static final int NO_HEURISTICS_MAX_CONTEXT_WINDOW = 1;
@@ -173,27 +168,27 @@ public class ClavinLocationResolverHeuristicsTest {
     }
 
     /**
-     * Ensure we select the correct Haverhill in a document about
+     * Ensure we select the correct Hamilton & Haverhill in a document about
      * England using context-based heuristic matching.
      */
     @Test
     public void testHeuristicsEngland() throws ClavinException {
-        String[] locations = {"London", "Manchester", "Haverhill"};
+        String[] locations = {"Liverpool", "Manchester", "Haverhill"};
 
         resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
 
-        assertEquals("LocationResolver chose the wrong \"London\"", LONDON_UK, resolvedLocations.get(0).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"Liverpool\"", LIVERPOOL_UK, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Manchester\"", MANCHESTER_UK, resolvedLocations.get(1).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Haverhill\"", HAVERHILL_UK, resolvedLocations.get(2).getGeoname().getGeonameID());
     }
 
     /**
-     * Ensure we select the correct London in a document about
+     * Ensure we select the correct Hamilton in a document about
      * Ontario using context-based heuristic matching.
      */
     @Test
     public void testHeuristicsOntario() throws ClavinException {
-        String[] locations = {"Toronto", "Ottawa", "Hamilton", "Kitchener", "London"};
+        String[] locations = {"Toronto", "Ottawa", "Hamilton", "Kitchener"};
 
         resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
 
@@ -201,7 +196,6 @@ public class ClavinLocationResolverHeuristicsTest {
         assertEquals("LocationResolver chose the wrong \"Ottawa\"", OTTAWA_ON, resolvedLocations.get(1).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Hamilton\"", HAMILTON_ON, resolvedLocations.get(2).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Kitchener\"", KITCHENER_ON, resolvedLocations.get(3).getGeoname().getGeonameID());
-        assertEquals("LocationResolver chose the wrong \"London\"", LONDON_ON, resolvedLocations.get(4).getGeoname().getGeonameID());
     }
 
     /**
