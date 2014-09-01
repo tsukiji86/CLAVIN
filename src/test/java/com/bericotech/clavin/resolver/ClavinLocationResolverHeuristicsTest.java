@@ -71,6 +71,8 @@ public class ClavinLocationResolverHeuristicsTest {
     private static final int OTTAWA_ON = 6094817;
     private static final int HAMILTON_ON = 5969782;
     private static final int KITCHENER_ON = 5992996;
+    private static final int CAIRO_EG = 360631;
+    private static final int BENGHAZI_LY = 88319;
 
     private static final int NO_HEURISTICS_MAX_HIT_DEPTH = 1;
     private static final int NO_HEURISTICS_MAX_CONTEXT_WINDOW = 1;
@@ -211,5 +213,19 @@ public class ClavinLocationResolverHeuristicsTest {
 
         resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
         assertTrue("Heuristic LocationResolver fuzzy on, no match", resolvedLocations.isEmpty());
+    }
+
+    /**
+     * Checks fix of bug where admin1 codes from different countries
+     * were treated as equal.
+     */
+    @Test
+    public void testHeuristicsNorthAfrica() throws ClavinException {
+        String[] locations = {"Cairo", "Benghazi"};
+
+        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+
+        assertEquals("LocationResolver chose the wrong \"Cairo\"", CAIRO_EG, resolvedLocations.get(0).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"Benghazi\"", BENGHAZI_LY, resolvedLocations.get(1).getGeoname().getGeonameID());
     }
 }
