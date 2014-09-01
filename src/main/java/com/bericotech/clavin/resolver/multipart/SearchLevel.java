@@ -31,7 +31,7 @@ package com.bericotech.clavin.resolver.multipart;
 import com.bericotech.clavin.gazetteer.FeatureClass;
 import com.bericotech.clavin.gazetteer.FeatureCode;
 import com.bericotech.clavin.gazetteer.GeoName;
-import com.bericotech.clavin.gazetteer.QueryBuilder;
+import com.bericotech.clavin.gazetteer.query.QueryBuilder;
 
 /**
  * A roll-up of feature classes and codes that assists in

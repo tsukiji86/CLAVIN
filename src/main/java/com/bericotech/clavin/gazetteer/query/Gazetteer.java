@@ -26,9 +26,10 @@
  *
  *###################################################################*/
 
-package com.bericotech.clavin.gazetteer;
+package com.bericotech.clavin.gazetteer.query;
 
 import com.bericotech.clavin.ClavinException;
+import com.bericotech.clavin.gazetteer.GeoName;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.util.List;
 

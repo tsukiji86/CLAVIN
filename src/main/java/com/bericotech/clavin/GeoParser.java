@@ -2,7 +2,7 @@ package com.bericotech.clavin;
 
 import com.bericotech.clavin.extractor.LocationExtractor;
 import com.bericotech.clavin.extractor.LocationOccurrence;
-import com.bericotech.clavin.gazetteer.Gazetteer;
+import com.bericotech.clavin.gazetteer.query.Gazetteer;
 import com.bericotech.clavin.resolver.ClavinLocationResolver;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.util.List;

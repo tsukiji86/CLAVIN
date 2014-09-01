@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
-import com.bericotech.clavin.gazetteer.LuceneGazetteer;
+import com.bericotech.clavin.gazetteer.query.LuceneGazetteer;
 import java.io.File;
 import java.util.List;
 import org.junit.Before;

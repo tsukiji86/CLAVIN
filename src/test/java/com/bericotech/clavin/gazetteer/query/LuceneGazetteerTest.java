@@ -26,12 +26,17 @@
  *
  *###################################################################*/
 
-package com.bericotech.clavin.gazetteer;
+package com.bericotech.clavin.gazetteer.query;
 
 import static org.junit.Assert.*;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
+import com.bericotech.clavin.gazetteer.FeatureCode;
+import com.bericotech.clavin.gazetteer.GeoName;
+import com.bericotech.clavin.gazetteer.query.FuzzyMode;
+import com.bericotech.clavin.gazetteer.query.LuceneGazetteer;
+import com.bericotech.clavin.gazetteer.query.QueryBuilder;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
 import java.util.ArrayList;
@@ -44,7 +49,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Ensures non-heuristic matching and fuzzy matching features are working properly in {@link LuceneGazetteer}.
+ * Ensures non-heuristic matching and fuzzy matching features are working properly in {@link com.bericotech.clavin.gazetteer.query.LuceneGazetteer}.
  */
 public class LuceneGazetteerTest {
 
@@ -80,7 +85,7 @@ public class LuceneGazetteerTest {
     }
 
     /**
-     * Ensure {@link LuceneGazetteer#getClosestLocations(List, boolean)} isn't choking on input.
+     * Ensure {@link LuceneGazetteer#getClosestLocations} isn't choking on input.
      */
     @Test
     public void testResolveLocations() throws ClavinException {
@@ -109,7 +114,7 @@ public class LuceneGazetteerTest {
     public void testResolveLocations_Fuzzy() throws ClavinException {
         Object[][] testCases = new Object[][]{
             new Object[]{"Bostonn", BOSTON_MA, true, "Gazetteer failed on extra char"},
-            new Object[]{"Reston12", RESTON_VA, true, "Gazetteer failed on extra chars"},
+            new Object[]{"Straßenhaus12", STRAßENHAUS_DE, true, "Gazetteer failed on extra chars"},
             new Object[]{"Bostn", BOSTON_MA, true, "Gazetteer failed on missing char"},
             new Object[]{"Straßenha", STRAßENHAUS_DE, true, "Gazetteer failed on missing chars"},
             new Object[]{"Straßenhaus Airport", STRAßENHAUS_DE, true, "Gazetteer failed on extra term"},

@@ -6,7 +6,7 @@ import static org.junit.Assert.*;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.gazetteer.GeoName;
-import com.bericotech.clavin.gazetteer.LuceneGazetteer;
+import com.bericotech.clavin.gazetteer.query.LuceneGazetteer;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
 import java.util.Arrays;

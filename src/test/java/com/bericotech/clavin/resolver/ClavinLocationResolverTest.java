@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
-import com.bericotech.clavin.gazetteer.LuceneGazetteer;
+import com.bericotech.clavin.gazetteer.query.LuceneGazetteer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,7 +87,7 @@ public class ClavinLocationResolverTest {
     }
 
     /**
-     * Ensure {@link LuceneLocationResolver#resolveLocations(List, boolean)} isn't
+     * Ensure {@link ClavinLocationResolver#resolveLocations(List, boolean)} isn't
      * choking on input.
      */
     @Test

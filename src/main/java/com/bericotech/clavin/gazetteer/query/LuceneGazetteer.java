@@ -26,13 +26,15 @@
  *
  *###################################################################*/
 
-package com.bericotech.clavin.gazetteer;
+package com.bericotech.clavin.gazetteer.query;
 
 import static com.bericotech.clavin.index.IndexField.*;
 import static org.apache.lucene.queryparser.classic.QueryParserBase.escape;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
+import com.bericotech.clavin.gazetteer.FeatureCode;
+import com.bericotech.clavin.gazetteer.GeoName;
 import com.bericotech.clavin.index.BinarySimilarity;
 import com.bericotech.clavin.index.IndexField;
 import com.bericotech.clavin.index.WhitespaceLowerCaseAnalyzer;

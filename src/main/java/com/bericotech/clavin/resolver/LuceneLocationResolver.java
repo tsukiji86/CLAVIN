@@ -2,7 +2,7 @@ package com.bericotech.clavin.resolver;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
-import com.bericotech.clavin.gazetteer.LuceneGazetteer;
+import com.bericotech.clavin.gazetteer.query.LuceneGazetteer;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;

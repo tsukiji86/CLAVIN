@@ -26,9 +26,11 @@
  *
  *###################################################################*/
 
-package com.bericotech.clavin.gazetteer;
+package com.bericotech.clavin.gazetteer.query;
 
 import com.bericotech.clavin.extractor.LocationOccurrence;
+import com.bericotech.clavin.gazetteer.FeatureCode;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
