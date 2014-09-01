@@ -25,19 +25,19 @@ How to build & use CLAVIN:
 	> `mvn compile`
 
 6. Create the Lucene Index (this one-time process will take several minutes):
-	> `MAVEN_OPTS="-Xmx2048M" mvn exec:java -Dexec.mainClass="com.bericotech.clavin.index.IndexDirectoryBuilder"`
+	> `MAVEN_OPTS="-Xmx4g" mvn exec:java -Dexec.mainClass="com.bericotech.clavin.index.IndexDirectoryBuilder"`
 
 7. Run the example program:
-	> `MAVEN_OPTS="-Xmx2048M" mvn exec:java -Dexec.mainClass="com.bericotech.clavin.WorkflowDemo"`
+	> `MAVEN_OPTS="-Xmx2g" mvn exec:java -Dexec.mainClass="com.bericotech.clavin.WorkflowDemo"`
 	
 	If you encounter an error that looks like this:
 	> `... InvocationTargetException: Java heap space ...`
 	
-	set the appropriate environmental variable controlling Maven's memory usage, and increase the size with `export MAVEN_OPTS=-Xmx3g` or similar.
+	set the appropriate environmental variable controlling Maven's memory usage, and increase the size with `export MAVEN_OPTS=-Xmx4g` or similar.
 
 Once that all runs successfully, feel free to modify the CLAVIN source code to suit your needs.
 
-**N.B.**: Loading the worldwide gazetteer uses a non-trivial amount of memory. When using CLAVIN in your own programs, if you encounter `Java heap space` errors (like the one described in Step 7), bump up the maximum heap size for your JVM. Allocating 2GB (e.g., `-Xmx2g`) is a good place to start.
+**N.B.**: Loading the worldwide gazetteer uses a non-trivial amount of memory. When using CLAVIN in your own programs, if you encounter `Java heap space` errors (like the one described in Step 7), bump up the maximum heap size for your JVM.
 
 * Add a dependency on the CLAVIN project:
 
