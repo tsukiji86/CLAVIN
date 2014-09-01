@@ -460,7 +460,7 @@ public class GeoName {
      */
     @Override
     public String toString() {
-        return name + " (" + getPrimaryCountryName() + ", " + admin1Code + ")" + " [pop: " + population + "] <" + geonameID + ">";
+        return getPreferredName() + " (" + getPrimaryCountryName() + ", " + admin1Code + ")" + " [pop: " + population + "] <" + geonameID + ">";
     }
 
     /**

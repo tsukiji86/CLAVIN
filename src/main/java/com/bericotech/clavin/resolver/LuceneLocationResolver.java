@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * geographic entities (as intended by the document's author based on
  * context) by finding the best match in a gazetteer.
  *
- * @deprecated 2.0.0 Use {@link Clavin}
+ * @deprecated 2.0.0 Use {@link ClavinLocationResolver}
  */
 @Deprecated
 public class LuceneLocationResolver implements LocationResolver {
@@ -74,7 +74,7 @@ public class LuceneLocationResolver implements LocationResolver {
      * @param maxContextWindow      how much context to consider when resolving
      * @throws IOException
      * @throws ParseException
-     * @deprecated 2.0.0 Use {@link Clavin}
+     * @deprecated 2.0.0 Use {@link ClavinLocationResolver}
      */
     @Deprecated
     public LuceneLocationResolver(File indexDir, int maxHitDepth, int maxContextWindow) throws IOException, ParseException {
@@ -97,18 +97,18 @@ public class LuceneLocationResolver implements LocationResolver {
      * Resolves the supplied list of location names into
      * {@link ResolvedLocation}s containing {@link com.bericotech.clavin.gazetteer.GeoName} objects.
      *
-     * Calls {@link LuceneLocationResolver#getClosestLocations} on
+     * Calls {@link com.bericotech.clavin.gazetteer.query.Gazetteer#getClosestLocations} on
      * each location name to find all possible matches, then uses
      * heuristics to select the best match for each by calling
-     * {@link LuceneLocationResolver#pickBestCandidates}.
+     * {@link ClavinLocationResolver#pickBestCandidates}.
      *
      * @param locations         list of location names to be resolved
      * @param fuzzy             switch for turning on/off fuzzy matching
      * @return                  list of {@link ResolvedLocation} objects
      * @throws ParseException
      * @throws IOException
-     * @deprecated 2.0.0 Use {@link Clavin#resolveLocations(java.util.List, boolean)} or
-     *             {@link Clavin#resolveLocations(java.util.List, int, int, boolean)}
+     * @deprecated 2.0.0 Use {@link ClavinLocationResolver#resolveLocations(java.util.List, boolean)} or
+     *             {@link ClavinLocationResolver#resolveLocations(java.util.List, int, int, boolean)}
      **/
     @Override
     @Deprecated

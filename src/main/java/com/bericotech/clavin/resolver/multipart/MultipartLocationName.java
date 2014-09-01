@@ -26,10 +26,10 @@
  *
  *###################################################################*/
 
-package com.bericotech.clavin.resolver;
+package com.bericotech.clavin.resolver.multipart;
 
 /**
- * Convenience object used as input for {@link LocationResolver}
+ * Convenience object used as input for {@link MultipartLocationResolver}
  *
  * Container class representing a multipart location name, such as
  * what's often found in structured data like a spreadsheet or database

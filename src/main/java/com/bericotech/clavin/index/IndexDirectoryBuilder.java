@@ -363,9 +363,8 @@ public class IndexDirectoryBuilder {
      * for each GeoName in the index.  See {@link IndexField} for descriptions
      * of the fields indexed for each document.
      *
-     * @param geoName the GeoName to index
-     * @return the documents to be added to the index
-     * @throws IOException if an error occurs while indexing
+     * @param geoName       the GeoName to index
+     * @throws IOException  if an error occurs while indexing
      */
     private void indexGeoName(final GeoName geoName) throws IOException {
         indexCount++;

@@ -31,7 +31,7 @@ package com.bericotech.clavin.resolver.multipart;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 
 /**
- * Convenience object used as output for {@link LocationResolver}
+ * Convenience object used as output for {@link MultipartLocationResolver}
  *
  * Container class representing a resolved multipart location name,
  * such as what's often found in structured data like a spreadsheet

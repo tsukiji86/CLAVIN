@@ -34,7 +34,6 @@ import com.bericotech.clavin.gazetteer.query.FuzzyMode;
 import com.bericotech.clavin.gazetteer.query.Gazetteer;
 import com.bericotech.clavin.gazetteer.GeoName;
 import com.bericotech.clavin.gazetteer.query.QueryBuilder;
-import com.bericotech.clavin.resolver.MultipartLocationName;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.util.ArrayList;
 import java.util.Collections;
