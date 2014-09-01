@@ -46,9 +46,12 @@ import org.junit.runners.Suite.SuiteClasses;
     com.bericotech.clavin.resolver.ResolvedLocationTest.class,
     com.bericotech.clavin.resolver.ClavinLocationResolverTest.class,
     com.bericotech.clavin.resolver.ClavinLocationResolverHeuristicsTest.class,
+    com.bericotech.clavin.resolver.multipart.MultipartLocationResolverTest.class,
+    com.bericotech.clavin.resolver.multipart.MultiLevelMultipartLocationResolverTest.class,
     com.bericotech.clavin.util.DamerauLevenshteinTest.class,
     com.bericotech.clavin.util.ListUtilsTest.class,
     com.bericotech.clavin.util.TextUtilsTest.class,
+    com.bericotech.clavin.gazetteer.query.LuceneGazetteerTest.class,
     // this one comes last as it's more of an integration test
     com.bericotech.clavin.GeoParserTest.class
 })
