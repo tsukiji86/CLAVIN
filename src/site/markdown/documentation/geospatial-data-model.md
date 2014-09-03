@@ -40,19 +40,21 @@ The gazeetteer may contain many possible `GeoName` entities matching each `Locat
 
 ### CLAVIN Services
 
-A number of service interfaces make up the CLAVIN workflow. Implementing these interfaces is a great way to extend CLAVIN to suit your needs without having to reengineer the entire process.
+Multiple services make up the CLAVIN workflow. At the most basic level, these consist of an **Extractor** that extracts location names from text, and a **Resolver** that resolves these location names to gazetteer records.
 
-The two primary interfaces are:
+The extraction service is defined by the following interface:
 
 -  `LocationExtractor` - takes a `String` and returns a list of `LocationOccurrence` objects
 
--  `LocationResolver` - takes a list of `LocationOccurrence` objects and returns a list of `ResolvedLocation` objects
-
-The default implementations of these interfaces are:
+The default implementation of this interface is:
 
 -  `ApacheExtractor` - uses the **Apache OpenNLP NameFinder** named entity recognizer tool to extract location names from text
 
--  `LuceneLocationResolver` - uses an **Apache Lucene** document index to resolve location names to `GeoName`-based gazetteer records
+Other implementations may exist for other named entity recognition tools (see [CLAVIN-NERD](https://github.com/Berico-Technologies/CLAVIN-NERD) for an example).
+
+The following class provides the core resolution service:
+
+-  `ClavinLocationResolver` - takes a list of `LocationOccurrence` objects and returns a list of `ResolvedLocation` objects, using an **Apache Lucene** document index to resolve location names to `GeoName`-based gazetteer records
 
 ### Summary
 

@@ -35,7 +35,7 @@ $H$H$H$H Step 5. Compile the source code:
     mvn compile
 
 $H$H$H$H Step 6. Create the Lucene Index (this one-time process will take several minutes):
-    MAVEN_OPTS="-Xmx2048M" mvn exec:java -Dexec.mainClass="com.bericotech.clavin.index.IndexDirectoryBuilder"
+    MAVEN_OPTS="-Xmx4g" mvn exec:java -Dexec.mainClass="com.bericotech.clavin.index.IndexDirectoryBuilder"
 
 $H$H$H$H Step 7. Build the CLAVIN package:
     mvn package
@@ -48,7 +48,7 @@ set the appropriate environmental variable controlling Maven's memory usage, and
 
 Once that all runs successfully, feel free to modify the CLAVIN source code to suit your needs, or import CLAVIN\'s functionality into your own program using the .jar file created in Step 7 (we recommend the `clavin-x.x.x-jar-with-dependencies.jar` file for ease of use).
 
-**Please note:** Loading the worldwide gazetteer uses a non-trivial amount of memory. When using CLAVIN in your own programs, if you encounter `Java heap space` errors (like the one described in Step 8), bump up the maximum heap size for your JVM. Allocating 2GB (e.g., `-Xmx2g`) is a good place to start.
+**Please note:** Loading the worldwide gazetteer uses a non-trivial amount of memory. When using CLAVIN in your own programs, if you encounter `Java heap space` errors (like the one described in Step 8), bump up the maximum heap size for your JVM.
 
 $H$H Importing CLAVIN into Eclipse as a user library
 
