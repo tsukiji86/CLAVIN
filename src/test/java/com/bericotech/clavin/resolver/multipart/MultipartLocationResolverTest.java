@@ -49,7 +49,7 @@ import org.junit.runners.Parameterized.Parameters;
 /**
  * Tests the mapping of location names into
  * {@link com.bericotech.clavin.resolver.ResolvedLocation} objects as performed by
- * {@link com.bericotech.clavin.resolver.LocationResolver#resolveLocations(java.util.List, new Integer[] { boolean)}.
+ * {@link com.bericotech.clavin.resolver.multipart.MultipartLocationResolver#resolveMultipartLocation(MultipartLocationName, boolean)}.
  */
 @RunWith(Parameterized.class)
 public class MultipartLocationResolverTest {
@@ -113,7 +113,7 @@ public class MultipartLocationResolverTest {
             { "Worcester", "England", "United Kingdom", new Integer[] { WORCESTER_UK }, ENGLAND, UNITED_KINGDOM },
             { "Oxford", "England", "United Kingdom", new Integer[] { OXFORD_UK }, ENGLAND, UNITED_KINGDOM },
             { "Oxford", "Oxfordshire", "United Kingdom", new Integer[] { OXFORD_UK }, OXFORDSHIRE, UNITED_KINGDOM },
-            { "London", "England", "United Kingdom", new Integer[] { LONDON_UK_41, LONDON_UK_43 }, ENGLAND, UNITED_KINGDOM },
+            { "London", "England", "United Kingdom", new Integer[] { LONDON_UK_43 }, ENGLAND, UNITED_KINGDOM },
             { "London", "Ontario", "Canada", new Integer[] { LONDON_ON }, ONTARIO, CANADA },
             { "Boston", "Davao", "Philippines", new Integer[] { BOSTON_PH }, DAVAO, PHILIPPINES },
             { "Boston", "Davao Oriental", "Philippines", new Integer[] { BOSTON_PH }, DAVAO_ORIENTAL, PHILIPPINES },
@@ -121,14 +121,14 @@ public class MultipartLocationResolverTest {
             { "Bethel", "North Rhine-Westphalia", "Germany", new Integer[] { BETHEL_GER }, NR_WESTPHALIA, GERMANY },
             { "Bethel", "DE", "US", new Integer[] { BETHEL_DE_US }, DELAWARE, UNITED_STATES },
             { "Bethel", "NRW", "DE", new Integer[] { BETHEL_GER }, NR_WESTPHALIA, GERMANY },
-            { "London", "ENG", "UK", new Integer[] { LONDON_UK_41, LONDON_UK_43 }, ENGLAND, UNITED_KINGDOM },
-            { "London", "ENG", "GB", new Integer[] { LONDON_UK_41, LONDON_UK_43 }, ENGLAND, UNITED_KINGDOM },
+            { "London", "ENG", "UK", new Integer[] { LONDON_UK_43 }, ENGLAND, UNITED_KINGDOM },
+            { "London", "ENG", "GB", new Integer[] { LONDON_UK_43 }, ENGLAND, UNITED_KINGDOM },
             { "London", "ON", "CA", new Integer[] { LONDON_ON }, ONTARIO, CANADA },
             { "London", "ON", "CAN", new Integer[] { LONDON_ON }, ONTARIO, CANADA },
             { "Zurich", "ZH", "CH", new Integer[] { ZURICH_CITY }, ZURICH_CANTON, SWITZERLAND },
             { "", "ENG", "UK", null, ENGLAND, UNITED_KINGDOM },
-            { "London", "", "UK", new Integer[] { LONDON_UK_41, LONDON_UK_43 }, null, UNITED_KINGDOM },
-            { "London", "", "", new Integer[] { LONDON_UK_41, LONDON_UK_43 }, null, null },
+            { "London", "", "UK", new Integer[] { LONDON_UK_43 }, null, UNITED_KINGDOM },
+            { "London", "", "", new Integer[] { LONDON_UK_43 }, null, null },
             { "", "ENG", "", null, ENGLAND, null },
             { "", "", "UK", null, null, UNITED_KINGDOM },
             { "", "", "", null, null, null },

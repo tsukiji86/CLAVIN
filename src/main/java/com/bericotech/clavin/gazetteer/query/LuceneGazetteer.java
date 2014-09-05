@@ -95,7 +95,8 @@ public class LuceneGazetteer implements Gazetteer {
      */
     private static final Sort POPULATION_SORT = new Sort(new SortField[] {
         SortField.FIELD_SCORE,
-        new SortField(POPULATION.key(), SortField.Type.LONG, true)
+        // new SortField(POPULATION.key(), SortField.Type.LONG, true)
+        new SortField(SORT_POP.key(), SortField.Type.LONG, true)
     });
 
     /**

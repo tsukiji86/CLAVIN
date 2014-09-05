@@ -4,6 +4,7 @@ import static com.bericotech.clavin.index.IndexField.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.bericotech.clavin.gazetteer.CountryCode;
+import com.bericotech.clavin.gazetteer.FeatureClass;
 import com.bericotech.clavin.gazetteer.FeatureCode;
 import com.bericotech.clavin.gazetteer.GeoName;
 import java.io.BufferedReader;
@@ -414,6 +415,17 @@ public class IndexDirectoryBuilder {
             parent = parent.getParent();
         }
         doc.add(new LongField(POPULATION.key(), geoName.getPopulation(), Field.Store.YES));
+        // set up sort field based on population and geographic feature type
+        if (geoName.getFeatureClass().equals(FeatureClass.P) || geoName.getFeatureCode().name().startsWith("PCL")) {
+            if (geoName.getGeonameID() != 2643741) // todo: temporary hack until GeoNames.org fixes the population for City of London
+                // boost cities and countries when sorting results by population
+                doc.add(new LongField(SORT_POP.key(), geoName.getPopulation() * 11, Field.Store.YES));
+        } else {
+            // don't boost anything else, because people rarely talk about other stuff
+            // (e.g., Washington State's population is more than 10x that of Washington, DC
+            // but Washington, DC is mentioned far more frequently than Washington State)
+            doc.add(new LongField(SORT_POP.key(), geoName.getPopulation(), Field.Store.YES));
+        }
         doc.add(new IntField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical()), Field.Store.NO));
         doc.add(new StringField(FEATURE_CODE.key(), geoName.getFeatureCode().name(), Field.Store.NO));
 

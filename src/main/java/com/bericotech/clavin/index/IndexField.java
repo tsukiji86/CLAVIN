@@ -43,6 +43,7 @@ public enum IndexField {
     PARENT_ID("parentID"),
     ANCESTOR_IDS("ancestorIDs"),
     POPULATION("population"),
+    SORT_POP("sortPopulation"),
     HISTORICAL("historical"),
     FEATURE_CODE("featureCode"),
     PREFERRED_NAME("preferredName");
@@ -91,6 +92,9 @@ public enum IndexField {
                     value = field.numericValue().intValue();
                     break;
                 case POPULATION:
+                    value = field.numericValue().longValue();
+                    break;
+                case SORT_POP:
                     value = field.numericValue().longValue();
                     break;
                 case HISTORICAL:

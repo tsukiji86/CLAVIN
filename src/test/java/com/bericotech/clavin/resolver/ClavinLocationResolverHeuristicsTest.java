@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Tests the mapping of location names into
  * {@link ResolvedLocation} objects as performed by
- * {@link LocationResolver#resolveLocations(List, boolean)}.
+ * {@link ClavinLocationResolver#resolveLocations(List, boolean)}.
  */
 public class ClavinLocationResolverHeuristicsTest {
     public final static Logger logger = LoggerFactory.getLogger(ClavinLocationResolverHeuristicsTest.class);
@@ -61,18 +61,24 @@ public class ClavinLocationResolverHeuristicsTest {
     private static final int DECATUR_IL = 4236895;
     private static final int KANSAS_CITY_MO = 4393217;
     private static final int SPRINGFIELD_MO = 4409896;
-    private static final int ST_LOUIS_MO = 6955119;
+    private static final int ST_LOUIS_MO = 4407066;
     private static final int INDEPENDENCE_MO = 4391812;
-    private static final int LIVERPOOL_UK = 3333167;
+    private static final int LONDON_UK = 2643743;
     private static final int MANCHESTER_UK = 2643123;
     private static final int HAVERHILL_UK = 2647310;
-    private static final int WORCESTER_UK = 2633560;
     private static final int TORONTO_ON = 6167865;
     private static final int OTTAWA_ON = 6094817;
     private static final int HAMILTON_ON = 5969782;
     private static final int KITCHENER_ON = 5992996;
-    private static final int CAIRO_EG = 360631;
+    private static final int LONDON_ON = 6058560;
+    private static final int CAIRO_EG = 360630;
     private static final int BENGHAZI_LY = 88319;
+    private static final int VIRGINIA_US = 6254928;
+    private static final int WASHINGTON_DC = 4140963;
+    private static final int MARYLAND_US = 4361885;
+    private static final int SEATTLE_WA = 5809844;
+    private static final int WASHINGTON_STATE_US = 5815135;
+    private static final int TACOMA_WA = 5812944;
 
     private static final int NO_HEURISTICS_MAX_HIT_DEPTH = 1;
     private static final int NO_HEURISTICS_MAX_CONTEXT_WINDOW = 1;
@@ -83,7 +89,7 @@ public class ClavinLocationResolverHeuristicsTest {
     private List<ResolvedLocation> resolvedLocations;
 
     /**
-     * Instantiate two {@link LuceneLocationResolver} objects, one without
+     * Instantiate two {@link ClavinLocationResolver} objects, one without
      * context-based heuristic matching and other with it turned on.
      */
     @Before
@@ -105,9 +111,9 @@ public class ClavinLocationResolverHeuristicsTest {
      * Ensure we select the correct {@link ResolvedLocation} objects
      * without using context-based heuristic matching.
      *
-     * Without heuristics, {@link LuceneLocationResolver} will default to
+     * Without heuristics, {@link ClavinLocationResolver} will default to
      * mapping location name Strings to the matching
-     * {@link ResolvedLocation} object with the greatest population.
+     * {@link ResolvedLocation} object with the greatest (sort boosted) population.
      */
     @Test
     public void testNoHeuristics() throws ClavinException {
@@ -116,7 +122,7 @@ public class ClavinLocationResolverHeuristicsTest {
         resolvedLocations = resolveNoHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), false);
 
         assertEquals("LocationResolver chose the wrong \"Haverhill\"", HAVERHILL_MA, resolvedLocations.get(0).getGeoname().getGeonameID());
-        assertEquals("LocationResolver chose the wrong \"Worcester\"", WORCESTER_UK, resolvedLocations.get(1).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"Worcester\"", WORCESTER_MA, resolvedLocations.get(1).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Springfield\"", SPRINGFIELD_MO, resolvedLocations.get(2).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Kansas City\"", KANSAS_CITY_MO, resolvedLocations.get(3).getGeoname().getGeonameID());
     }
@@ -170,27 +176,27 @@ public class ClavinLocationResolverHeuristicsTest {
     }
 
     /**
-     * Ensure we select the correct Hamilton & Haverhill in a document about
+     * Ensure we select the correct Haverhill in a document about
      * England using context-based heuristic matching.
      */
     @Test
     public void testHeuristicsEngland() throws ClavinException {
-        String[] locations = {"Liverpool", "Manchester", "Haverhill"};
+        String[] locations = {"London", "Manchester", "Haverhill"};
 
         resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
 
-        assertEquals("LocationResolver chose the wrong \"Liverpool\"", LIVERPOOL_UK, resolvedLocations.get(0).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"London\"", LONDON_UK, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Manchester\"", MANCHESTER_UK, resolvedLocations.get(1).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Haverhill\"", HAVERHILL_UK, resolvedLocations.get(2).getGeoname().getGeonameID());
     }
 
     /**
-     * Ensure we select the correct Hamilton in a document about
+     * Ensure we select the correct London in a document about
      * Ontario using context-based heuristic matching.
      */
     @Test
     public void testHeuristicsOntario() throws ClavinException {
-        String[] locations = {"Toronto", "Ottawa", "Hamilton", "Kitchener"};
+        String[] locations = {"Toronto", "Ottawa", "Hamilton", "Kitchener", "London"};
 
         resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
 
@@ -198,6 +204,7 @@ public class ClavinLocationResolverHeuristicsTest {
         assertEquals("LocationResolver chose the wrong \"Ottawa\"", OTTAWA_ON, resolvedLocations.get(1).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Hamilton\"", HAMILTON_ON, resolvedLocations.get(2).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Kitchener\"", KITCHENER_ON, resolvedLocations.get(3).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"London\"", LONDON_ON, resolvedLocations.get(4).getGeoname().getGeonameID());
     }
 
     /**
@@ -227,5 +234,35 @@ public class ClavinLocationResolverHeuristicsTest {
 
         assertEquals("LocationResolver chose the wrong \"Cairo\"", CAIRO_EG, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver chose the wrong \"Benghazi\"", BENGHAZI_LY, resolvedLocations.get(1).getGeoname().getGeonameID());
+    }
+
+    /**
+     * Ensure we select the correct Washington in a document about
+     * Washington, DC using context-based heuristic matching.
+     */
+    @Test
+    public void testHeuristicsDC() throws ClavinException {
+        String[] locations = {"Virginia", "Washington", "Maryland"};
+
+        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+
+        assertEquals("LocationResolver chose the wrong \"Virginia\"", VIRGINIA_US, resolvedLocations.get(0).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"Washington\"", WASHINGTON_DC, resolvedLocations.get(1).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"Maryland\"", MARYLAND_US, resolvedLocations.get(2).getGeoname().getGeonameID());
+    }
+
+    /**
+     * Ensure we select the correct Washington in a document about
+     * Washington State using context-based heuristic matching.
+     */
+    @Test
+    public void testHeuristicsWA() throws ClavinException {
+        String[] locations = {"Seattle", "Washington", "Tacoma"};
+
+        resolvedLocations = resolveWithHeuristics(ClavinLocationResolverTest.makeOccurrencesFromNames(locations), true);
+
+        assertEquals("LocationResolver chose the wrong \"Seattle\"", SEATTLE_WA, resolvedLocations.get(0).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"Washington\"", WASHINGTON_STATE_US, resolvedLocations.get(1).getGeoname().getGeonameID());
+        assertEquals("LocationResolver chose the wrong \"Tacoma\"", TACOMA_WA, resolvedLocations.get(2).getGeoname().getGeonameID());
     }
 }
