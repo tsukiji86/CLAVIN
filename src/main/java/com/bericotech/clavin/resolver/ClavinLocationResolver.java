@@ -42,6 +42,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.bericotech.clavin.resolver.DemonymFilter.isDemonym;
+
 /**
  * Resolves location names into GeoName objects.
  *
@@ -126,6 +128,22 @@ public class ClavinLocationResolver {
             return Collections.EMPTY_LIST;
         }
 
+        /* Various named entity recognizers tend to mistakenly extract demonyms
+         * (i.e., names for residents of localities (e.g., American, British))
+         * as place names, which tends to gum up the works, so we make sure to
+         * filter them out from the list of {@link LocationOccurrence}s passed
+         * to the resolver.
+         */
+        List<LocationOccurrence> filteredLocations = new ArrayList<LocationOccurrence>();
+        for (LocationOccurrence location : locations)
+            if (!isDemonym(location))
+                filteredLocations.add(location);
+
+        // did we filter *everything* out?
+        if (filteredLocations == null || filteredLocations.isEmpty()) {
+            return Collections.EMPTY_LIST;
+        }
+
         QueryBuilder builder = new QueryBuilder()
                 .maxResults(maxHitDepth)
                 // translate CLAVIN 1.x 'fuzzy' parameter into NO_EXACT or OFF; it isn't
@@ -138,7 +156,7 @@ public class ClavinLocationResolver {
             List<List<ResolvedLocation>> allCandidates = new ArrayList<List<ResolvedLocation>>();
 
             // loop through all the location names
-            for (LocationOccurrence location : locations) {
+            for (LocationOccurrence location : filteredLocations) {
                 // get all possible matches
                 List<ResolvedLocation> candidates = gazetteer.getClosestLocations(builder.location(location).build());
 
@@ -169,7 +187,7 @@ public class ClavinLocationResolver {
             List<ResolvedLocation> candidateLocations;
 
             // loop through all the location names
-            for (LocationOccurrence location : locations) {
+            for (LocationOccurrence location : filteredLocations) {
                 // choose the top-sorted candidate for each individual
                 // location name
                 candidateLocations = gazetteer.getClosestLocations(builder.location(location).build());
