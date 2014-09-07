@@ -45,7 +45,7 @@ Once that all runs successfully, feel free to modify the CLAVIN source code to s
 <dependency>
    <groupId>com.bericotech</groupId>
    <artifactId>clavin</artifactId>
-   <version>1.0.0</version>
+   <version>2.0.0</version>
 </dependency>
 ```
 
