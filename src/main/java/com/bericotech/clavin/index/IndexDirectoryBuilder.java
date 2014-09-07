@@ -127,7 +127,7 @@ public class IndexDirectoryBuilder {
         Analyzer indexAnalyzer = new WhitespaceLowerCaseAnalyzer();
 
         // create the object that will actually build the Lucene index
-        indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_47, indexAnalyzer));
+        indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_4_9, indexAnalyzer));
 
         // let's see how long this takes...
         Date start = new Date();

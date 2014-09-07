@@ -144,7 +144,7 @@ public class LuceneGazetteer implements Gazetteer {
         // run an initial throw-away query just to "prime the pump" for
         // the cache, so we can accurately measure performance speed
         // per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
-        indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(),
+        indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_4_9, INDEX_NAME.key(),
                 INDEX_ANALYZER).parse("Reston"), null, DEFAULT_MAX_RESULTS, POPULATION_SORT);
         } catch (ParseException pe) {
             throw new ClavinException("Error executing priming query.", pe);
@@ -225,7 +225,7 @@ public class LuceneGazetteer implements Gazetteer {
     private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final String sanitizedName, final Filter filter,
             final int maxResults, final boolean fuzzy, final boolean dedupe, final List<ResolvedLocation> previousResults)
             throws ParseException, IOException {
-        Query query = new AnalyzingQueryParser(Version.LUCENE_47, INDEX_NAME.key(), INDEX_ANALYZER)
+        Query query = new AnalyzingQueryParser(Version.LUCENE_4_9, INDEX_NAME.key(), INDEX_ANALYZER)
                 .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
 
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
