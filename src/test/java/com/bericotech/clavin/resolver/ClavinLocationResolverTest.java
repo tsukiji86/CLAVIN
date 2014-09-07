@@ -1,5 +1,6 @@
 package com.bericotech.clavin.resolver;
 
+import static com.bericotech.clavin.resolver.ClavinLocationResolver.isDemonym;
 import static org.junit.Assert.*;
 
 import com.bericotech.clavin.ClavinException;
@@ -168,5 +169,21 @@ public class ClavinLocationResolverTest {
 
         resolvedLocations = resolveNoHeuristics(makeOccurrencesFromNames(locations), true);
         assertTrue("LocationResolver fuzzy on, no match", resolvedLocations.isEmpty());
+    }
+
+    /**
+     * Tests functionality of demonym filter.
+     */
+    @Test
+    public void testIsDemonym() {
+        String[] locations = {"American", "Bangladeshi", "British", "America", "Bangladesh", "Britain"};
+        List<LocationOccurrence> locationOccurrences = makeOccurrencesFromNames(locations);
+
+        assertTrue("missed American as demonym", isDemonym(locationOccurrences.get(0)));
+        assertTrue("missed Bangladeshi as demonym", isDemonym(locationOccurrences.get(1)));
+        assertTrue("missed British as demonym", isDemonym(locationOccurrences.get(2)));
+        assertFalse("mistook America as demonym", isDemonym(locationOccurrences.get(3)));
+        assertFalse("mistook Bangladesh as demonym", isDemonym(locationOccurrences.get(4)));
+        assertFalse("mistook Britain as demonym", isDemonym(locationOccurrences.get(5)));
     }
 }
