@@ -21,3 +21,4 @@ This list details most of the major and minor changes made in CLAVIN v2.0.0:
 - boosted cities & countries in core resolution algorithm, since these are the things mentioned most often in text
     - for example, this helps Washington DC win over Washington State, and the city of Cairo win over Cairo Governorate
 
+These changes, especially the algorithmic modifications, have yielded a modest -- *yet noticeable and welcome* -- improvement to resolution accuracy.
