@@ -34,6 +34,7 @@
     </menu>
     <menu name="Changelog">
         <item name="v1.0.0" href="changelog/changes-v1.0.0.html" />
+        <item name="v2.0.0" href="changelog/changes-v2.0.0.html" />
     </menu>
     <menu name="How CLAVIN Works">
       <item name="Geospatial Data Model" href="documentation/geospatial-data-model.html" />
