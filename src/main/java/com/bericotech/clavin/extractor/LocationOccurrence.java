@@ -33,21 +33,21 @@ package com.bericotech.clavin.extractor;
  * Stores the text of the location name itself, as well as its position
  * in the text in which it was found (measured in UTF-16 code points
  * from the start of the document).
- * 
+ *
  */
 public class LocationOccurrence {
     // text representation of the location (i.e., its name)
-    public final String text;
-    
+    private final String text;
+
     // number of UTF-16 code units from the start of the document at
     // which the location name starts
-    public final int position;
+    private final int position;
 
     /**
      * Sole construction for {@link LocationOccurrence} class.
-     * 
+     *
      * Represents a location name found in a document.
-     * 
+     *
      * @param text      text of the location name
      * @param position  where it was found
      */
@@ -57,8 +57,25 @@ public class LocationOccurrence {
     }
 
     /**
+     * Get the text of the location name.
+     * @return the text of the location name
+     */
+    public String getText() {
+        return text;
+    }
+
+    /**
+     * Get the position in the text where the location name starts.
+     * @return the number of UTF-16 code units from the start of the
+     * document at which the location name starts
+     */
+    public int getPosition() {
+        return position;
+    }
+
+    /**
      * Tests equivalence based on name and position.
-     * 
+     *
      * @param o     Object to compare this against
      */
     @Override
@@ -82,5 +99,10 @@ public class LocationOccurrence {
         int result = text != null ? text.hashCode() : 0;
         result = 31 * result + position;
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("\"%s\":%d", text, position);
     }
 }

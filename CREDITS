@@ -19,10 +19,10 @@ permissions and limitations under the License.
 
 ====================================================================
 
-The creator and product owner of CLAVIN is:
+The creator and product owner emeritus of CLAVIN is:
 	Charlie Greenbacker
-	Principal Data Scientist, Berico Technologies
-	charlie@bericotechnologies.com
+	http://greenbacker.net
+	greenbacker@gmail.com
 
 The technical lead for CLAVIN is:
 	Travis Pinney
@@ -41,6 +41,7 @@ Other contributors include:
 	Kirill Orlov
 	Andrew Pennebaker (YelloSoft)
 	Kelly Plummer (RadiantBlue Technologies)
+	Gordon Shankman (Altamira Technologies Corporation)
 	Jason Tibbetts
 	Noah Veltman (http://noahveltman.com/)
 	Matt Woytowitz
@@ -52,10 +53,11 @@ and we are deeply appreciative for the contributions of their
 respective developers:
 
 Apache Commons -- http://commons.apache.org
-Apache log4j -- http://logging.apache.org/log4j/
 Apache Lucene -- http://lucene.apache.org
 Apache OpenNLP -- http://opennlp.apache.org
 JUnit -- http://www.junit.org
+Logback -- http://logback.qos.ch/
+SLF4J -- http://www.slf4j.org/
 
 ====================================================================
 
@@ -64,7 +66,7 @@ are equally appreciative for the creators of these resources:
 
 ********************************************************************
 
-GeoNames.org
+GeoNames -- http://www.geonames.org/
 
 The GeoNames geographical database is available for download free of
 charge under a creative commons attribution license. It contains over
@@ -83,6 +85,29 @@ see http://creativecommons.org/licenses/by/3.0/
 
 The Data is provided "as is" without warranty or any representation of
 accuracy, timeliness or completeness.
+
+********************************************************************
+
+Wikipedia, the free encyclopedia -- http://www.wikipedia.org/
+
+Wikipedia is a multilingual, web-based, free-content encyclopedia
+project supported by the Wikimedia Foundation and based on an openly
+editable model. The name "Wikipedia" is a portmanteau of the words wiki
+(a technology for creating collaborative websites, from the Hawaiian
+word wiki, meaning "quick") and encyclopedia. Wikipedia's articles
+provide links designed to guide the user to related pages with
+additional information.
+
+Wikipedia is written collaboratively by largely anonymous Internet
+volunteers who write without pay. Anyone with Internet access can write
+and make changes to Wikipedia articles, except in limited cases where
+editing is restricted to prevent disruption or vandalism. Users can
+contribute anonymously, under a pseudonym, or, if they choose to, with
+their real identity.
+
+Text is available under the Creative Commons Attribution-ShareAlike 3.0
+License; additional terms may apply. Wikipedia® is a registered
+trademark of the Wikimedia Foundation, Inc., a non-profit organization.
 
 ********************************************************************
 

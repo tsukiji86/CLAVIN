@@ -47,7 +47,7 @@ public class WhitespaceLowerCaseTokenizer extends CharTokenizer {
     /**
      * Call the "super" constructor.
      * 
-     * @param matchVersion      e.g., Version.LUCENE_40
+     * @param matchVersion      e.g., Version.LUCENE_4_9
      * @param in
      */
     public WhitespaceLowerCaseTokenizer(Version matchVersion, Reader in) {

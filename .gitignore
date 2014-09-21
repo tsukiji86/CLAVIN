@@ -1,9 +1,11 @@
 target/**
-indexDirectory/**
-IndexDirectory/
+indexDirectory*/**
+IndexDirectory*/
 .settings/
 .classpath
 .project
+.idea
+clavin.iml
 allCountries.zip
 allCountries.txt
 !.gitignore
@@ -13,3 +15,6 @@ src/test/resources/evaluation
 Evaluator.java
 StanfordExtractor.java
 /dependency-reduced-pom.xml
+hierarchy.txt
+alternateNames.txt
+iso-languagecodes.txt

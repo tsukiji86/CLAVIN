@@ -114,7 +114,8 @@ public class ApacheExtractor implements LocationExtractor {
 
                 //find offsets relative to the start of the sentence
                 int beginningOfFirstWord = tokenPositionsWithinSentence[name.getStart()].getStart();
-                int endOfLastWord = tokenPositionsWithinSentence[name.getEnd() - 1].getEnd(); //-1 because the high end of a Span is noninclusiv
+                // -1 because the high end of a Span is noninclusive
+                int endOfLastWord = tokenPositionsWithinSentence[name.getEnd() - 1].getEnd();
 
                 //to get offsets relative to the document as a whole, just add the offset for the sentence itself
                 int startOffsetInDoc = sentenceSpan.getStart() + beginningOfFirstWord;
