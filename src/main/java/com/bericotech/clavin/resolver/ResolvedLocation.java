@@ -37,7 +37,7 @@ import com.bericotech.clavin.gazetteer.GeoName;
  * Object produced by resolving a location name against gazetteer
  * records.
  *
- * Encapsulates a {@link GeoName} object representing the best match
+ * Encapsulates a {@link com.bericotech.clavin.gazetteer.GeoName} object representing the best match
  * between a given location name and gazetter record, along with some
  * information about the geographic entity resolution process.
  *

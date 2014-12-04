@@ -3,6 +3,7 @@ package com.bericotech.clavin.resolver;
 import static org.junit.Assert.*;
 
 import com.bericotech.clavin.extractor.LocationOccurrence;
+import com.bericotech.clavin.gazetteer.BasicGeoName;
 import com.bericotech.clavin.gazetteer.GeoName;
 import org.junit.Test;
 
@@ -36,7 +37,7 @@ import org.junit.Test;
 
 /**
  * Basic tests for the {@link ResolvedLocation} class, which
- * encapsulates a {@link GeoName} object representing the best match
+ * encapsulates a {@link com.bericotech.clavin.gazetteer.GeoName} object representing the best match
  * between a given location name and gazetter record, along with some
  * information about the geographic entity resolution process.
  *
@@ -53,8 +54,8 @@ public class ResolvedLocationTest {
         String geonamesEntry2 = "478153\tReston\tReston\tReston,Рестон\t38.96872\t-77.3411\tP\tPPL\tUS\tVA\t059\t58404\t100\t102\tAmerica/New_York\t2011-05-14";
 
         // create corresponding Lucene Documents for gazetteer records
-        GeoName geoname = GeoName.parseFromGeoNamesRecord(geonamesEntry);
-        GeoName geoname2 = GeoName.parseFromGeoNamesRecord(geonamesEntry2);
+        GeoName geoname = BasicGeoName.parseFromGeoNamesRecord(geonamesEntry);
+        GeoName geoname2 = BasicGeoName.parseFromGeoNamesRecord(geonamesEntry2);
 
         // a bogus LocationOccurrence object for testing
         LocationOccurrence locationA = new LocationOccurrence("A", 0);

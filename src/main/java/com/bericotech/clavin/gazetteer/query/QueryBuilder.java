@@ -46,6 +46,7 @@ import java.util.Set;
 public class QueryBuilder {
     private static final int DEFAULT_MAX_RESULTS = 10;
     private static final FuzzyMode DEFAULT_FUZZY_MODE = FuzzyMode.OFF;
+    private static final AncestryMode DEFAULT_HIERARCHY_MODE = AncestryMode.LAZY;
     private static final boolean DEFAULT_INCLUDE_HISTORICAL = true;
     private static final boolean DEFAULT_FILTER_DUPES = false;
 
@@ -110,6 +111,7 @@ public class QueryBuilder {
     private LocationOccurrence location;
     private int maxResults = DEFAULT_MAX_RESULTS;
     private FuzzyMode fuzzyMode = DEFAULT_FUZZY_MODE;
+    private AncestryMode ancestryMode = DEFAULT_HIERARCHY_MODE;
     private boolean includeHistorical = DEFAULT_INCLUDE_HISTORICAL;
     private boolean filterDupes = DEFAULT_FILTER_DUPES;
     private Set<Integer> parentIds = new HashSet<Integer>();
@@ -120,7 +122,7 @@ public class QueryBuilder {
      * @return a {@link GazetteerQuery} configuration object
      */
     public GazetteerQuery build() {
-        return new GazetteerQuery(location, maxResults, fuzzyMode, includeHistorical, filterDupes, parentIds, featureCodes);
+        return new GazetteerQuery(location, maxResults, fuzzyMode, ancestryMode, includeHistorical, filterDupes, parentIds, featureCodes);
     }
 
     /**
@@ -185,6 +187,24 @@ public class QueryBuilder {
      */
     public QueryBuilder fuzzyMode(final FuzzyMode mode) {
         fuzzyMode = mode;
+        return this;
+    }
+
+    /**
+     * Get the current ancestry loading mode.
+     * @return the ancestry loading mode
+     */
+    public AncestryMode ancestryMode() {
+        return ancestryMode;
+    }
+
+    /**
+     * Configure the ancestry loading mode.
+     * @param mode the ancestry loading mode
+     * @return this
+     */
+    public QueryBuilder ancestryMode(final AncestryMode mode) {
+        ancestryMode = mode;
         return this;
     }
 
