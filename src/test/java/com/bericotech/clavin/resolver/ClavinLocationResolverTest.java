@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
+import com.bericotech.clavin.gazetteer.GeoName;
+import com.bericotech.clavin.gazetteer.query.AncestryMode;
 import com.bericotech.clavin.gazetteer.query.LuceneGazetteer;
 import java.io.File;
 import java.util.ArrayList;
@@ -154,6 +156,90 @@ public class ClavinLocationResolverTest {
         assertEquals("LocationResolver failed on missing chars", STRAßENHAUS_DE, resolvedLocations.get(3).getGeoname().getGeonameID());
         assertEquals("LocationResolver failed on extra term", STRAßENHAUS_DE, resolvedLocations.get(4).getGeoname().getGeonameID());
         assertEquals("LocationResolver failed on missing term", GUN_BARREL_CITY_TX, resolvedLocations.get(5).getGeoname().getGeonameID());
+    }
+
+    /**
+     * Ensure ancestry resolution works as expected.
+     */
+    @Test
+    public void testAncestryLoad_OnCreate() throws ClavinException {
+        String[] locations = {"Bostonn", "Straßenhaus12", "Bostn", "Straßenha", "Straßenhaus Airport", "Gun Barrel"};
+        List<LocationOccurrence> occurrences = makeOccurrencesFromNames(locations);
+        resolvedLocations = resolveWithAncestryMode(occurrences, AncestryMode.ON_CREATE);
+        for (ResolvedLocation rLoc : resolvedLocations) {
+            GeoName geoName = rLoc.getGeoname();
+            assertNotNull(geoName);
+            while (geoName != null) {
+                assertTrue("Ancestry should be resolved on create.", geoName.isAncestryResolved());
+                geoName = geoName.getParent();
+            }
+        }
+    }
+
+    /**
+     * Ensure ancestry resolution works as expected.
+     */
+    @Test
+    public void testAncestryLoad_Lazy() throws ClavinException {
+        String[] locations = {"Bostonn", "Straßenhaus12", "Bostn", "Straßenha", "Straßenhaus Airport", "Gun Barrel"};
+        List<LocationOccurrence> occurrences = makeOccurrencesFromNames(locations);
+        resolvedLocations = resolveWithAncestryMode(occurrences, AncestryMode.LAZY);
+        for (ResolvedLocation rLoc : resolvedLocations) {
+            GeoName geoName = rLoc.getGeoname();
+            assertNotNull(geoName);
+            assertFalse("Ancestry should not be resolved until requested.", geoName.isAncestryResolved());
+            // lazy load trigger
+            geoName.getParent();
+            // verify full ancestry is resolved
+            while (geoName != null) {
+                assertTrue("Ancestry should be resolved on create.", geoName.isAncestryResolved());
+                geoName = geoName.getParent();
+            }
+        }
+    }
+
+    /**
+     * Ensure ancestry resolution works as expected with Lazy loading as default.
+     */
+    @Test
+    public void testAncestryLoad_Default() throws ClavinException {
+        String[] locations = {"Bostonn", "Straßenhaus12", "Bostn", "Straßenha", "Straßenhaus Airport", "Gun Barrel"};
+        List<LocationOccurrence> occurrences = makeOccurrencesFromNames(locations);
+        resolvedLocations = resolveNoHeuristics(occurrences, true);
+        for (ResolvedLocation rLoc : resolvedLocations) {
+            GeoName geoName = rLoc.getGeoname();
+            assertNotNull(geoName);
+            assertFalse("Ancestry should not be resolved until requested.", geoName.isAncestryResolved());
+            // lazy load trigger
+            geoName.getParent();
+            // verify full ancestry is resolved
+            while (geoName != null) {
+                assertTrue("Ancestry should be resolved on create.", geoName.isAncestryResolved());
+                geoName = geoName.getParent();
+            }
+        }
+    }
+
+    /**
+     * Ensure ancestry resolution works as expected.
+     */
+    @Test
+    public void testAncestryLoad_Manual() throws ClavinException {
+        String[] locations = {"Bostonn", "Straßenhaus12", "Bostn", "Straßenha", "Straßenhaus Airport", "Gun Barrel"};
+        List<LocationOccurrence> occurrences = makeOccurrencesFromNames(locations);
+        resolvedLocations = resolveWithAncestryMode(occurrences, AncestryMode.MANUAL);
+        for (ResolvedLocation rLoc : resolvedLocations) {
+            GeoName geoName = rLoc.getGeoname();
+            assertNotNull(geoName);
+            assertFalse("Ancestry should not be resolved until manually retrieved.", geoName.isAncestryResolved());
+            // lazy load trigger
+            assertNull("Expecting no parent resolution.", geoName.getParent());
+            assertFalse("Ancestry should not be resolved until manually retrieved.", geoName.isAncestryResolved());
+        }
+    }
+
+    private List<ResolvedLocation> resolveWithAncestryMode(final List<LocationOccurrence> locs, final AncestryMode ancestryMode) throws ClavinException {
+        return resolver.resolveLocations(locs, NO_HEURISTICS_MAX_HIT_DEPTH, NO_HEURISTICS_MAX_CONTEXT_WINDOW, true, ancestryMode);
     }
 
     /**

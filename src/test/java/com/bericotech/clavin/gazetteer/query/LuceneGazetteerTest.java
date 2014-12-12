@@ -34,9 +34,6 @@ import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.gazetteer.FeatureCode;
 import com.bericotech.clavin.gazetteer.GeoName;
-import com.bericotech.clavin.gazetteer.query.FuzzyMode;
-import com.bericotech.clavin.gazetteer.query.LuceneGazetteer;
-import com.bericotech.clavin.gazetteer.query.QueryBuilder;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
 import java.util.ArrayList;
@@ -368,5 +365,86 @@ public class LuceneGazetteerTest {
                 assertTrue(String.format("Unexpected non-fuzzy result: %s", fuzzyFill.get(idx)), fuzzyFill.get(idx).isFuzzy());
             }
         }
+    }
+
+    /**
+     * Ensure ancestry loading works properly.
+     */
+    @Test
+    public void testAncestryLoadMode_OnCreate() throws ClavinException {
+        queryBuilder.location("reston").maxResults(1).ancestryMode(AncestryMode.ON_CREATE);
+        List<ResolvedLocation> locations = instance.getClosestLocations(queryBuilder.build());
+
+        assertEquals("Expected 1 result", 1, locations.size());
+        ResolvedLocation reston = locations.get(0);
+        GeoName geoName = reston.getGeoname();
+        // walk up the ancestry tree to ensure all ancestors are loaded
+        while (geoName != null) {
+            assertTrue("Ancestry should have been resolved on query.", geoName.isAncestryResolved());
+            geoName = geoName.getParent();
+        }
+    }
+
+    /**
+     * Ensure ancestry loading works properly.
+     */
+    @Test
+    public void testAncestryLoadMode_LazyLoad() throws ClavinException {
+        queryBuilder.location("reston").maxResults(1).ancestryMode(AncestryMode.LAZY);
+        List<ResolvedLocation> locations = instance.getClosestLocations(queryBuilder.build());
+
+        assertEquals("Expected 1 result", 1, locations.size());
+        ResolvedLocation reston = locations.get(0);
+        GeoName geoName = reston.getGeoname();
+        assertFalse("Ancestry should not be resolved until requested.", geoName.isAncestryResolved());
+        // trigger lazy load
+        geoName.getParent();
+        // walk up the ancestry tree to ensure all ancestors are loaded
+        while (geoName != null) {
+            assertTrue("Ancestry should have been lazily resolved.", geoName.isAncestryResolved());
+            geoName = geoName.getParent();
+        }
+    }
+
+    /**
+     * Ensure ancestry loading works properly.
+     */
+    @Test
+    public void testAncestryLoadMode_ManualLoad() throws ClavinException {
+        queryBuilder.location("reston").maxResults(1).ancestryMode(AncestryMode.MANUAL);
+        List<ResolvedLocation> locations = instance.getClosestLocations(queryBuilder.build());
+
+        assertEquals("Expected 1 result", 1, locations.size());
+        ResolvedLocation reston = locations.get(0);
+        GeoName geoName = reston.getGeoname();
+        assertFalse("Ancestry should not be resolved until manually loaded.", geoName.isAncestryResolved());
+        // requested parent should be null
+        assertNull("Parent should not be lazily loaded.", geoName.getParent());
+        assertFalse("Ancestry should still be unresolved.", geoName.isAncestryResolved());
+    }
+
+    /**
+     * Ensure manual ancestry resolution works properly.
+     */
+    @Test
+    public void testLoadAncestry() throws ClavinException {
+        GeoName reston = instance.getGeoName(RESTON_VA, AncestryMode.MANUAL);
+        assertNotNull(reston);
+        assertFalse("Ancestry should only be manually resolved.", reston.isAncestryResolved());
+        assertNull("No lazy loading of parent", reston.getParent());
+        assertFalse("Ancestry should only be manually resolved.", reston.isAncestryResolved());
+        instance.loadAncestry(reston);
+        assertTrue("Ancestry should be resolved.", reston.isAncestryResolved());
+        // verify ancestry is Fairfax County, Virginia, United States
+        GeoName fairfax = reston.getParent();
+        assertNotNull("County should be Fairfax County", fairfax);
+        assertEquals("County should be Fairfax County", FAIRFAX_COUNTY_VA, fairfax.getGeonameID());
+        GeoName virginia = fairfax.getParent();
+        assertNotNull("State should be Virginia", virginia);
+        assertEquals("State should be Virginia", VIRGINIA, virginia.getGeonameID());
+        GeoName usa = virginia.getParent();
+        assertNotNull("Country should be United States", usa);
+        assertEquals("Country should be United States", UNITED_STATES, usa.getGeonameID());
+        assertNull("USA has no parent", usa.getParent());
     }
 }

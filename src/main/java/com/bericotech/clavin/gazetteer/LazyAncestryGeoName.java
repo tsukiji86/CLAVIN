@@ -52,7 +52,7 @@ public class LazyAncestryGeoName implements GeoName {
 
     @Override
     public GeoName getParent() {
-        if (gazetteer != null && !geoName.isAncestryResolved()) {
+        if (gazetteer != null && parentId != null && !geoName.isAncestryResolved()) {
             try {
                 geoName.setParent(gazetteer.getGeoName(parentId, AncestryMode.ON_CREATE));
             } catch (ClavinException ce) {
