@@ -1,5 +1,6 @@
 package com.bericotech.clavin;
 
+import com.bericotech.clavin.gazetteer.BasicGeoNameTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -41,7 +42,7 @@ import org.junit.runners.Suite.SuiteClasses;
     com.bericotech.clavin.GeoParserFactoryTest.class,
     com.bericotech.clavin.extractor.ApacheExtractorTest.class,
     com.bericotech.clavin.extractor.LocationOccurrenceTest.class,
-    com.bericotech.clavin.gazetteer.GeoNameTest.class,
+    BasicGeoNameTest.class,
     com.bericotech.clavin.index.BinarySimilarityTest.class,
     com.bericotech.clavin.resolver.ResolvedLocationTest.class,
     com.bericotech.clavin.resolver.ClavinLocationResolverTest.class,

@@ -31,6 +31,7 @@ package com.bericotech.clavin.resolver;
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.gazetteer.CountryCode;
+import com.bericotech.clavin.gazetteer.query.AncestryMode;
 import com.bericotech.clavin.gazetteer.query.FuzzyMode;
 import com.bericotech.clavin.gazetteer.query.Gazetteer;
 import com.bericotech.clavin.gazetteer.query.QueryBuilder;
@@ -64,6 +65,11 @@ public class ClavinLocationResolver {
      * The default context window to consider when resolving matches.
      */
     public static final int DEFAULT_MAX_CONTEXT_WINDOW = 5;
+
+    /**
+     * The default ancestry loading mode.
+     */
+    public static final AncestryMode DEFAULT_ANCESTRY_MODE = AncestryMode.LAZY;
 
     /**
      * The Gazetteer.
@@ -108,7 +114,7 @@ public class ClavinLocationResolver {
      **/
     public List<ResolvedLocation> resolveLocations(final List<LocationOccurrence> locations, final boolean fuzzy)
             throws ClavinException {
-        return resolveLocations(locations, DEFAULT_MAX_HIT_DEPTH, DEFAULT_MAX_CONTEXT_WINDOW, fuzzy);
+        return resolveLocations(locations, DEFAULT_MAX_HIT_DEPTH, DEFAULT_MAX_CONTEXT_WINDOW, fuzzy, DEFAULT_ANCESTRY_MODE);
     }
 
     /**
@@ -129,7 +135,30 @@ public class ClavinLocationResolver {
      **/
     @SuppressWarnings("unchecked")
     public List<ResolvedLocation> resolveLocations(final List<LocationOccurrence> locations, final int maxHitDepth,
-            final int maxContextWindow, final boolean fuzzy) throws ClavinException {
+           final int maxContextWindow, final boolean fuzzy) throws ClavinException {
+        return resolveLocations(locations, maxHitDepth, maxContextWindow, fuzzy, DEFAULT_ANCESTRY_MODE);
+    }
+
+    /**
+     * Resolves the supplied list of location names into
+     * {@link ResolvedLocation}s containing {@link com.bericotech.clavin.gazetteer.GeoName} objects.
+     *
+     * Calls {@link Gazetteer#getClosestLocations} on
+     * each location name to find all possible matches, then uses
+     * heuristics to select the best match for each by calling
+     * {@link ClavinLocationResolver#pickBestCandidates}.
+     *
+     * @param locations          list of location names to be resolved
+     * @param maxHitDepth        number of candidate matches to consider
+     * @param maxContextWindow   how much context to consider when resolving
+     * @param fuzzy              switch for turning on/off fuzzy matching
+     * @param ancestryMode       the ancestry loading mode
+     * @return                   list of {@link ResolvedLocation} objects
+     * @throws ClavinException   if an error occurs parsing the search terms
+     **/
+    @SuppressWarnings("unchecked")
+    public List<ResolvedLocation> resolveLocations(final List<LocationOccurrence> locations, final int maxHitDepth,
+            final int maxContextWindow, final boolean fuzzy, final AncestryMode ancestryMode) throws ClavinException {
         // are you forgetting something? -- short-circuit if no locations were provided
         if (locations == null || locations.isEmpty()) {
             return Collections.EMPTY_LIST;
@@ -156,6 +185,7 @@ public class ClavinLocationResolver {
                 // translate CLAVIN 1.x 'fuzzy' parameter into NO_EXACT or OFF; it isn't
                 // necessary, or desirable to support FILL for the CLAVIN resolution algorithm
                 .fuzzyMode(fuzzy ? FuzzyMode.NO_EXACT : FuzzyMode.OFF)
+                .ancestryMode(ancestryMode)
                 .includeHistorical(true);
 
         if (maxHitDepth > 1) { // perform context-based heuristic matching

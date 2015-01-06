@@ -31,6 +31,7 @@ package com.bericotech.clavin.gazetteer.query;
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.gazetteer.GeoName;
 import com.bericotech.clavin.resolver.ResolvedLocation;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -49,10 +50,34 @@ public interface Gazetteer {
     List<ResolvedLocation> getClosestLocations(final GazetteerQuery query) throws ClavinException;
 
     /**
-     * Retrieves the GeoName with the provided ID.
+     * Retrieves the GeoName with the provided ID, lazily loading its ancestry.
      * @param geonameId           the ID of the requested GeoName
      * @return                    the requested GeoName or <code>null</code> if not found
      * @throws ClavinException    if an error occurs
      */
     GeoName getGeoName(final int geonameId) throws ClavinException;
+
+    /**
+     * Retrieves the GeoName with the provided ID, resolving ancestry according
+     * to the provided method.
+     * @param geonameId           the ID of the requested GeoName
+     * @param ancestryMode        the mode used to load ancestry for the GeoName
+     * @return                    the requested GeoName or <code>null</code> if not found
+     * @throws ClavinException    if an error occurs
+     */
+    GeoName getGeoName(final int geonameId, final AncestryMode ancestryMode) throws ClavinException;
+
+    /**
+     * Retrieve the full ancestry for the provided GeoNames.
+     * @param geoNames            the GeoNames whose ancestry will be loaded
+     * @throws ClavinException    if an error occurs
+     */
+    void loadAncestry(final GeoName... geoNames) throws ClavinException;
+
+    /**
+     * Retrieve the full ancestry for the provided GeoNames.
+     * @param geoNames            the GeoNames whose ancestry will be loaded
+     * @throws ClavinException    if an error occurs
+     */
+    void loadAncestry(final Collection<GeoName> geoNames) throws ClavinException;
 }

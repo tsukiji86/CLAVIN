@@ -2,6 +2,7 @@ package com.bericotech.clavin;
 
 import com.bericotech.clavin.extractor.LocationExtractor;
 import com.bericotech.clavin.extractor.LocationOccurrence;
+import com.bericotech.clavin.gazetteer.query.AncestryMode;
 import com.bericotech.clavin.gazetteer.query.Gazetteer;
 import com.bericotech.clavin.resolver.ClavinLocationResolver;
 import com.bericotech.clavin.resolver.ResolvedLocation;
@@ -93,20 +94,40 @@ public class GeoParser {
      * @throws Exception
      */
     public List<ResolvedLocation> parse(String inputText) throws Exception {
+        return parse(inputText, ClavinLocationResolver.DEFAULT_ANCESTRY_MODE);
+    }
+
+    /**
+     * Takes an unstructured text document (as a String), extracts the
+     * location names contained therein, and resolves them into
+     * geographic entities representing the best match for those
+     * location names.
+     *
+     * @param inputText     unstructured text to be processed
+     * @param ancestryMode  the ancestry load mode
+     * @return              list of geo entities resolved from text
+     * @throws Exception
+     */
+    public List<ResolvedLocation> parse(String inputText, AncestryMode ancestryMode) throws Exception {
 
         logger.trace("input: {}", inputText);
 
+        long extractStart = System.currentTimeMillis();
         // first, extract location names from the text
         List<LocationOccurrence> locationNames = extractor.extractLocationNames(inputText);
+        long extractEnd = System.currentTimeMillis();
 
         logger.trace("extracted: {}", locationNames);
 
+        long resolveStart = System.currentTimeMillis();
         // then, resolve the extracted location names against a
         // gazetteer to produce geographic entities representing the
         // locations mentioned in the original text
-        List<ResolvedLocation> resolvedLocations = resolver.resolveLocations(locationNames, maxHitDepth, maxContextWindow, fuzzy);
+        List<ResolvedLocation> resolvedLocations = resolver.resolveLocations(locationNames, maxHitDepth, maxContextWindow, fuzzy, ancestryMode);
+        long resolveEnd = System.currentTimeMillis();
 
         logger.trace("resolved: {}", resolvedLocations);
+        logger.debug("Extractor Time: {} ms, Resolver Time: {} ms", extractEnd - extractStart, resolveEnd - resolveStart);
 
         return resolvedLocations;
     }

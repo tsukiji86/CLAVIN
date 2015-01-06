@@ -58,6 +58,11 @@ public class GazetteerQuery {
     private final FuzzyMode fuzzyMode;
 
     /**
+     * Indicates how the ancestry of the matched locations should be loaded.
+     */
+    private final AncestryMode ancestryMode;
+
+    /**
      * Should historical locations be included?
      */
     private final boolean includeHistorical;
@@ -86,6 +91,7 @@ public class GazetteerQuery {
      * @param occurrence the location occurrence
      * @param maxResults the maximum number of results
      * @param fuzzyMode the fuzzy mode for this query
+     * @param ancestryMode the ancestry loading mode for this query
      * @param includeHistorical <code>true</code> to include historical locations
      * @param filterDupes <code>true</code> to return only the highest scoring match for each individual location
      * @param parentIds the set of parent IDs to restrict the search to; these will be OR'ed
@@ -93,11 +99,12 @@ public class GazetteerQuery {
      */
     @SuppressWarnings("unchecked")
     public GazetteerQuery(final LocationOccurrence occurrence, final int maxResults, final FuzzyMode fuzzyMode,
-            final boolean includeHistorical, final boolean filterDupes, final Set<Integer> parentIds,
-            final Set<FeatureCode> featureCodes) {
+            final AncestryMode ancestryMode, final boolean includeHistorical, final boolean filterDupes,
+            final Set<Integer> parentIds, final Set<FeatureCode> featureCodes) {
         this.occurrence = occurrence;
         this.maxResults = maxResults;
         this.fuzzyMode = fuzzyMode;
+        this.ancestryMode = ancestryMode;
         this.includeHistorical = includeHistorical;
         this.filterDupes = filterDupes;
         this.parentIds = parentIds != null ? new HashSet<Integer>(parentIds) : Collections.EMPTY_SET;
@@ -126,6 +133,15 @@ public class GazetteerQuery {
      */
     public FuzzyMode getFuzzyMode() {
         return fuzzyMode;
+    }
+
+    /**
+     * Indicates how the ancestry, the hierarchy of political divisions, for matching
+     * locations should be loaded.
+     * @return the ancestry mode
+     */
+    public AncestryMode getAncestryMode() {
+        return ancestryMode;
     }
 
     /**
