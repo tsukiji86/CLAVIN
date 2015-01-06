@@ -30,6 +30,18 @@
   </licenses>
   <developers>
     <developer>
+      <id>svaughan</id>
+      <name>Steve Vaughan</name>
+      <email>svaughan@bericotechnologies.com</email>
+      <url>https://github.com/snmvaughan</url>
+      <organization>Berico Technologies</organization>
+      <organizationUrl>http://bericotechnologies.com</organizationUrl>
+      <roles>
+        <role>technical lead</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
       <id>charlieg</id>
       <name>Charlie Greenbacker</name>
       <email>greenbacker@gmail.com</email>
