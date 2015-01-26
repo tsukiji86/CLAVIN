@@ -485,12 +485,13 @@ public class IndexDirectoryBuilder {
         }
         LOG.info("Found {} administrative divisions.", adminMap.size());
         LOG.info("Found {} missing administrative keys.", unresolvedMap.size());
-        for (String code : missingCodeMap.keySet()) {
-            LOG.info("{}: {}", code, missingCodeMap.get(code));
+        for (Map.Entry<String, Integer> missingCode : missingCodeMap.entrySet()) {
+            LOG.info("{}: {}", missingCode.getKey(), missingCode.getValue());
         }
         LOG.info("{} total unresolved GeoNames", unresolvedGeoCount);
-        for (String key : unresolvedCodeMap.keySet()) {
-            LOG.trace("{}: {}", key, unresolvedCodeMap.get(key));
+        for (Map.Entry<String, Integer> unresolvedCode : unresolvedCodeMap.entrySet()) {
+            LOG.trace("{}: {}", unresolvedCode.getKey(),
+                    unresolvedCode.getValue());
         }
     }
 

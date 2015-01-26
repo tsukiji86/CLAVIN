@@ -426,13 +426,15 @@ public class LuceneGazetteer implements Gazetteer {
         }
 
         // set parents of children
-        for (Integer parentId : childMap.keySet()) {
+        for (Map.Entry<Integer, Set<GeoName>> entry : childMap.entrySet()) {
+            final Integer parentId = entry.getKey();
+
             GeoName parent = parentMap.get(parentId);
             if (parent == null) {
                 LOG.info("Unable to find parent with ID [{}]", parentId);
                 continue;
             }
-            for (GeoName child : childMap.get(parentId)) {
+            for (GeoName child : entry.getValue()) {
                 child.setParent(parent);
             }
         }
