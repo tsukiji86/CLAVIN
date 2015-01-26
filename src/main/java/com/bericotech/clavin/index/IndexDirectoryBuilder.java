@@ -8,6 +8,7 @@ import com.bericotech.clavin.gazetteer.CountryCode;
 import com.bericotech.clavin.gazetteer.FeatureClass;
 import com.bericotech.clavin.gazetteer.FeatureCode;
 import com.bericotech.clavin.gazetteer.GeoName;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -645,6 +647,40 @@ public class IndexDirectoryBuilder {
             comp = comp == 0 ? Boolean.compare(shortName, other.shortName) : comp;
             comp = comp == 0 ? name.compareTo(other.name) : comp;
             return comp;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + geonameId;
+            result = prime * result + (preferredName ? 1231 : 1237);
+            result = prime * result + (shortName ? 1231 : 1237);
+            result = prime * result + ((name == null) ? 0 : name.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            AlternateName other = (AlternateName) obj;
+            if (geonameId != other.geonameId)
+                return false;
+            if (preferredName != other.preferredName)
+                return false;
+            if (shortName != other.shortName)
+                return false;
+            if (name == null) {
+                if (other.name != null)
+                    return false;
+            } else if (!name.equals(other.name))
+                return false;
+            return true;
         }
 
         /**
