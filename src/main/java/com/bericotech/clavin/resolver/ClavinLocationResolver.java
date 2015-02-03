@@ -79,7 +79,7 @@ public class ClavinLocationResolver {
     /**
      * Set of demonyms to filter out from extracted location names.
      */
-    private static HashSet<String> demonyms;
+    private static HashSet<String> DEMONYMS;
 
     /**
      * Create a new ClavinLocationResolver.
@@ -393,10 +393,10 @@ public class ClavinLocationResolver {
      */
     public static boolean isDemonym(LocationOccurrence extractedLocation) {
         // lazy load set of demonyms
-        if (demonyms == null) {
+        if (DEMONYMS == null) {
             // populate set of demonyms to filter out from results, source:
             // http://en.wikipedia.org/wiki/List_of_adjectival_and_demonymic_forms_for_countries_and_nations
-            demonyms = new HashSet<String>();
+            HashSet<String> demonyms = new HashSet<>();
 
             BufferedReader br = new BufferedReader(new InputStreamReader(ClavinLocationResolver.class.getClassLoader().getResourceAsStream("Demonyms.txt")));
 
@@ -408,8 +408,11 @@ public class ClavinLocationResolver {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            // Set static field once set is initialized.
+            DEMONYMS = demonyms;
         }
 
-        return demonyms.contains(extractedLocation.getText());
+        return DEMONYMS.contains(extractedLocation.getText());
     }
 }
