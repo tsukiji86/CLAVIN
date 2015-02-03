@@ -76,6 +76,8 @@ public enum SearchLevel {
                     case ADMDH:
                         level = ADMINX;
                         break;
+                    default:
+                        // The level will default to null.
                 }
             } else if (name.getFeatureClass() == FeatureClass.P) {
                 level = CITY;
