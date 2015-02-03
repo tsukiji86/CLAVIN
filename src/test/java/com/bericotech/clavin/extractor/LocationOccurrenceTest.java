@@ -54,7 +54,7 @@ public class LocationOccurrenceTest {
         assertTrue("LocationOccurence == self", locationA.equals(locationA));
         assertTrue("LocationOccurence == dupe", locationA.equals(locationAdupe));
         assertFalse("LocationOccurence != null", locationA.equals(null));
-        assertFalse("LocationOccurence != different class object", locationA.equals(new Integer(0)));
+        assertFalse("LocationOccurence != different class object", locationA.equals(Integer.valueOf(0)));
         assertFalse("LocationOccurence != different position", locationB.equals(locationB2));
         assertFalse("LocationOccurence != different name", locationA.equals(locationB));
         

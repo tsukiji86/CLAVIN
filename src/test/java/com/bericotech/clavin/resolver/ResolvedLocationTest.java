@@ -69,7 +69,7 @@ public class ResolvedLocationTest {
 
         assertTrue("ResolvedLocation == self", resolvedLocation.equals(resolvedLocation));
         assertFalse("ResolvedLocation =! null", resolvedLocation.equals(null));
-        assertFalse("ResolvedLocation =! different class", resolvedLocation.equals(new Integer(0)));
+        assertFalse("ResolvedLocation =! different class", resolvedLocation.equals(Integer.valueOf(0)));
         assertTrue("ResolvedLocation == dupe", resolvedLocation.equals(resolvedLocationDupe));
         assertFalse("ResolvedLocation != different geonameID", resolvedLocation.equals(resolvedLocation2));
     }
