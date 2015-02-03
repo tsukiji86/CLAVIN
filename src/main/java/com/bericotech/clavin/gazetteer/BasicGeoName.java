@@ -168,9 +168,6 @@ public class BasicGeoName implements GeoName {
     // date of last modification in GeoNames database
     private final Date modificationDate;
 
-    // the GeoName ID of the parent of this GeoName
-    private Integer parentId;
-
     // the parent of this GeoName
     private GeoName parent;
 
