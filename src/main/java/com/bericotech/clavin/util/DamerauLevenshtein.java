@@ -266,4 +266,13 @@ class Null {
             return true;
         } else return false;
     }
+
+    /**
+     * All instances of this class are effectively the same, so treat them as
+     * equal.
+     */
+    @Override
+    public int hashCode() {
+        return 0;
+    }
 }
