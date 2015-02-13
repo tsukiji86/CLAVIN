@@ -157,8 +157,13 @@
   </issueManagement>
   <distributionManagement>
     <snapshotRepository>
+      <!--
       <id>ossrh</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      -->
+      <id>berico-snapshot</id>
+      <name>Berico Snapshots</name>
+      <url>http://nexus.bericotechnologies.com/content/repositories/internal-snapshots</url>
     </snapshotRepository>
   </distributionManagement>
   <properties>
