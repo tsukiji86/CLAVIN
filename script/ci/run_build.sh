@@ -2,6 +2,9 @@
 curl http://download.geonames.org/export/dump/allCountries.zip -o allCountries.zip
 unzip allCountries.zip
 head -n 100 allCountries.txt > small_index.txt
+grep Reston allCountries.txt >> small_index.txt
+grep Bostonn allCountries.txt >> small_index.txt
+grep "Hong Kong Special Administrative Region" allCountries.txt >> small_index.txt
 tail -n 100 allCountries.txt >> small_index.txt
 mv -f small_index.txt allCountries.txt
 mvn compile
