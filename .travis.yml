@@ -7,7 +7,7 @@ services:
 
 before_install:
   - docker pull maven
-  - docker -d --name clavin-test -v "$PWD":/usr/src/clavin -w /usr/src/clavin maven /bin/bash -c 'top'
+  - docker run -d --name clavin-test -v "$PWD":/usr/src/clavin -w /usr/src/clavin maven /bin/bash -c 'top'
 
 install:
   - docker exec -it clavin-test /bin/bash -c 'mvn install -DskipTests=true -Dgpg.skip=true'
