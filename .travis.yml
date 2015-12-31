@@ -7,9 +7,10 @@ services:
 
 before_install:
   - docker pull maven
+  - docker -d --name clavin-test -v "$PWD":/usr/src/clavin -w /usr/src/clavin maven /bin/bash -c 'top'
 
 install:
-  - docker run -it --name clavin-test -v "$PWD":/usr/src/clavin -w /usr/src/clavin maven mvn install -DskipTests=true -Dgpg.skip=true
+  - docker exec -it clavin-test /bin/bash -c 'mvn install -DskipTests=true -Dgpg.skip=true'
   - docker exec -it clavin-test /bin/bash -c 'curl http://download.geonames.org/export/dump/allCountries.zip -o allCountries.zip'
   - docker exec -it clavin-test /bin/bash -c 'unzip allCountries.zip'
   - docker exec -it clavin-test /bin/bash -c 'mvn compile'
