@@ -3,6 +3,7 @@ package com.bericotech.clavin.index;
 import static com.bericotech.clavin.index.IndexField.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import com.bericotech.clavin.gazetteer.BasicGeoName;
 import com.bericotech.clavin.gazetteer.CountryCode;
 import com.bericotech.clavin.gazetteer.FeatureClass;
 import com.bericotech.clavin.gazetteer.FeatureCode;
@@ -150,7 +151,7 @@ public class IndexDirectoryBuilder {
                     if (count % 100000 == 0 ) {
                         LOG.info("rowcount: " + count);
                     }
-                    GeoName geoName = GeoName.parseFromGeoNamesRecord(line);
+                    GeoName geoName = BasicGeoName.parseFromGeoNamesRecord(line);
                     resolveAncestry(geoName);
                 } catch (IOException e) {
                     LOG.info("Skipping... Error on line: {}", line);

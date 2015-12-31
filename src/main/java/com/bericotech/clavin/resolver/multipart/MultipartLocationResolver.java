@@ -30,6 +30,7 @@ package com.bericotech.clavin.resolver.multipart;
 
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.gazetteer.CountryCode;
+import com.bericotech.clavin.gazetteer.query.AncestryMode;
 import com.bericotech.clavin.gazetteer.query.FuzzyMode;
 import com.bericotech.clavin.gazetteer.query.Gazetteer;
 import com.bericotech.clavin.gazetteer.GeoName;
@@ -102,6 +103,7 @@ public class MultipartLocationResolver {
                 // necessary, or desirable to support FILL for the multi-part resolution algorithm
                 .fuzzyMode(fuzzy ? FuzzyMode.NO_EXACT : FuzzyMode.OFF)
                 .includeHistorical(true)
+                .ancestryMode(AncestryMode.ON_CREATE)
                 .maxResults(MAX_RESULTS);
 
         // country query should only include country-like feature codes
@@ -249,6 +251,7 @@ public class MultipartLocationResolver {
                 // translate CLAVIN 1.x 'fuzzy' parameter into NO_EXACT or OFF; it isn't
                 // necessary, or desirable to support FILL for the multi-part resolution algorithm
                 .fuzzyMode(fuzzy ? FuzzyMode.NO_EXACT : FuzzyMode.OFF)
+                .ancestryMode(AncestryMode.ON_CREATE)
                 .includeHistorical(true);
         findCandidates(candidates, terms, SearchLevel.COUNTRY, matches, query);
 

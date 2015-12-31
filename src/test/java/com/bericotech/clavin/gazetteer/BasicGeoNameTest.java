@@ -40,21 +40,21 @@ import org.junit.Test;
  *
  * ====================================================================
  *
- * GeoNameTest.java
+ * BasicGeoNameTest.java
  *
  *###################################################################*/
 
 /**
  * Tests to make sure GeoNames gazetteer records are properly parsed
- * into corresponding {@link GeoName} objects.
+ * into corresponding {@link BasicGeoName} objects.
  *
  */
-public class GeoNameTest {
+public class BasicGeoNameTest {
     private static class GeoRecord {
         public final String gazetteerRecord;
-        public final GeoName geoName;
+        public final BasicGeoName geoName;
 
-        public GeoRecord(final String gaz, final GeoName geo) {
+        public GeoRecord(final String gaz, final BasicGeoName geo) {
             this.gazetteerRecord = gaz;
             this.geoName = geo;
         }
@@ -86,7 +86,7 @@ public class GeoNameTest {
         String line;
         List<GeoRecord> geoRecords = new ArrayList<GeoRecord>();
         while ((line = r.readLine()) != null) {
-            geoRecords.add(new GeoRecord(line, GeoName.parseFromGeoNamesRecord(line)));
+            geoRecords.add(new GeoRecord(line, (BasicGeoName) BasicGeoName.parseFromGeoNamesRecord(line)));
         }
         r.close();
 
@@ -285,8 +285,8 @@ public class GeoNameTest {
     @Test
     public void testIsAncestryResolved_PartialResolution() {
         GeoName restonGeo = reston.geoName;
-        GeoName fairfaxCountyGeo = fairfaxCounty.geoName;
-        GeoName virginiaGeo = virginia.geoName;
+        BasicGeoName fairfaxCountyGeo = fairfaxCounty.geoName;
+        BasicGeoName virginiaGeo = virginia.geoName;
         restonGeo.setParent(fairfaxCountyGeo);
         assertFalse("only one parent set [reston], should not be resolved", restonGeo.isAncestryResolved());
         fairfaxCountyGeo.setParent(virginiaGeo);
@@ -300,9 +300,9 @@ public class GeoNameTest {
     @Test
     public void testIsAncestryResolved_FullResolution() {
         GeoName restonGeo = reston.geoName;
-        GeoName fairfaxCountyGeo = fairfaxCounty.geoName;
-        GeoName virginiaGeo = virginia.geoName;
-        GeoName unitedStatesGeo = unitedStates.geoName;
+        BasicGeoName fairfaxCountyGeo = fairfaxCounty.geoName;
+        BasicGeoName virginiaGeo = virginia.geoName;
+        BasicGeoName unitedStatesGeo = unitedStates.geoName;
         GeoName coralSeaIslandsGeo = coralSeaIslands.geoName;
 
         virginiaGeo.setParent(unitedStatesGeo);
@@ -325,7 +325,7 @@ public class GeoNameTest {
      */
     @Test
     public void testSetParent_InvalidParent() {
-        GeoName restonGeo = reston.geoName;
+        BasicGeoName restonGeo = reston.geoName;
 
         assertNull("[reston] should have no parent", restonGeo.getParent());
         assertFalse("non-administrative parent should not be allowed", restonGeo.setParent(boston.geoName));
@@ -354,9 +354,9 @@ public class GeoNameTest {
         BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(
                 new File("./src/test/resources/gazetteers/BadGeoNamesSample.txt")), "UTF-8"));
         String line;
-        ArrayList<GeoName> geonames = new ArrayList<GeoName>();
+        List<GeoName> geonames = new ArrayList<GeoName>();
         while ((line = r.readLine()) != null)
-            geonames.add(GeoName.parseFromGeoNamesRecord(line));
+            geonames.add(BasicGeoName.parseFromGeoNamesRecord(line));
         r.close();
 
         // if no exceptions are thrown, the test is assumed to have succeeded
