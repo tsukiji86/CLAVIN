@@ -7,12 +7,11 @@ services:
 
 before_install:
   - docker pull maven
-  - docker run -d --name clavin-test -v "$PWD":/usr/src/clavin -w /usr/src/clavin maven /bin/bash -c 'top'
+  - docker ps -a
 
 install:
-  - docker exec -it clavin-test /bin/bash -c 'mvn install -DskipTests=true -Dgpg.skip=true'
-  - docker exec -it clavin-test /bin/bash -c 'curl http://download.geonames.org/export/dump/allCountries.zip -o allCountries.zip'
-  - docker exec -it clavin-test /bin/bash -c 'unzip allCountries.zip'
-  - docker exec -it clavin-test /bin/bash -c 'mvn compile'
-  - docker exec -it clavin-test /bin/bash -c 'MAVEN_OPTS="-Xmx4g" mvn exec:java -Dexec.mainClass="com.bericotech.clavin.index.IndexDirectoryBuilder"'
-  - docker exec -it clavin-test /bin/bash -c 'mvn package'
+  - curl http://download.geonames.org/export/dump/allCountries.zip -o allCountries.zip
+  - unzip allCountries.zip
+
+script:
+  - docker run -d --name clavin-test -v "$PWD":/usr/src/clavin -w /usr/src/clavin maven mvn install -DskipTests=true -Dgpg.skip=true
