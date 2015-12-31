@@ -14,4 +14,4 @@ install:
   - unzip allCountries.zip
 
 script:
-  - docker run -it --name clavin-test -v "$PWD":/usr/src/clavin -w /usr/src/clavin maven /bin/bash -c 'mvn install -q -DskipTests=true -Dgpg.skip=true; MAVEN_OPTS="-Xmx4g" mvn exec:java -q -Dexec.mainClass="com.bericotech.clavin.index.IndexDirectoryBuilder" | egrep -v "(^\[INFO\])"; mvn -q package | egrep -v "(^\[INFO\])"'
+  - docker run -it --name clavin-test -v "$PWD":/usr/src/clavin -w /usr/src/clavin maven /bin/bash -c 'mvn install -q -DskipTests=true -Dgpg.skip=true; MAVEN_OPTS="-Xmx4g" mvn exec:java -q -Dexec.mainClass="com.bericotech.clavin.index.IndexDirectoryBuilder" | grep ERROR; mvn -q package | grep ERROR'
