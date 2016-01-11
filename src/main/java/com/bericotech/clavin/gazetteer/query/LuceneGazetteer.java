@@ -43,6 +43,7 @@ import com.bericotech.clavin.index.WhitespaceLowerCaseAnalyzer;
 import com.bericotech.clavin.resolver.ResolvedLocation;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,14 +55,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.NumericRangeQuery;
@@ -125,8 +130,10 @@ public class LuceneGazetteer implements Gazetteer {
 
     // Lucene index built from GeoNames gazetteer
     private final FSDirectory index;
+    private final IndexReader reader; 
     private final IndexSearcher indexSearcher;
-
+    
+    
     /**
      * Builds a {@link LuceneGazetteer} by loading a pre-built Lucene
      * index from disk and setting configuration parameters for
@@ -137,19 +144,29 @@ public class LuceneGazetteer implements Gazetteer {
      */
     public LuceneGazetteer(final File indexDir) throws ClavinException {
         try {
-        // load the Lucene index directory from disk
-        index = FSDirectory.open(indexDir);
+	        // load the Lucene index directory from disk
+	        index = FSDirectory.open(indexDir.toPath());
 
-        indexSearcher = new IndexSearcher(DirectoryReader.open(index));
-
-        // override default TF/IDF score to ignore multiple appearances
-        indexSearcher.setSimilarity(new BinarySimilarity());
-
-        // run an initial throw-away query just to "prime the pump" for
-        // the cache, so we can accurately measure performance speed
-        // per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
-        indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_4_9, INDEX_NAME.key(),
-                INDEX_ANALYZER).parse("Reston"), null, DEFAULT_MAX_RESULTS, POPULATION_SORT);
+	        // initialize the Directory reader
+	        reader = DirectoryReader.open(index);
+	        
+	        // initialize the IndexSearcher
+	        indexSearcher = new IndexSearcher(reader);
+	        
+	        // override default TF/IDF score to ignore multiple appearances
+	        indexSearcher.setSimilarity(new BinarySimilarity());
+	
+	        // run an initial throw-away query just to "prime the pump" for
+	        // the cache, so we can accurately measure performance speed
+	        // per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
+	        // indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_4_9, INDEX_NAME.key(),
+	        //        INDEX_ANALYZER).parse("Reston"), null, DEFAULT_MAX_RESULTS, POPULATION_SORT);
+	        
+	        QueryParser parser = new AnalyzingQueryParser(INDEX_NAME.key(), INDEX_ANALYZER);
+	        Query query = parser.parse("Reston");
+	        indexSearcher.search(query, DEFAULT_MAX_RESULTS, POPULATION_SORT);
+	        
+	        
         } catch (ParseException pe) {
             throw new ClavinException("Error executing priming query.", pe);
         } catch (IOException ioe) {
@@ -379,9 +396,10 @@ public class LuceneGazetteer implements Gazetteer {
 
         Filter filter = null;
         if (!queryParts.isEmpty()) {
-            BooleanQuery bq = new BooleanQuery();
+            //BooleanQuery bq = new BooleanQuery();
+        	Builder bldr = new BooleanQuery.Builder();
             for (Query part : queryParts) {
-                bq.add(part, Occur.MUST);
+            	bldr.add(part, Occur.MUST);
             }
             filter = new QueryWrapperFilter(bq);
         }
