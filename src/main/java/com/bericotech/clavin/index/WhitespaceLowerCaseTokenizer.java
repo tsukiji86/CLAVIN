@@ -51,7 +51,7 @@ public class WhitespaceLowerCaseTokenizer extends CharTokenizer {
      * @param in
      */
     public WhitespaceLowerCaseTokenizer(Version matchVersion, Reader in) {
-        super(matchVersion, in);
+        super(); //matchVersion, in
     }
 
     /** Collects only characters which do not satisfy

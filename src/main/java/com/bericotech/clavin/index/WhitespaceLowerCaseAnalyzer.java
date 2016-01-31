@@ -3,6 +3,10 @@ package com.bericotech.clavin.index;
 import java.io.Reader;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
+import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.util.Version;
 
 /*#####################################################################
@@ -40,9 +44,8 @@ import org.apache.lucene.util.Version;
  */
 public class WhitespaceLowerCaseAnalyzer extends Analyzer {
     
-    // Lucene v4.0+ offers a nice speed increase over v3.6.1 in
-    // terms of fuzzy search
-    private final static Version matchVersion = Version.LUCENE_4_9;
+    private final static Version matchVersion = Version.LUCENE_5_4_0;
+    private Reader reader = null;
     
     /**
      * Simple default constructor for
@@ -50,6 +53,15 @@ public class WhitespaceLowerCaseAnalyzer extends Analyzer {
      * 
      */
     public WhitespaceLowerCaseAnalyzer() {}
+
+    /**
+     * Constructor for passing the Reader object.
+	 *
+     * @param reader     reader object 
+     */
+    public WhitespaceLowerCaseAnalyzer(Reader reader) {
+    	this.reader = reader;
+    }    
     
     /**
      * Provides tokenizer access for the analyzer.
@@ -57,8 +69,21 @@ public class WhitespaceLowerCaseAnalyzer extends Analyzer {
      * @param fieldName     field to be tokenized
      * @param reader
      */
-    @Override
-    protected TokenStreamComponents createComponents(final String fieldName, final Reader reader) {
-        return new TokenStreamComponents(new WhitespaceLowerCaseTokenizer(matchVersion, reader));
+    protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
+    	return new TokenStreamComponents(new WhitespaceLowerCaseTokenizer(matchVersion, reader));
     }
+
+    /**
+     * Provides tokenizer access for the analyzer.
+     * 
+     * @param fieldName     field to be tokenized
+     */    
+	@Override
+	protected TokenStreamComponents createComponents(String arg0) {
+		return new TokenStreamComponents(new WhitespaceLowerCaseTokenizer(matchVersion, reader));
+		
+	}
+    
+    
+    
 }

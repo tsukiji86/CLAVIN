@@ -43,6 +43,7 @@ import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
@@ -122,13 +123,13 @@ public class IndexDirectoryBuilder {
 
         // Create a new index file on disk, allowing Lucene to choose
         // the best FSDirectory implementation given the environment.
-        FSDirectory index = FSDirectory.open(indexDir);
-
+        FSDirectory index = FSDirectory.open(indexDir.toPath()); 
+        
         // indexing by lower-casing & tokenizing on whitespace
         Analyzer indexAnalyzer = new WhitespaceLowerCaseAnalyzer();
 
         // create the object that will actually build the Lucene index
-        indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_4_9, indexAnalyzer));
+        indexWriter = new IndexWriter(index, new IndexWriterConfig(indexAnalyzer));
 
         // let's see how long this takes...
         Date start = new Date();
