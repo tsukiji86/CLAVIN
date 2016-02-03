@@ -194,7 +194,9 @@ public class LuceneGazetteer implements Gazetteer {
         }
 
         LocationOccurrence location = query.getOccurrence();
-        int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
+        //int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
+        int maxResults = 20;
+        
         
         List<ResolvedLocation> matches;
         try {
@@ -287,7 +289,7 @@ public class LuceneGazetteer implements Gazetteer {
             // collect all the hits up to maxResults, and sort them based
             // on Lucene match score and population for the associated
             // GeoNames record
-            TopDocs results = indexSearcher.searchAfter(lastDoc, cQuery, maxResults, POPULATION_SORT);
+            TopDocs results = indexSearcher.searchAfter(lastDoc, cQuery, maxResults, POPULATION_SORT); //maxResults
             // set lastDoc to null so we don't infinite loop if results is empty
             lastDoc = null;
             // populate results if matches were discovered
@@ -306,8 +308,8 @@ public class LuceneGazetteer implements Gazetteer {
                     // if we have already seen this GeoName and we are removing duplicates, skip to the next doc
                     continue;
                 }
-                
-                //System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName());
+
+                System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName() + ": " + geoname.getPopulation());
                 
                 String matchedName = INDEX_NAME.getValue(doc);
                 if (!geoname.isAncestryResolved()) {
@@ -335,13 +337,15 @@ public class LuceneGazetteer implements Gazetteer {
                         }
                     }
                 }
-                matches.add(new ResolvedLocation(location, geoname, matchedName, fuzzy));
+                if (matches.size() < 1) {
+                	matches.add(new ResolvedLocation(location, geoname, matchedName, fuzzy));
+                }
                 // stop processing results if we have reached maxResults matches
-                if (matches.size() >= maxResults) {
+                if (matches.size() >= maxResults) { //maxResults
                     break;
                 }
             }
-        } while (dedupe && lastDoc != null && matches.size() < maxResults);
+        } while (dedupe && lastDoc != null && matches.size() < maxResults); //maxResults
         // if any results need ancestry resolution, resolve parents
         // this map should only contain GeoNames if ancestryMode == ON_CREATE
         if (!parentMap.isEmpty()) {
@@ -389,24 +393,24 @@ public class LuceneGazetteer implements Gazetteer {
         Set<Integer> parentIds = params.getParentIds();
         if (!parentIds.isEmpty()) {
             //BooleanQuery parentQuery = new BooleanQuery();
-        	//Builder parentQuery = new BooleanQuery.Builder();
+        	Builder parentQuery = new BooleanQuery.Builder();
             // locations must descend from at least one of the specified parents (OR)
             for (Integer id : parentIds) {
-            	bldr.add(NumericRangeQuery.newIntRange(ANCESTOR_IDS.key(), id, id, true, true), Occur.FILTER);
+            	parentQuery.add(NumericRangeQuery.newIntRange(ANCESTOR_IDS.key(), id, id, true, true), Occur.SHOULD);
             }
-            //queryParts.add(parentQuery.build());
+            queryParts.add(parentQuery.build());
         }
 
         // create the feature code restrictions if we were provided some, but not all, feature codes
         Set<FeatureCode> codes = params.getFeatureCodes();
         if (!(codes.isEmpty() || ALL_CODES.equals(codes))) {
             //BooleanQuery codeQuery = new BooleanQuery();
-        	//Builder codeQuery = new BooleanQuery.Builder();
+        	Builder codeQuery = new BooleanQuery.Builder();
         	// locations must be one of the specified feature codes (OR)
             for (FeatureCode code : codes) {
-            	bldr.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.FILTER);
+            	codeQuery.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.SHOULD);
             }
-            //queryParts.add(codeQuery.build());
+            queryParts.add(codeQuery.build());
         }
 
         //Filter filter = null;
