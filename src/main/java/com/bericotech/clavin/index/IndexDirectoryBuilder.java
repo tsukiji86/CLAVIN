@@ -28,9 +28,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
@@ -38,16 +38,17 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.DocValuesType;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,6 +115,18 @@ public class IndexDirectoryBuilder {
         unresolvedMap = new TreeMap<String, Set<GeoName>>();
         alternateNameMap = new HashMap<Integer, AlternateName>();
         this.fullAncestry = fullAncestryIn;
+    }
+    
+    private static final FieldType LONG_FIELD_TYPE_STORED_SORTED = new FieldType();
+    static {
+    	LONG_FIELD_TYPE_STORED_SORTED.setTokenized(true);
+    	LONG_FIELD_TYPE_STORED_SORTED.setOmitNorms(true);
+    	LONG_FIELD_TYPE_STORED_SORTED.setIndexOptions(IndexOptions.DOCS);
+    	LONG_FIELD_TYPE_STORED_SORTED
+            .setNumericType(FieldType.NumericType.LONG);
+    	LONG_FIELD_TYPE_STORED_SORTED.setStored(true);
+    	LONG_FIELD_TYPE_STORED_SORTED.setDocValuesType(DocValuesType.NUMERIC);
+    	LONG_FIELD_TYPE_STORED_SORTED.freeze();
     }
 
     public void buildIndex(final File indexDir, final List<File> gazetteerFiles, final File altNamesFile) throws IOException {
@@ -421,12 +434,13 @@ public class IndexDirectoryBuilder {
         if (geoName.getFeatureClass().equals(FeatureClass.P) || geoName.getFeatureCode().name().startsWith("PCL")) {
             if (geoName.getGeonameID() != 2643741) // todo: temporary hack until GeoNames.org fixes the population for City of London
                 // boost cities and countries when sorting results by population
-                doc.add(new LongField(SORT_POP.key(), geoName.getPopulation() * 11, Field.Store.YES));
+                doc.add(new LongField(SORT_POP.key(), geoName.getPopulation() * 11, LONG_FIELD_TYPE_STORED_SORTED));
         } else {
             // don't boost anything else, because people rarely talk about other stuff
             // (e.g., Washington State's population is more than 10x that of Washington, DC
             // but Washington, DC is mentioned far more frequently than Washington State)
-            doc.add(new LongField(SORT_POP.key(), geoName.getPopulation(), Field.Store.YES));
+            doc.add(new LongField(SORT_POP.key(), geoName.getPopulation(), LONG_FIELD_TYPE_STORED_SORTED));
+           
         }
         doc.add(new IntField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical()), Field.Store.NO));
         doc.add(new StringField(FEATURE_CODE.key(), geoName.getFeatureCode().name(), Field.Store.NO));
@@ -505,7 +519,7 @@ public class IndexDirectoryBuilder {
     public static void main(String[] args) throws IOException {
         Options options = getOptions();
         CommandLine cmd = null;
-        CommandLineParser parser = new GnuParser();
+        CommandLineParser parser = new DefaultParser();
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException pe) {
@@ -567,43 +581,43 @@ public class IndexDirectoryBuilder {
     private static Options getOptions() {
         Options options = new Options();
 
-        options.addOption(OptionBuilder
-                .withLongOpt(HELP_OPTION)
-                .withDescription("Print help")
-                .create('?'));
+        options.addOption(Option.builder("?")
+                .longOpt(HELP_OPTION)
+                .desc("Print help")
+                .build());
 
-        options.addOption(OptionBuilder
-                .withLongOpt(FULL_ANCESTRY_OPTION)
-                .withDescription("Store the gazetteer records for the full ancestry tree of each element."
+        options.addOption(Option.builder()
+                .longOpt(FULL_ANCESTRY_OPTION)
+                .desc("Store the gazetteer records for the full ancestry tree of each element."
                         + " This will increase performance at the expense of a larger index.")
-                .create());
+                .build());
 
-        options.addOption(OptionBuilder
-                .withLongOpt(GAZETTEER_FILES_OPTION)
-                .withDescription(String.format("The ':'-separated list of input Gazetteer files to parse.  Default: %s",
+        options.addOption(Option.builder("i")
+                .longOpt(GAZETTEER_FILES_OPTION)
+                .desc(String.format("The ':'-separated list of input Gazetteer files to parse.  Default: %s",
                         StringUtils.join(DEFAULT_GAZETTEER_FILES, ':')))
                 .hasArgs()
-                .withValueSeparator(':')
-                .create('i'));
+                .valueSeparator(':')
+                .build());
 
-        options.addOption(OptionBuilder
-                .withLongOpt(ALTERNATE_NAMES_OPTION)
-                .withDescription("When provided, the path to the GeoNames.org alternate names file for resolution of common and "
+        options.addOption(Option.builder()
+                .longOpt(ALTERNATE_NAMES_OPTION)
+                .desc("When provided, the path to the GeoNames.org alternate names file for resolution of common and "
                         + "short names for each location. If not provided, the default name for each location will be used.")
                 .hasArg()
-                .create());
+                .build());
 
-        options.addOption(OptionBuilder
-                .withLongOpt(INDEX_PATH_OPTION)
-                .withDescription(String.format("The path to the output index directory. Default: %s", DEFAULT_INDEX_DIRECTORY))
+        options.addOption(Option.builder("o")
+                .longOpt(INDEX_PATH_OPTION)
+                .desc(String.format("The path to the output index directory. Default: %s", DEFAULT_INDEX_DIRECTORY))
                 .hasArg()
-                .create('o'));
+                .build());
 
-        options.addOption(OptionBuilder
-                .withLongOpt(REPLACE_INDEX_OPTION)
-                .withDescription("Replace an existing index if it exists. If this option is not specified,"
+        options.addOption(Option.builder("r")
+                .longOpt(REPLACE_INDEX_OPTION)
+                .desc("Replace an existing index if it exists. If this option is not specified,"
                         + "index processing will fail if an index already exists at the specified location.")
-                .create('r'));
+                .build());
 
         return options;
     }

@@ -195,11 +195,11 @@ public class LuceneGazetteer implements Gazetteer {
 
         LocationOccurrence location = query.getOccurrence();
         int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
-        Builder queryBuilder = buildFilters(query);
+        
         List<ResolvedLocation> matches;
         try {
             // attempt to find an exact match for the query
-            matches = executeQuery(location, sanitizedLocationName, queryBuilder, maxResults, false, query.isFilterDupes(), query.getAncestryMode(), null);
+            matches = executeQuery(location, sanitizedLocationName, query, maxResults, false, query.isFilterDupes(), query.getAncestryMode(), null);
             if (LOG.isDebugEnabled()) {
                 for (ResolvedLocation loc : matches) {
                     LOG.debug("{}", loc);
@@ -209,7 +209,7 @@ public class LuceneGazetteer implements Gazetteer {
             if (query.getFuzzyMode().useFuzzyMatching(maxResults, matches.size())) {
                 // provide any exact matches if we are running a fuzzy query so they can be considered for deduplication
                 // and result count
-                matches = executeQuery(location, sanitizedLocationName, queryBuilder, maxResults, true, query.isFilterDupes(), query.getAncestryMode(), matches);
+                matches = executeQuery(location, sanitizedLocationName, query, maxResults, true, query.isFilterDupes(), query.getAncestryMode(), matches);
                 if (LOG.isDebugEnabled()) {
                     for (ResolvedLocation loc : matches) {
                         LOG.debug("{}[fuzzy]", loc);
@@ -245,15 +245,17 @@ public class LuceneGazetteer implements Gazetteer {
      * @throws IOException if an error occurs executing the query
      */
     private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final String sanitizedName, 
-			final Builder queryBuilder, final int maxResults, final boolean fuzzy, final boolean dedupe, 
+    		GazetteerQuery gQuery, final int maxResults, final boolean fuzzy, final boolean dedupe, 
 			final AncestryMode ancestryMode, final List<ResolvedLocation> previousResults) 
 			throws ParseException, IOException {
     	
         Query aQuery = new AnalyzingQueryParser(INDEX_NAME.key(), INDEX_ANALYZER)
                 .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
         
-        queryBuilder.add(aQuery, Occur.MUST);
-        BooleanQuery bQuery = queryBuilder.build();
+        Builder compositeQueryBldr = buildFilters(gQuery);
+        compositeQueryBldr.add(aQuery, Occur.MUST);
+        compositeQueryBldr.setDisableCoord(fuzzy);
+        BooleanQuery cQuery = compositeQueryBldr.build();
         
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
 
@@ -285,13 +287,14 @@ public class LuceneGazetteer implements Gazetteer {
             // collect all the hits up to maxResults, and sort them based
             // on Lucene match score and population for the associated
             // GeoNames record
-            TopDocs results = indexSearcher.searchAfter(lastDoc, bQuery, maxResults, POPULATION_SORT);
+            TopDocs results = indexSearcher.searchAfter(lastDoc, cQuery, maxResults, POPULATION_SORT);
             // set lastDoc to null so we don't infinite loop if results is empty
             lastDoc = null;
             // populate results if matches were discovered
             for (ScoreDoc scoreDoc : results.scoreDocs) {
                 lastDoc = scoreDoc;
-                Document doc = indexSearcher.doc(scoreDoc.doc);
+				Document doc = indexSearcher.doc(scoreDoc.doc);
+
                 // reuse GeoName instances so all ancestry is correctly resolved if multiple names for
                 // the same GeoName match the query
                 int geonameID = GEONAME_ID.getValue(doc);
@@ -303,6 +306,9 @@ public class LuceneGazetteer implements Gazetteer {
                     // if we have already seen this GeoName and we are removing duplicates, skip to the next doc
                     continue;
                 }
+                
+                //System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName());
+                
                 String matchedName = INDEX_NAME.getValue(doc);
                 if (!geoname.isAncestryResolved()) {
                     IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
@@ -371,6 +377,8 @@ public class LuceneGazetteer implements Gazetteer {
     private Builder buildFilters(final GazetteerQuery params) {
         List<Query> queryParts = new ArrayList<Query>();
 
+        Builder bldr = new BooleanQuery.Builder();
+        
         // create the historical locations restriction if we are not including historical locations
         if (!params.isIncludeHistorical()) {
             int val = IndexField.getBooleanIndexValue(false);
@@ -381,28 +389,28 @@ public class LuceneGazetteer implements Gazetteer {
         Set<Integer> parentIds = params.getParentIds();
         if (!parentIds.isEmpty()) {
             //BooleanQuery parentQuery = new BooleanQuery();
-        	Builder parentQuery = new BooleanQuery.Builder();
+        	//Builder parentQuery = new BooleanQuery.Builder();
             // locations must descend from at least one of the specified parents (OR)
             for (Integer id : parentIds) {
-                parentQuery.add(NumericRangeQuery.newIntRange(ANCESTOR_IDS.key(), id, id, true, true), Occur.SHOULD);
+            	bldr.add(NumericRangeQuery.newIntRange(ANCESTOR_IDS.key(), id, id, true, true), Occur.FILTER);
             }
-            queryParts.add(parentQuery.build());
+            //queryParts.add(parentQuery.build());
         }
 
         // create the feature code restrictions if we were provided some, but not all, feature codes
         Set<FeatureCode> codes = params.getFeatureCodes();
         if (!(codes.isEmpty() || ALL_CODES.equals(codes))) {
             //BooleanQuery codeQuery = new BooleanQuery();
-        	Builder codeQuery = new BooleanQuery.Builder();
+        	//Builder codeQuery = new BooleanQuery.Builder();
         	// locations must be one of the specified feature codes (OR)
             for (FeatureCode code : codes) {
-                codeQuery.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.SHOULD);
+            	bldr.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.FILTER);
             }
-            queryParts.add(codeQuery.build());
+            //queryParts.add(codeQuery.build());
         }
 
         //Filter filter = null;
-        Builder bldr = new BooleanQuery.Builder();
+        
         if (!queryParts.isEmpty()) {
             //BooleanQuery bq = new BooleanQuery();
             for (Query part : queryParts) {
