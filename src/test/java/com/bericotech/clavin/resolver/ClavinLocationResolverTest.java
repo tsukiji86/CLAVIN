@@ -152,6 +152,7 @@ public class ClavinLocationResolverTest {
 
         assertEquals("LocationResolver failed on extra char", BOSTON_MA, resolvedLocations.get(0).getGeoname().getGeonameID());
         assertEquals("LocationResolver failed on extra chars", STRAßENHAUS_DE, resolvedLocations.get(1).getGeoname().getGeonameID());
+        //TODO - do we need to comment this next entry?
         assertEquals("LocationResolver failed on missing char", BOSTON_MA, resolvedLocations.get(2).getGeoname().getGeonameID());
         assertEquals("LocationResolver failed on missing chars", STRAßENHAUS_DE, resolvedLocations.get(3).getGeoname().getGeonameID());
         assertEquals("LocationResolver failed on extra term", STRAßENHAUS_DE, resolvedLocations.get(4).getGeoname().getGeonameID());

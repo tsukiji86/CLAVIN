@@ -119,7 +119,7 @@ public class IndexDirectoryBuilder {
     
     private static final FieldType LONG_FIELD_TYPE_STORED_SORTED = new FieldType();
     static {
-    	LONG_FIELD_TYPE_STORED_SORTED.setTokenized(true);
+    	LONG_FIELD_TYPE_STORED_SORTED.setTokenized(false);
     	LONG_FIELD_TYPE_STORED_SORTED.setOmitNorms(true);
     	LONG_FIELD_TYPE_STORED_SORTED.setIndexOptions(IndexOptions.DOCS);
     	LONG_FIELD_TYPE_STORED_SORTED

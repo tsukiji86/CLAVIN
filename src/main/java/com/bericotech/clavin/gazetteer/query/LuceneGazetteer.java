@@ -75,8 +75,10 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopFieldDocs;
 import org.apache.lucene.store.FSDirectory;
 //import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
@@ -105,7 +107,7 @@ public class LuceneGazetteer implements Gazetteer {
     private static final Sort POPULATION_SORT = new Sort(new SortField[] {
         SortField.FIELD_SCORE,
         // new SortField(POPULATION.key(), SortField.Type.LONG, true)
-        new SortField(SORT_POP.key(), SortField.Type.LONG, true)
+        new SortedNumericSortField(SORT_POP.key(), SortField.Type.LONG, true)
     });
 
     /**
@@ -144,9 +146,10 @@ public class LuceneGazetteer implements Gazetteer {
      */
     public LuceneGazetteer(final File indexDir) throws ClavinException {
         try {
-	        // load the Lucene index directory from disk
-	        index = FSDirectory.open(indexDir.toPath());
-
+	             	
+        	// load the Lucene index directory from disk
+	        index = FSDirectory.open(indexDir.toPath());  //TODO - tokenized/untokenized
+        	
 	        // initialize the Directory reader
 	        reader = DirectoryReader.open(index);
 	        
@@ -194,8 +197,8 @@ public class LuceneGazetteer implements Gazetteer {
         }
 
         LocationOccurrence location = query.getOccurrence();
-        //int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
-        int maxResults = 20;
+        int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
+        //int maxResults = 20; //TODO - maxResults
         
         
         List<ResolvedLocation> matches;
@@ -256,7 +259,7 @@ public class LuceneGazetteer implements Gazetteer {
         
         Builder compositeQueryBldr = buildFilters(gQuery);
         compositeQueryBldr.add(aQuery, Occur.MUST);
-        compositeQueryBldr.setDisableCoord(fuzzy);
+        //compositeQueryBldr.setDisableCoord(fuzzy); //TODO - disable Similarity
         BooleanQuery cQuery = compositeQueryBldr.build();
         
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
@@ -290,7 +293,9 @@ public class LuceneGazetteer implements Gazetteer {
             // on Lucene match score and population for the associated
             // GeoNames record
             TopDocs results = indexSearcher.searchAfter(lastDoc, cQuery, maxResults, POPULATION_SORT); //maxResults
-            // set lastDoc to null so we don't infinite loop if results is empty
+        	//TopFieldDocs results = indexSearcher.search(cQuery, maxResults, POPULATION_SORT); //TODO - split off a recursion method for this
+        	
+        	// set lastDoc to null so we don't infinite loop if results is empty
             lastDoc = null;
             // populate results if matches were discovered
             for (ScoreDoc scoreDoc : results.scoreDocs) {
@@ -309,7 +314,8 @@ public class LuceneGazetteer implements Gazetteer {
                     continue;
                 }
 
-                System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName() + ": " + geoname.getPopulation());
+                //System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName() + ": " + geoname.getPopulation());
+                //TODO - print
                 
                 String matchedName = INDEX_NAME.getValue(doc);
                 if (!geoname.isAncestryResolved()) {
@@ -337,9 +343,9 @@ public class LuceneGazetteer implements Gazetteer {
                         }
                     }
                 }
-                if (matches.size() < 1) {
+                //if (matches.size() < 1) { //TODO - when testing maxResults, only insert 1 
                 	matches.add(new ResolvedLocation(location, geoname, matchedName, fuzzy));
-                }
+                //}
                 // stop processing results if we have reached maxResults matches
                 if (matches.size() >= maxResults) { //maxResults
                     break;

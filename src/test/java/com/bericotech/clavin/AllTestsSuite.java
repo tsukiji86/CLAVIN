@@ -1,6 +1,9 @@
 package com.bericotech.clavin;
 
 import com.bericotech.clavin.gazetteer.BasicGeoNameTest;
+import com.bericotech.clavin.gazetteer.query.LuceneGazetteerTest;
+import com.bericotech.clavin.util.ListUtilsTest;
+
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -50,9 +53,9 @@ import org.junit.runners.Suite.SuiteClasses;
     com.bericotech.clavin.resolver.multipart.MultipartLocationResolverTest.class,
     com.bericotech.clavin.resolver.multipart.MultiLevelMultipartLocationResolverTest.class,
     com.bericotech.clavin.util.DamerauLevenshteinTest.class,
-    com.bericotech.clavin.util.ListUtilsTest.class,
+    ListUtilsTest.class,
     com.bericotech.clavin.util.TextUtilsTest.class,
-    com.bericotech.clavin.gazetteer.query.LuceneGazetteerTest.class,
+    LuceneGazetteerTest.class,
     // this one comes last as it's more of an integration test
     com.bericotech.clavin.GeoParserTest.class
 })
