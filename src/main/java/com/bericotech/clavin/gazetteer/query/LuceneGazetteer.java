@@ -30,7 +30,7 @@ package com.bericotech.clavin.gazetteer.query;
 
 import static com.bericotech.clavin.index.IndexField.*;
 import static org.apache.lucene.queryparser.classic.QueryParserBase.escape;
-
+import org.apache.lucene.search.Explanation;
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.gazetteer.BasicGeoName;
@@ -257,10 +257,23 @@ public class LuceneGazetteer implements Gazetteer {
         Query aQuery = new AnalyzingQueryParser(INDEX_NAME.key(), INDEX_ANALYZER)
                 .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
         
-        Builder compositeQueryBldr = buildFilters(gQuery);
-        compositeQueryBldr.add(aQuery, Occur.MUST);
-        //compositeQueryBldr.setDisableCoord(fuzzy); //TODO - disable Similarity
-        BooleanQuery cQuery = compositeQueryBldr.build();
+        BooleanQuery cQuery = null;
+        
+        //TODO -- REMOVE
+        if (sanitizedName.equalsIgnoreCase("bostn")) {
+        	System.out.println("here");
+        	
+        } else {
+            Builder compositeQueryBldr = buildFilters(gQuery);
+            compositeQueryBldr.add(aQuery, Occur.MUST);
+            //compositeQueryBldr.setDisableCoord(fuzzy); //TODO - disable Similarity
+            cQuery = compositeQueryBldr.build();
+        	
+        }
+        
+
+        
+
         
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
 
@@ -292,8 +305,20 @@ public class LuceneGazetteer implements Gazetteer {
             // collect all the hits up to maxResults, and sort them based
             // on Lucene match score and population for the associated
             // GeoNames record
-            TopDocs results = indexSearcher.searchAfter(lastDoc, cQuery, maxResults, POPULATION_SORT); //maxResults
-        	//TopFieldDocs results = indexSearcher.search(cQuery, maxResults, POPULATION_SORT); //TODO - split off a recursion method for this
+        	
+        	//TODO - Remove conditional
+        	TopDocs results = null;
+        	if (cQuery == null) {
+        		results = indexSearcher.searchAfter(lastDoc, aQuery, maxResults, POPULATION_SORT); //maxResults
+        		if (results.totalHits != 0) {
+	        		Explanation exp = indexSearcher.explain(aQuery, results.scoreDocs[0].doc);
+	        		System.out.println(exp.getDescription() + " " + exp.getDetails());
+        		}
+        	} else {
+        		results = indexSearcher.searchAfter(lastDoc, cQuery, maxResults, POPULATION_SORT); //maxResults
+        	}
+        	
+            
         	
         	// set lastDoc to null so we don't infinite loop if results is empty
             lastDoc = null;
@@ -314,7 +339,7 @@ public class LuceneGazetteer implements Gazetteer {
                     continue;
                 }
 
-                //System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName() + ": " + geoname.getPopulation());
+                System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName() + ": " + geoname.getPopulation());
                 //TODO - print
                 
                 String matchedName = INDEX_NAME.getValue(doc);
