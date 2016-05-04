@@ -197,8 +197,8 @@ public class LuceneGazetteer implements Gazetteer {
         }
 
         LocationOccurrence location = query.getOccurrence();
-        int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
-        //int maxResults = 20; //TODO - maxResults
+        //int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
+        int maxResults = 5; //TODO - maxResults
         
         
         List<ResolvedLocation> matches;
@@ -312,7 +312,8 @@ public class LuceneGazetteer implements Gazetteer {
         		results = indexSearcher.searchAfter(lastDoc, aQuery, maxResults, POPULATION_SORT); //maxResults
         		if (results.totalHits != 0) {
 	        		Explanation exp = indexSearcher.explain(aQuery, results.scoreDocs[0].doc);
-	        		System.out.println(exp.getDescription() + " " + exp.getDetails());
+	        		exp = indexSearcher.explain(aQuery, results.scoreDocs[4].doc);
+	        		System.out.println("hello");
         		}
         	} else {
         		results = indexSearcher.searchAfter(lastDoc, cQuery, maxResults, POPULATION_SORT); //maxResults
@@ -341,7 +342,7 @@ public class LuceneGazetteer implements Gazetteer {
 
                 System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName() + ": " + geoname.getPopulation());
                 //TODO - print
-                
+                           
                 String matchedName = INDEX_NAME.getValue(doc);
                 if (!geoname.isAncestryResolved()) {
                     IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
