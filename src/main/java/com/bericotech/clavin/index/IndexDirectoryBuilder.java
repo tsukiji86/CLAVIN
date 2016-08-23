@@ -442,14 +442,20 @@ public class IndexDirectoryBuilder {
             doc.add(new LongField(SORT_POP.key(), geoName.getPopulation(), LONG_FIELD_TYPE_STORED_SORTED));
            
         }
+               
         doc.add(new IntField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical()), Field.Store.NO));
         doc.add(new StringField(FEATURE_CODE.key(), geoName.getFeatureCode().name(), Field.Store.NO));
 
         // create a unique Document for each name of this GeoName
         TextField nameField = new TextField(INDEX_NAME.key(), "", Field.Store.YES);
+        //StringField stringField = new StringField(INDEX_STRING.key(), "", Field.Store.YES);
         doc.add(nameField);
+        //doc.add(stringField);
         for (String name : names) {
             nameField.setStringValue(name);
+            if (geoName.getPopulation() == 0) 
+            	nameField.setBoost(-2.0f);
+            //stringField.setStringValue(name);
             indexWriter.addDocument(doc);
         }
     }

@@ -31,6 +31,8 @@ package com.bericotech.clavin.gazetteer.query;
 import static com.bericotech.clavin.index.IndexField.*;
 import static org.apache.lucene.queryparser.classic.QueryParserBase.escape;
 import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.FuzzyQuery;
+
 import com.bericotech.clavin.ClavinException;
 import com.bericotech.clavin.extractor.LocationOccurrence;
 import com.bericotech.clavin.gazetteer.BasicGeoName;
@@ -105,9 +107,9 @@ public class LuceneGazetteer implements Gazetteer {
      * matched index document.
      */
     private static final Sort POPULATION_SORT = new Sort(new SortField[] {
-        SortField.FIELD_SCORE,
-        // new SortField(POPULATION.key(), SortField.Type.LONG, true)
-        new SortedNumericSortField(SORT_POP.key(), SortField.Type.LONG, true)
+    	SortField.FIELD_SCORE,
+    	// new SortField(POPULATION.key(), SortField.Type.LONG, true)	
+    	new SortedNumericSortField(SORT_POP.key(), SortField.Type.LONG, true)	
     });
 
     /**
@@ -197,9 +199,7 @@ public class LuceneGazetteer implements Gazetteer {
         }
 
         LocationOccurrence location = query.getOccurrence();
-        //int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
-        int maxResults = 5; //TODO - maxResults
-        
+        int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
         
         List<ResolvedLocation> matches;
         try {
@@ -254,27 +254,16 @@ public class LuceneGazetteer implements Gazetteer {
 			final AncestryMode ancestryMode, final List<ResolvedLocation> previousResults) 
 			throws ParseException, IOException {
     	
-        Query aQuery = new AnalyzingQueryParser(INDEX_NAME.key(), INDEX_ANALYZER)
-                .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
-        
-        BooleanQuery cQuery = null;
-        
-        //TODO -- REMOVE
-        if (sanitizedName.equalsIgnoreCase("bostn")) {
-        	System.out.println("here");
-        	
-        } else {
-            Builder compositeQueryBldr = buildFilters(gQuery);
-            compositeQueryBldr.add(aQuery, Occur.MUST);
-            //compositeQueryBldr.setDisableCoord(fuzzy); //TODO - disable Similarity
-            cQuery = compositeQueryBldr.build();
-        	
-        }
-        
+    	Query aQuery = null;
+    	
+   		aQuery = new AnalyzingQueryParser(INDEX_NAME.key(), INDEX_ANALYZER)
+                   .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
 
-        
-
-        
+   		BooleanQuery cQuery = null;
+        Builder compositeQueryBldr = buildFilters(gQuery);
+        compositeQueryBldr.add(aQuery, Occur.MUST);
+        cQuery = compositeQueryBldr.build();
+                
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
 
         Map<Integer, Set<GeoName>> parentMap = new HashMap<Integer, Set<GeoName>>();
@@ -306,21 +295,13 @@ public class LuceneGazetteer implements Gazetteer {
             // on Lucene match score and population for the associated
             // GeoNames record
         	
-        	//TODO - Remove conditional
         	TopDocs results = null;
-        	if (cQuery == null) {
-        		results = indexSearcher.searchAfter(lastDoc, aQuery, maxResults, POPULATION_SORT); //maxResults
-        		if (results.totalHits != 0) {
-	        		Explanation exp = indexSearcher.explain(aQuery, results.scoreDocs[0].doc);
-	        		exp = indexSearcher.explain(aQuery, results.scoreDocs[4].doc);
-	        		System.out.println("hello");
-        		}
-        	} else {
         		results = indexSearcher.searchAfter(lastDoc, cQuery, maxResults, POPULATION_SORT); //maxResults
-        	}
         	
-            
-        	
+        	//Save for reference; performing an explanation on 
+        	//Explanation exp = indexSearcher.explain(aQuery, results.scoreDocs[0].doc);
+        	//exp = indexSearcher.explain(aQuery, results.scoreDocs[4].doc);
+        		
         	// set lastDoc to null so we don't infinite loop if results is empty
             lastDoc = null;
             // populate results if matches were discovered
@@ -340,9 +321,9 @@ public class LuceneGazetteer implements Gazetteer {
                     continue;
                 }
 
-                System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName() + ": " + geoname.getPopulation());
-                //TODO - print
-                           
+                // testing printline to see what was matched from lucene
+                //System.out.println(sanitizedName + ": " + scoreDoc.toString() + ": " + geoname.getAsciiName() + ": " + geoname.getPopulation());
+                
                 String matchedName = INDEX_NAME.getValue(doc);
                 if (!geoname.isAncestryResolved()) {
                     IndexableField parentIdField = doc.getField(IndexField.PARENT_ID.key());
