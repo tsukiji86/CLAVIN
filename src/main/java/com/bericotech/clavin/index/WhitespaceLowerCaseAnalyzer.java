@@ -3,10 +3,10 @@ package com.bericotech.clavin.index;
 import java.io.Reader;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.Tokenizer;
-import org.apache.lucene.analysis.core.LowerCaseFilter;
-import org.apache.lucene.analysis.core.WhitespaceTokenizer;
+//import org.apache.lucene.analysis.TokenStream;
+//import org.apache.lucene.analysis.Tokenizer;
+//import org.apache.lucene.analysis.core.LowerCaseFilter;
+//import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.util.Version;
 
 /*#####################################################################
@@ -44,7 +44,7 @@ import org.apache.lucene.util.Version;
  */
 public class WhitespaceLowerCaseAnalyzer extends Analyzer {
     
-    private final static Version matchVersion = Version.LUCENE_5_4_0;
+    private final static Version matchVersion = Version.LUCENE_6_2_0;
     private Reader reader = null;
     
     /**
@@ -79,7 +79,7 @@ public class WhitespaceLowerCaseAnalyzer extends Analyzer {
      * @param fieldName     field to be tokenized
      */    
 	@Override
-	protected TokenStreamComponents createComponents(String arg0) {
+	protected TokenStreamComponents createComponents(String fieldName) {
 		return new TokenStreamComponents(new WhitespaceLowerCaseTokenizer(matchVersion, reader));
 		
 	}

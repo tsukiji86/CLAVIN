@@ -283,9 +283,11 @@ public enum CountryCode {
     ZA("South Africa", 953987),
     ZM("Zambia", 895949),
     ZW("Zimbabwe", 878675),
+    
     CS("Serbia and Montenegro", GeoName.OUT_OF_BOUNDS), // no longer exists
     AN("Netherlands Antilles", GeoName.OUT_OF_BOUNDS), // no longer exists
-
+    YU("Federal Republic of Yugoslavia", GeoName.OUT_OF_BOUNDS), // no longer exists
+    
     // manually added for locations not assigned to a specific country
     NULL("No Man's Land", GeoName.OUT_OF_BOUNDS);
 

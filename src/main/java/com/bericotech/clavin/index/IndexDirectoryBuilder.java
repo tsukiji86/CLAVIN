@@ -39,8 +39,11 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.IntField;
-import org.apache.lucene.document.LongField;
+//import org.apache.lucene.document.IntField;
+//import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
@@ -87,6 +90,7 @@ import org.slf4j.LoggerFactory;
  * This program is run one-time before CLAVIN can be used.
  *
  */
+@SuppressWarnings("deprecation")
 public class IndexDirectoryBuilder {
     private final static Logger LOG = LoggerFactory.getLogger(IndexDirectoryBuilder.class);
     private static final String HELP_OPTION = "help";
@@ -122,8 +126,7 @@ public class IndexDirectoryBuilder {
     	LONG_FIELD_TYPE_STORED_SORTED.setTokenized(false);
     	LONG_FIELD_TYPE_STORED_SORTED.setOmitNorms(true);
     	LONG_FIELD_TYPE_STORED_SORTED.setIndexOptions(IndexOptions.DOCS);
-    	LONG_FIELD_TYPE_STORED_SORTED
-            .setNumericType(FieldType.NumericType.LONG);
+    	//LONG_FIELD_TYPE_STORED_SORTED.setNumericType(FieldType.LegacyNumericType.LONG); //.NumericType.LONG);
     	LONG_FIELD_TYPE_STORED_SORTED.setStored(true);
     	LONG_FIELD_TYPE_STORED_SORTED.setDocValuesType(DocValuesType.NUMERIC);
     	LONG_FIELD_TYPE_STORED_SORTED.freeze();
@@ -169,8 +172,12 @@ public class IndexDirectoryBuilder {
                     resolveAncestry(geoName);
                 } catch (IOException e) {
                     LOG.info("Skipping... Error on line: {}", line);
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
                 } catch (RuntimeException re) {
                     LOG.info("Skipping... Error on line: {}", line);
+                    System.out.println(re.getMessage());
+                    re.printStackTrace();
                 }
             }
             reader.close();
@@ -412,50 +419,95 @@ public class IndexDirectoryBuilder {
         // reuse a single Document and field instances
         Document doc = new Document();
         doc.add(new StoredField(GEONAME.key(), fullAncestry ? geoName.getGazetteerRecordWithAncestry() : geoName.getGazetteerRecord()));
-        doc.add(new IntField(GEONAME_ID.key(), geoName.getGeonameID(), Field.Store.YES));
+        
+        //Add GeonameID for QUERY, SORT, and RETRIEVAL
+        doc.add(new IntPoint(GEONAME_ID.key(), geoName.getGeonameID()));
+        doc.add(new NumericDocValuesField(GEONAME_ID.key(), geoName.getGeonameID()));
+        doc.add(new StoredField(GEONAME_ID.key(), geoName.getGeonameID()));
+        //legacy: doc.add(new IntField(GEONAME_ID.key(), geoName.getGeonameID(), Field.Store.YES));
+        
+        
         // if the alternate names file was loaded and we found a preferred name for this GeoName, store it
         if (preferredName != null) {
             doc.add(new StoredField(PREFERRED_NAME.key(), preferredName.name));
         }
+        
         // index the direct parent ID in the PARENT_ID field
         GeoName parent = geoName.getParent();
         if (parent != null) {
-            doc.add(new IntField(PARENT_ID.key(), parent.getGeonameID(), Field.Store.YES));
+            
+            //Add PARENT_ID.key() for QUERY, SORT, and RETRIEVAL
+            doc.add(new IntPoint(PARENT_ID.key(), parent.getGeonameID()));
+            doc.add(new NumericDocValuesField(PARENT_ID.key(), parent.getGeonameID()));
+            doc.add(new StoredField(PARENT_ID.key(), parent.getGeonameID()));
+            //legacy: doc.add(new IntField(PARENT_ID.key(), parent.getGeonameID(), Field.Store.YES));
+        
         }
+        
         // index all ancestor IDs in the ANCESTOR_IDS field; this is a secondary field
         // so it can be used to restrict searches and PARENT_ID can be used for ancestor
         // resolution
         while (parent != null) {
-            doc.add(new IntField(ANCESTOR_IDS.key(), parent.getGeonameID(), Field.Store.YES));
+            
+        	//Add ANCESTOR_IDS.key() for QUERY, SORT, and RETRIEVAL
+            doc.add(new IntPoint(ANCESTOR_IDS.key(), parent.getGeonameID()));
+            //doc.add(new NumericDocValuesField(ANCESTOR_IDS.key(), parent.getGeonameID()));
+            doc.add(new StoredField(ANCESTOR_IDS.key(), parent.getGeonameID()));
+            //legacy: doc.add(new IntField(ANCESTOR_IDS.key(), parent.getGeonameID(), Field.Store.YES));
+            
             parent = parent.getParent();
         }
-        doc.add(new LongField(POPULATION.key(), geoName.getPopulation(), Field.Store.YES));
+        
+        
+        //Add POPULATION.key() for QUERY, SORT, and RETRIEVAL
+        doc.add(new LongPoint(POPULATION.key(), geoName.getPopulation()));
+        doc.add(new NumericDocValuesField(POPULATION.key(), geoName.getPopulation()));
+        doc.add(new StoredField(POPULATION.key(), geoName.getPopulation()));        
+        //legacy: doc.add(new LongField(POPULATION.key(), geoName.getPopulation(), Field.Store.YES));
+        
+        
         // set up sort field based on population and geographic feature type
         if (geoName.getFeatureClass().equals(FeatureClass.P) || geoName.getFeatureCode().name().startsWith("PCL")) {
             if (geoName.getGeonameID() != 2643741) // todo: temporary hack until GeoNames.org fixes the population for City of London
                 // boost cities and countries when sorting results by population
-                doc.add(new LongField(SORT_POP.key(), geoName.getPopulation() * 11, LONG_FIELD_TYPE_STORED_SORTED));
+        
+                //Add SORT_POP.key() for QUERY, SORT, 
+                doc.add(new LongPoint(SORT_POP.key(), geoName.getPopulation() * 11));
+                doc.add(new NumericDocValuesField(SORT_POP.key(), geoName.getPopulation() * 11));
+                //doc.add(new StoredField(SORT_POP.key(), geoName.getPopulation()));              	
+            	//legacy: doc.add(new LongField(SORT_POP.key(), geoName.getPopulation() * 11, LONG_FIELD_TYPE_STORED_SORTED));
+        
         } else {
             // don't boost anything else, because people rarely talk about other stuff
             // (e.g., Washington State's population is more than 10x that of Washington, DC
             // but Washington, DC is mentioned far more frequently than Washington State)
-            doc.add(new LongField(SORT_POP.key(), geoName.getPopulation(), LONG_FIELD_TYPE_STORED_SORTED));
+            
+            //Add SORT_POP.key() for QUERY, SORT, 
+            doc.add(new LongPoint(SORT_POP.key(), geoName.getPopulation()));
+            doc.add(new NumericDocValuesField(SORT_POP.key(), geoName.getPopulation()));
+            //doc.add(new StoredField(SORT_POP.key(), geoName.getPopulation())); 
+        	//Legacy: doc.add(new LongField(SORT_POP.key(), geoName.getPopulation(), LONG_FIELD_TYPE_STORED_SORTED));
            
         }
                
-        doc.add(new IntField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical()), Field.Store.NO));
+        //Add HISTORICAL.key() for QUERY, SORT, and RETRIEVAL
+        doc.add(new IntPoint(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical())));
+        doc.add(new NumericDocValuesField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical())));
+        doc.add(new StoredField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical())));
+        //doc.add(new IntField(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical()), Field.Store.NO));
+        
         doc.add(new StringField(FEATURE_CODE.key(), geoName.getFeatureCode().name(), Field.Store.NO));
 
         // create a unique Document for each name of this GeoName
         TextField nameField = new TextField(INDEX_NAME.key(), "", Field.Store.YES);
-        //StringField stringField = new StringField(INDEX_STRING.key(), "", Field.Store.YES);
         doc.add(nameField);
-        //doc.add(stringField);
+        
+        //int i = 0;
         for (String name : names) {
             nameField.setStringValue(name);
             if (geoName.getPopulation() == 0) 
             	nameField.setBoost(-2.0f);
-            //stringField.setStringValue(name);
+            //System.out.println("count: " + i);
             indexWriter.addDocument(doc);
         }
     }
