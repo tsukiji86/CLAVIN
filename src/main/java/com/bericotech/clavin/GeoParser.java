@@ -98,6 +98,29 @@ public class GeoParser {
     }
 
     /**
+     * Takes a list of LocationOccurences(String location, int position)
+     * and resolves them into geographic entities representing the best
+     * match for those location names.
+     *
+     * This implementation of parse allows the user to choose which NLP library
+     * to extract place names.
+     *
+     * @param locationNames List<LocationOccurrence>
+     * @return              list of geo entities resolved from the LocationOccurences
+     * @throws Exception
+     */
+    public List<ResolvedLocation> parse(List<LocationOccurrence> locationNames) throws Exception {
+
+        long resolveStart = System.currentTimeMillis();
+        List<ResolvedLocation> resolvedLocations = resolver.resolveLocations(locationNames, maxHitDepth, maxContextWindow, fuzzy, ClavinLocationResolver.DEFAULT_ANCESTRY_MODE);
+        long resolveEnd = System.currentTimeMillis();
+
+        logger.trace("resolved: {}", resolvedLocations);
+        logger.debug("Resolver Time: {} ms", resolveEnd - resolveStart);
+
+        return resolvedLocations;
+    }
+    /**
      * Takes an unstructured text document (as a String), extracts the
      * location names contained therein, and resolves them into
      * geographic entities representing the best match for those

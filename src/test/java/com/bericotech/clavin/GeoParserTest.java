@@ -2,11 +2,15 @@ package com.bericotech.clavin;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
 
 import com.bericotech.clavin.resolver.ResolvedLocation;
+
+import com.bericotech.clavin.extractor.LocationOccurrence;
 
 /*#####################################################################
  *
@@ -74,6 +78,36 @@ public class GeoParserTest {
         assertEquals("Incorrect position of LocationOccurance", inputText.indexOf("United States"), resolvedLocations.get(0).getLocation().getPosition());
         assertEquals("Incorrect position of LocationOccurance", inputText.indexOf("Vermont"), resolvedLocations.get(1).getLocation().getPosition());
         assertEquals("Incorrect position of LocationOccurance", inputText.indexOf("Massachusetts"), resolvedLocations.get(2).getLocation().getPosition());
+    }
+
+    @Test
+    public void testParseLocationOccurrence() throws Exception {
+        // instantiate the CLAVIN GeoParser
+        GeoParser parser = GeoParserFactory.getDefault("./IndexDirectory");
+
+        // sample text to be geoparsed
+        String inputText = "Calvin Coolidge was the 30th president " +
+                "of the United States. He was born in Vermont and " +
+                "died in Massachusetts.";
+
+        LocationOccurrence loc1 = new LocationOccurrence("United States", 46);
+        LocationOccurrence loc2 = new LocationOccurrence("Vermont", 76);
+        LocationOccurrence loc3 = new LocationOccurrence("Massachusetts", 96);
+
+        List<LocationOccurrence> locations = new ArrayList<>(Arrays.asList(loc1, loc2, loc3));
+
+        // parse location names in the text into geographic entities
+        List<ResolvedLocation> resolvedLocations = parser.parse(locations);
+
+        // check the output
+        assertEquals("Wrong number of ResolvedLocations", 3, resolvedLocations.size());
+        assertEquals("Incorrect ResolvedLocation", UNITED_STATES, resolvedLocations.get(0).getGeoname().getGeonameID());
+        assertEquals("Incorrect ResolvedLocation", VERMONT, resolvedLocations.get(1).getGeoname().getGeonameID());
+        assertEquals("Incorrect ResolvedLocation", MASSACHUSETTS, resolvedLocations.get(2).getGeoname().getGeonameID());
+        assertEquals("Incorrect position of LocationOccurance", inputText.indexOf("United States"), resolvedLocations.get(0).getLocation().getPosition());
+        assertEquals("Incorrect position of LocationOccurance", inputText.indexOf("Vermont"), resolvedLocations.get(1).getLocation().getPosition());
+        assertEquals("Incorrect position of LocationOccurance", inputText.indexOf("Massachusetts"), resolvedLocations.get(2).getLocation().getPosition());
+
     }
 
 }
