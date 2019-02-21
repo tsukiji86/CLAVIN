@@ -55,25 +55,15 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Filter;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.NumericRangeQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.QueryWrapperFilter;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +128,7 @@ public class LuceneGazetteer implements Gazetteer {
     public LuceneGazetteer(final File indexDir) throws ClavinException {
         try {
         // load the Lucene index directory from disk
-        index = FSDirectory.open(indexDir);
+        index = FSDirectory.open(indexDir.toPath());
 
         indexSearcher = new IndexSearcher(DirectoryReader.open(index));
 
@@ -148,8 +138,8 @@ public class LuceneGazetteer implements Gazetteer {
         // run an initial throw-away query just to "prime the pump" for
         // the cache, so we can accurately measure performance speed
         // per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
-        indexSearcher.search(new AnalyzingQueryParser(Version.LUCENE_4_9, INDEX_NAME.key(),
-                INDEX_ANALYZER).parse("Reston"), null, DEFAULT_MAX_RESULTS, POPULATION_SORT);
+        indexSearcher.search(new QueryParser(INDEX_NAME.key(), INDEX_ANALYZER)
+                .Query("Reston"), DEFAULT_MAX_RESULTS, POPULATION_SORT);
         } catch (ParseException pe) {
             throw new ClavinException("Error executing priming query.", pe);
         } catch (IOException ioe) {
@@ -178,7 +168,7 @@ public class LuceneGazetteer implements Gazetteer {
 
         LocationOccurrence location = query.getOccurrence();
         int maxResults = query.getMaxResults() > 0 ? query.getMaxResults() : DEFAULT_MAX_RESULTS;
-        Filter filter = buildFilter(query);
+        Query filter = buildFilter(query);
         List<ResolvedLocation> matches;
         try {
             // attempt to find an exact match for the query
@@ -227,11 +217,14 @@ public class LuceneGazetteer implements Gazetteer {
      * @throws ParseException if an error occurs generating the query
      * @throws IOException if an error occurs executing the query
      */
-    private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final String sanitizedName, final Filter filter,
+    private List<ResolvedLocation> executeQuery(final LocationOccurrence location, final String sanitizedName, final Query filter,
             final int maxResults, final boolean fuzzy, final boolean dedupe, final AncestryMode ancestryMode,
             final List<ResolvedLocation> previousResults) throws ParseException, IOException {
-        Query query = new AnalyzingQueryParser(Version.LUCENE_4_9, INDEX_NAME.key(), INDEX_ANALYZER)
-                .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName));
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        builder.add(new QueryParser(INDEX_NAME.key(), INDEX_ANALYZER)
+                .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName)), Occur.MUST);
+        builder.add(filter, Occur.FILTER);
+        BooleanQuery query = builder.build();
 
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
 
@@ -263,7 +256,7 @@ public class LuceneGazetteer implements Gazetteer {
             // collect all the hits up to maxResults, and sort them based
             // on Lucene match score and population for the associated
             // GeoNames record
-            TopDocs results = indexSearcher.searchAfter(lastDoc, query, filter, maxResults, POPULATION_SORT);
+            TopDocs results = indexSearcher.searchAfter(lastDoc, query, maxResults, POPULATION_SORT);
             // set lastDoc to null so we don't infinite loop if results is empty
             lastDoc = null;
             // populate results if matches were discovered
@@ -346,46 +339,34 @@ public class LuceneGazetteer implements Gazetteer {
      * @return a Lucene search filter that will restrict the returned documents to the criteria provided or <code>null</code>
      *         if no filtering is necessary
      */
-    private Filter buildFilter(final GazetteerQuery params) {
-        List<Query> queryParts = new ArrayList<Query>();
+    private Query buildFilter(final GazetteerQuery params) {
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
         // create the historical locations restriction if we are not including historical locations
         if (!params.isIncludeHistorical()) {
             int val = IndexField.getBooleanIndexValue(false);
-            queryParts.add(NumericRangeQuery.newIntRange(HISTORICAL.key(), val, val, true, true));
+            builder.add(IntPoint.newExactQuery(HISTORICAL.key(), val), Occur.SHOULD);
         }
 
         // create the parent ID restrictions if we were provided at least one parent ID
         Set<Integer> parentIds = params.getParentIds();
         if (!parentIds.isEmpty()) {
-            BooleanQuery parentQuery = new BooleanQuery();
             // locations must descend from at least one of the specified parents (OR)
             for (Integer id : parentIds) {
-                parentQuery.add(NumericRangeQuery.newIntRange(ANCESTOR_IDS.key(), id, id, true, true), Occur.SHOULD);
+                builder.add(IntPoint.newExactQuery(ANCESTOR_IDS.key(), id), Occur.SHOULD);
             }
-            queryParts.add(parentQuery);
         }
 
         // create the feature code restrictions if we were provided some, but not all, feature codes
         Set<FeatureCode> codes = params.getFeatureCodes();
         if (!(codes.isEmpty() || ALL_CODES.equals(codes))) {
-            BooleanQuery codeQuery = new BooleanQuery();
             // locations must be one of the specified feature codes (OR)
             for (FeatureCode code : codes) {
-                codeQuery.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.SHOULD);
+                builder.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.SHOULD);
             }
-            queryParts.add(codeQuery);
         }
 
-        Filter filter = null;
-        if (!queryParts.isEmpty()) {
-            BooleanQuery bq = new BooleanQuery();
-            for (Query part : queryParts) {
-                bq.add(part, Occur.MUST);
-            }
-            filter = new QueryWrapperFilter(bq);
-        }
-        return filter;
+        return builder.build();
     }
 
     /**
@@ -398,8 +379,8 @@ public class LuceneGazetteer implements Gazetteer {
         Map<Integer, Set<GeoName>> grandParentMap = new HashMap<Integer, Set<GeoName>>();
         for (Integer parentId : childMap.keySet()) {
             // Lucene query used to look for exact match on the "geonameID" field
-            Query q = NumericRangeQuery.newIntRange(GEONAME_ID.key(), parentId, parentId, true, true);
-            TopDocs results = indexSearcher.search(q, null, 1, POPULATION_SORT);
+            Query q = IntPoint.newExactQuery(GEONAME_ID.key(), parentId);
+            TopDocs results = indexSearcher.search(q,1, POPULATION_SORT);
             if (results.scoreDocs.length > 0) {
                 Document doc = indexSearcher.doc(results.scoreDocs[0].doc);
                 GeoName parent = BasicGeoName.parseFromGeoNamesRecord(doc.get(GEONAME.key()), doc.get(PREFERRED_NAME.key()));
@@ -448,7 +429,7 @@ public class LuceneGazetteer implements Gazetteer {
         try {
             GeoName geoName = null;
             // Lucene query used to look for exact match on the "geonameID" field
-            Query q = NumericRangeQuery.newIntRange(GEONAME_ID.key(), geonameId, geonameId, true, true);
+            Query q = IntPoint.newExactQuery(GEONAME_ID.key(), geonameId);
             // retrieve only one matching document
             TopDocs results = indexSearcher.search(q, 1);
             if (results.scoreDocs.length > 0) {
