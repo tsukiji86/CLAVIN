@@ -1,9 +1,6 @@
 package com.bericotech.clavin.index;
 
-import java.io.Reader;
-
 import org.apache.lucene.analysis.util.CharTokenizer;
-import org.apache.lucene.util.Version;
 
 /*#####################################################################
  * 
