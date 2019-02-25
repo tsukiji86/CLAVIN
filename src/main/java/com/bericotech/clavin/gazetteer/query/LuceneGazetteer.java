@@ -87,11 +87,8 @@ public class LuceneGazetteer implements Gazetteer {
      * population of the GeoNames gazetteer entry represented by the
      * matched index document.
      */
-    private static final Sort POPULATION_SORT = new Sort(new SortField[] {
-        SortField.FIELD_SCORE,
-        // new SortField(POPULATION.key(), SortField.Type.LONG, true)
-        new SortField(SORT_POP.key(), SortField.Type.LONG, true)
-    });
+    private static final Sort POPULATION_SORT = new Sort(SortField.FIELD_SCORE,
+        new SortedNumericSortField(SORT_POP.key(), SortField.Type.LONG, true));
 
     /**
      * The default number of results to return.
@@ -139,7 +136,7 @@ public class LuceneGazetteer implements Gazetteer {
         // the cache, so we can accurately measure performance speed
         // per: http://wiki.apache.org/lucene-java/ImproveSearchingSpeed
         indexSearcher.search(new QueryParser(INDEX_NAME.key(), INDEX_ANALYZER)
-                .Query("Reston"), DEFAULT_MAX_RESULTS, POPULATION_SORT);
+                .parse("Reston"), DEFAULT_MAX_RESULTS, POPULATION_SORT);
         } catch (ParseException pe) {
             throw new ClavinException("Error executing priming query.", pe);
         } catch (IOException ioe) {
@@ -223,7 +220,8 @@ public class LuceneGazetteer implements Gazetteer {
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         builder.add(new QueryParser(INDEX_NAME.key(), INDEX_ANALYZER)
                 .parse(String.format(fuzzy ? FUZZY_FMT : EXACT_MATCH_FMT, sanitizedName)), Occur.MUST);
-        builder.add(filter, Occur.FILTER);
+        if(!filter.toString().isEmpty())
+            builder.add(filter, Occur.FILTER);
         BooleanQuery query = builder.build();
 
         List<ResolvedLocation> matches = new ArrayList<ResolvedLocation>(maxResults);
@@ -345,25 +343,29 @@ public class LuceneGazetteer implements Gazetteer {
         // create the historical locations restriction if we are not including historical locations
         if (!params.isIncludeHistorical()) {
             int val = IndexField.getBooleanIndexValue(false);
-            builder.add(IntPoint.newExactQuery(HISTORICAL.key(), val), Occur.SHOULD);
+            builder.add(IntPoint.newExactQuery(HISTORICAL.key(), val), Occur.MUST);
         }
 
         // create the parent ID restrictions if we were provided at least one parent ID
         Set<Integer> parentIds = params.getParentIds();
         if (!parentIds.isEmpty()) {
+            BooleanQuery.Builder parentQuery = new BooleanQuery.Builder();
             // locations must descend from at least one of the specified parents (OR)
             for (Integer id : parentIds) {
-                builder.add(IntPoint.newExactQuery(ANCESTOR_IDS.key(), id), Occur.SHOULD);
+                parentQuery.add(IntPoint.newExactQuery(ANCESTOR_IDS.key(), id), Occur.SHOULD);
             }
+            builder.add(parentQuery.build(), Occur.MUST);
         }
 
         // create the feature code restrictions if we were provided some, but not all, feature codes
         Set<FeatureCode> codes = params.getFeatureCodes();
         if (!(codes.isEmpty() || ALL_CODES.equals(codes))) {
+            BooleanQuery.Builder codeQuery = new BooleanQuery.Builder();
             // locations must be one of the specified feature codes (OR)
             for (FeatureCode code : codes) {
-                builder.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.SHOULD);
+                codeQuery.add(new TermQuery(new Term(FEATURE_CODE.key(), code.name())), Occur.SHOULD);
             }
+            builder.add(codeQuery.build(), Occur.MUST);
         }
 
         return builder.build();

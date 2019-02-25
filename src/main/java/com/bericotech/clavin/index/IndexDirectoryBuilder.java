@@ -420,14 +420,14 @@ public class IndexDirectoryBuilder {
             {
                 // boost cities and countries when sorting results by population
                 doc.add(new LongPoint(SORT_POP.key(), geoName.getPopulation() * 11));
-                doc.add(new NumericDocValuesField(SORT_POP.key(), geoName.getPopulation() * 11));
+                doc.add(new SortedNumericDocValuesField(SORT_POP.key(), geoName.getPopulation() * 11));
             }
         } else {
             // don't boost anything else, because people rarely talk about other stuff
             // (e.g., Washington State's population is more than 10x that of Washington, DC
             // but Washington, DC is mentioned far more frequently than Washington State)
             doc.add(new LongPoint(SORT_POP.key(), geoName.getPopulation()));
-            doc.add(new NumericDocValuesField(SORT_POP.key(), geoName.getPopulation()));
+            doc.add(new SortedNumericDocValuesField(SORT_POP.key(), geoName.getPopulation()));
         }
         doc.add(new IntPoint(HISTORICAL.key(), IndexField.getBooleanIndexValue(geoName.getFeatureCode().isHistorical())));
         doc.add(new StringField(FEATURE_CODE.key(), geoName.getFeatureCode().name(), Field.Store.NO));
